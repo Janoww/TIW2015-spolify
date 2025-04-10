@@ -4,8 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import it.polimi.tiw.projects.beans.*;
 
+import it.polimi.tiw.projects.beans.User;
 
 public class UserDAO {
 	private Connection connection;

@@ -28,6 +28,7 @@ CREATE TABLE `Album` (
   `idAlbum` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `year` int NOT NULL,
+  `artist` varchar(100) NOT NULL,
   PRIMARY KEY (`idAlbum`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -53,6 +54,7 @@ CREATE TABLE `Song` (
   `title` varchar(100) NOT NULL,
   `image` varchar(255) DEFAULT NULL,
   `idAlbum` int NOT NULL,
+  `year` int NOT NULL,
   `genre` varchar(100) DEFAULT NULL,
   `audioFile` varchar(255) NOT NULL,
   `idUser` int NOT NULL,
@@ -164,4 +166,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-10 16:21:15
+-- Dump completed on 2025-04-10 18:06:39
