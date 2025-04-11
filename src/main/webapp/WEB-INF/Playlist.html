@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th= "http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title th:text="${playlist.name}">Hit-Estive-2015</title>
+</head>
+<body>
+<h1 th:text="${playlist.name}">Hit-Estive-2015</h1>
+
+
+<table>
+<tr>
+<td><p>We No Speak Americano</p><img src="" alt="IDK"></td>
+<td><p>Oye Baby</p><img src="" alt="IDK"></td>
+<td><p>Hey Hey</p><img src="" alt="IDK"></td>
+<td><p>Waka Waka</p><img src="" alt="IDK"></td>
+<td><p>Alejandro</p><img src="" alt="IDK"></td>
+</tr>
+</table>
+
+<button> &lt Precedenti</button><button> &gt Successivi</button>
+
+<form action="addSong" metod=POST>
+	<fieldset>
+	<legend>Add songs to the playlist:</legend>
+	
+		<p> <label for="songsSelect">Choose the songs:</label> </p>
+		
+		<select name="songsSelect" id="songsSelect" multiple required>
+		  <option 	th:remove="all-but-first"
+		  			th:each="song : ${songs}"
+		  			th:value="${song.id}"
+		  			th:text="${song.title}"
+		  			></option>
+			<option value="0001">See You Again</option>
+			<option value="0002">Never Gonna Give You UP</option>
+			<option value="0003">All Star</option>
+			<option value="0004">Despacito</option>
+			<option value="0005">Volare</option>
+			<option value="0006">Boom Baby</option>
+			<option value="0007">Tanti auguri a te</option>
+			<option value="0008">Happy Birthday to you</option>
+			<option value="0009">Thriller</option>
+			<option value="0010">Bando</option>
+		</select>
+		
+		<p> Hold "cmd" to select multiple songs </p>
+		<p> <input type="submit" value="Add to Playlist"> </p>
+	</fieldset>
+
+</form>
+
+
+
+
+
+</body>
+</html>
