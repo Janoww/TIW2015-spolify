@@ -2,7 +2,7 @@ package it.polimi.tiw.projects.beans;
 
 import java.util.List;
 
-public class PlaylistList {
+public class Playlist {
 
     private int idPlaylist;
     private String name;
