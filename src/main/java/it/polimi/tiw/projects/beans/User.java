@@ -2,17 +2,17 @@ package it.polimi.tiw.projects.beans;
 
 public class User {
 
-	private int userId;
+	private int idUser;
 	private String username;
 	private String name;
 	private String surname;
 
-	public int getId() {
-		return userId;
+	public int getIdUser() {
+		return idUser;
 	}
 
-	public void setId(int id) {
-		this.userId = id;
+	public void setIdUser(int idUser) {
+		this.idUser = idUser;
 	}
 
 	public String getUsername() {
