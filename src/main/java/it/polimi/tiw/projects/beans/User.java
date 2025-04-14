@@ -1,17 +1,19 @@
 package it.polimi.tiw.projects.beans;
 
+import java.util.UUID;
+
 public class User {
 
-	private int idUser;
+	private UUID idUser;
 	private String username;
 	private String name;
 	private String surname;
 
-	public int getIdUser() {
+	public UUID getIdUser() {
 		return idUser;
 	}
 
-	public void setIdUser(int idUser) {
+	public void setIdUser(UUID idUser) {
 		this.idUser = idUser;
 	}
 

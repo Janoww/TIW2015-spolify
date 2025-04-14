@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -42,7 +43,7 @@ public class UserDAOTest {
     public void setUpClass() throws SQLException {
         try {
             // Ensure MySQL driver is loaded (often automatic, but good practice)
-            Class.forName("com.mysql.cj.jdbc.Driver"); // Uncommented driver loading
+            Class.forName("com.mysql.cj.jdbc.Driver");
 
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             // Disable auto-commit to manage transactions manually for tests
@@ -163,7 +164,7 @@ public class UserDAOTest {
         assertEquals(TEST_USERNAME, user.getUsername());
         assertEquals(TEST_NAME, user.getName());
         assertEquals(TEST_SURNAME, user.getSurname());
-        assertTrue(user.getIdUser() > 0, "User ID should be positive.");
+        assertNotNull(user.getIdUser(), "User ID (UUID) should not be null."); // Check for non-null UUID
     }
 
     @Test
@@ -202,7 +203,7 @@ public class UserDAOTest {
 
         User userToModify = userDAO.checkCredentials(TEST_USERNAME, TEST_PASSWORD);
         assertNotNull(userToModify, "Failed to retrieve user before modification.");
-        int originalId = userToModify.getIdUser(); // Store ID for verification
+        UUID originalId = userToModify.getIdUser(); // Store UUID for verification
 
         assertDoesNotThrow(() -> {
             userDAO.modifyUser(userToModify, TEST_NAME_MODIFIED, TEST_SURNAME_MODIFIED);
