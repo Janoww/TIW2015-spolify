@@ -2,7 +2,9 @@ package it.polimi.tiw.projects.exceptions;
 
 public class DAOException extends Exception {
 
-    public enum DAOErrorType {
+    private static final long serialVersionUID = 1L;
+
+	public enum DAOErrorType {
         USERNAME_ALREADY_EXISTS,
         INVALID_CREDENTIALS,
         GENERIC_ERROR // For other potential DAO errors
