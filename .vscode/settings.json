@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "jdbc",
         "polimi"
     ],
     "sqltools.connections": [
@@ -13,7 +14,7 @@
             "port": 3306,
             "driver": "MySQL",
             "name": "TIw",
-            "database": "TIW project",
+            "database": "TIW2025",
             "username": "tiw"
         }
     ]

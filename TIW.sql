@@ -1,10 +1,10 @@
-CREATE DATABASE  IF NOT EXISTS `TIW project` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `TIW project`;
--- MySQL dump 10.13  Distrib 8.0.40, for Linux (x86_64)
+CREATE DATABASE  IF NOT EXISTS `TIW2025` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `TIW2025`;
+-- MySQL dump 10.13  Distrib 8.0.41, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: TIW project
+-- Host: 127.0.0.1    Database: TIW2025
 -- ------------------------------------------------------
--- Server version	8.0.40
+-- Server version	8.0.41-0ubuntu0.24.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -50,7 +50,7 @@ DROP TABLE IF EXISTS `Song`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `Song` (
-  `idSong` int NOT NULL,
+  `idSong` int NOT NULL AUTO_INCREMENT,
   `title` varchar(100) NOT NULL,
   `image` varchar(255) DEFAULT NULL,
   `idAlbum` int NOT NULL,
@@ -60,9 +60,9 @@ CREATE TABLE `Song` (
   `idUser` int NOT NULL,
   PRIMARY KEY (`idSong`),
   KEY `fk_idUser_idx` (`idUser`),
-  KEY `fk_idAlbumSong_idx` (`idAlbum`),
-  CONSTRAINT `fk_idAlbumSong` FOREIGN KEY (`idAlbum`) REFERENCES `Album` (`idAlbum`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_idUserSong` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`)
+  KEY `fk_Song_2_idx` (`idAlbum`),
+  CONSTRAINT `fk_Song_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_Song_2` FOREIGN KEY (`idAlbum`) REFERENCES `Album` (`idAlbum`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -83,7 +83,7 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `User` (
-  `idUser` int NOT NULL,
+  `idUser` int NOT NULL AUTO_INCREMENT,
   `username` varchar(100) NOT NULL,
   `password` char(100) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
@@ -114,10 +114,10 @@ CREATE TABLE `playlist-content` (
   `idPlaylist` int NOT NULL,
   `idSong` int NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `fk_playlist-content_1_idx` (`idPlaylist`),
-  KEY `fk_idSongPlaylist_idx` (`idSong`),
-  CONSTRAINT `fk_idPlaylist` FOREIGN KEY (`idPlaylist`) REFERENCES `playlist-list` (`idPlaylist`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_idSongPlaylist` FOREIGN KEY (`idSong`) REFERENCES `Song` (`idSong`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `fk_playlist-content_1_idx` (`idSong`),
+  KEY `fk_playlist-content_2_idx` (`idPlaylist`),
+  CONSTRAINT `fk_playlist-content_1` FOREIGN KEY (`idSong`) REFERENCES `Song` (`idSong`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_playlist-content_2` FOREIGN KEY (`idPlaylist`) REFERENCES `playlist-list` (`idPlaylist`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -138,13 +138,13 @@ DROP TABLE IF EXISTS `playlist-list`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `playlist-list` (
-  `idPlaylist` int NOT NULL,
+  `idPlaylist` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `birthday` varchar(100) NOT NULL,
   `idUser` int NOT NULL,
   PRIMARY KEY (`idPlaylist`),
   KEY `fk_playlist-list_1_idx` (`idUser`),
-  CONSTRAINT `fk_idUser` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_playlist-list_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -166,4 +166,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-10 18:06:39
+-- Dump completed on 2025-04-14  2:31:26
