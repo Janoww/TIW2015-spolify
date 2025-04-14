@@ -52,7 +52,6 @@ DROP TABLE IF EXISTS `Song`;
 CREATE TABLE `Song` (
   `idSong` int NOT NULL AUTO_INCREMENT,
   `title` varchar(100) NOT NULL,
-  `image` varchar(255) DEFAULT NULL,
   `idAlbum` int NOT NULL,
   `year` int NOT NULL,
   `genre` varchar(100) DEFAULT NULL,
@@ -141,6 +140,7 @@ CREATE TABLE `playlist-list` (
   `idPlaylist` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `birthday` varchar(100) NOT NULL,
+  `image` varchar(255) DEFAULT NULL,
   `idUser` binary(16) NOT NULL,
   PRIMARY KEY (`idPlaylist`),
   KEY `fk_playlist-list_1_idx` (`idUser`),
@@ -166,4 +166,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-14 13:37:34
+-- Dump completed on 2025-04-15  1:41:36
