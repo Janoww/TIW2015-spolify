@@ -16,10 +16,8 @@ public class UserDAO {
 	}
 
 	public void createUser(String username, String pwd, String name, String surname) throws SQLException, DAOException {
-		String insertQuery = "INSERT INTO User (username, password, name, surname) VALUES (?, ?, ?, ?)"; // Corrected
-																											// table
-																											// name case
-		String checkExistence = "SELECT * FROM User WHERE username = ?"; // Corrected table name case
+		String insertQuery = "INSERT INTO User (username, password, name, surname) VALUES (?, ?, ?, ?)";
+		String checkExistence = "SELECT * FROM User WHERE username = ?";
 		try (PreparedStatement checkStatement = connection.prepareStatement(checkExistence);
 				PreparedStatement insertStatement = connection.prepareStatement(insertQuery);) {
 			checkStatement.setString(1, username);
@@ -38,11 +36,8 @@ public class UserDAO {
 	}
 
 	public User checkCredentials(String username, String pwd) throws SQLException, DAOException {
-		String query = "SELECT  idUser, username, name, surname FROM User  WHERE username = ? AND password =?"; // Corrected
-																												// table
-																												// name
-																												// case
-		try (PreparedStatement pStatement = connection.prepareStatement(query);) { // Sanitized
+		String query = "SELECT  idUser, username, name, surname FROM User  WHERE username = ? AND password =?";
+		try (PreparedStatement pStatement = connection.prepareStatement(query);) {
 			pStatement.setString(1, username);
 			pStatement.setString(2, pwd);
 			try (ResultSet result = pStatement.executeQuery();) {
@@ -61,7 +56,7 @@ public class UserDAO {
 	}
 
 	public void modifyUser(User user, String name, String surname) throws SQLException, DAOException {
-		String query = "UPDATE User SET name = ?, surname = ? WHERE idUser = ?"; // Corrected table name case
+		String query = "UPDATE User SET name = ?, surname = ? WHERE idUser = ?";
 
 		if (name == null)
 			name = user.getName();

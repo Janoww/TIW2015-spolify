@@ -48,8 +48,7 @@ public class UserDAOTest {
             // Disable auto-commit to manage transactions manually for tests
             connection.setAutoCommit(false);
             userDAO = new UserDAO(connection);
-            System.out.println("Database connection established for tests (DB: " + DB_URL + ")."); // Corrected log
-                                                                                                   // message
+            System.out.println("Database connection established for tests (DB: " + DB_URL + ").");
 
         } catch (ClassNotFoundException e) { // Added catch block for ClassNotFoundException
             System.err.println("MySQL JDBC Driver not found: " + e.getMessage());
@@ -172,9 +171,7 @@ public class UserDAOTest {
     public void testCheckCredentials_InvalidUsername() {
         // Ensure no user with TEST_USERNAME exists (handled by BeforeEach/AfterEach)
         DAOException exception = assertThrows(DAOException.class, () -> {
-            userDAO.checkCredentials("nonexistentuser" + System.currentTimeMillis(), TEST_PASSWORD); // Unique
-                                                                                                     // non-existent
-                                                                                                     // user
+            userDAO.checkCredentials("nonexistentuser" + System.currentTimeMillis(), TEST_PASSWORD);
         }, "Checking credentials for non-existent user should throw DAOException.");
 
         assertEquals("Invalid credentials", exception.getMessage());
@@ -190,8 +187,7 @@ public class UserDAOTest {
 
         // Check with wrong password
         DAOException exception = assertThrows(DAOException.class, () -> {
-            userDAO.checkCredentials(TEST_USERNAME, "wrongpassword" + System.currentTimeMillis()); // Unique wrong
-                                                                                                   // password
+            userDAO.checkCredentials(TEST_USERNAME, "wrongpassword" + System.currentTimeMillis());
         }, "Checking credentials with wrong password should throw DAOException.");
 
         assertEquals("Invalid credentials", exception.getMessage());
@@ -213,8 +209,7 @@ public class UserDAOTest {
             // Don't commit yet, verify within the same transaction first
         }, "Modification method call should not throw an exception.");
 
-        User modifiedUserCheck1 = userDAO.checkCredentials(TEST_USERNAME, TEST_PASSWORD); // Use checkCredentials to get
-                                                                                          // potentially updated info
+        User modifiedUserCheck1 = userDAO.checkCredentials(TEST_USERNAME, TEST_PASSWORD);
         assertNotNull(modifiedUserCheck1, "Failed to retrieve user immediately after modification.");
         assertEquals(TEST_NAME_MODIFIED, modifiedUserCheck1.getName(), "Name should be updated immediately.");
         assertEquals(TEST_SURNAME_MODIFIED, modifiedUserCheck1.getSurname(), "Surname should be updated immediately.");
