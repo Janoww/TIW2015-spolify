@@ -57,10 +57,10 @@ CREATE TABLE `Song` (
   `year` int NOT NULL,
   `genre` varchar(100) DEFAULT NULL,
   `audioFile` varchar(255) NOT NULL,
-  `idUser` int NOT NULL,
+  `idUser` binary(16) NOT NULL,
   PRIMARY KEY (`idSong`),
-  KEY `fk_idUser_idx` (`idUser`),
   KEY `fk_Song_2_idx` (`idAlbum`),
+  KEY `fk_Song_1_idx` (`idUser`),
   CONSTRAINT `fk_Song_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_Song_2` FOREIGN KEY (`idAlbum`) REFERENCES `Album` (`idAlbum`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -83,7 +83,7 @@ DROP TABLE IF EXISTS `User`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `User` (
-  `idUser` int NOT NULL AUTO_INCREMENT,
+  `idUser` binary(16) NOT NULL,
   `username` varchar(100) NOT NULL,
   `password` char(100) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
@@ -141,10 +141,10 @@ CREATE TABLE `playlist-list` (
   `idPlaylist` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `birthday` varchar(100) NOT NULL,
-  `idUser` int NOT NULL,
+  `idUser` binary(16) NOT NULL,
   PRIMARY KEY (`idPlaylist`),
   KEY `fk_playlist-list_1_idx` (`idUser`),
-  CONSTRAINT `fk_playlist-list_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_playlist-list_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -166,4 +166,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-14  2:31:26
+-- Dump completed on 2025-04-14 13:37:34
