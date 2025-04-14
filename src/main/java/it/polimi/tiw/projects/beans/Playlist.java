@@ -1,13 +1,14 @@
 package it.polimi.tiw.projects.beans;
 
 import java.util.List;
+import java.util.UUID;
 
 public class Playlist {
 
     private int idPlaylist;
     private String name;
     private String birthday; // Corresponds to the 'birthday' column in the DB
-    private int idUser;
+    private UUID idUser;
     private List<Song> songs;
 
     // Getters and Setters
@@ -36,11 +37,11 @@ public class Playlist {
         this.birthday = birthday;
     }
 
-    public int getIdUser() {
+    public UUID getIdUser() {
         return idUser;
     }
 
-    public void setIdUser(int idUser) {
+    public void setIdUser(UUID idUser) {
         this.idUser = idUser;
     }
 

@@ -1,5 +1,7 @@
 package it.polimi.tiw.projects.beans;
 
+import java.util.UUID;
+
 public class Song {
 
     private int idSong;
@@ -9,7 +11,7 @@ public class Song {
     private int year;
     private String genre;
     private String audioFile; // Path or URL to the audio file
-    private int idUser;
+    private UUID idUser;
 
     // Getters and Setters
 
@@ -69,11 +71,11 @@ public class Song {
         this.audioFile = audioFile;
     }
 
-    public int getIdUser() {
+    public UUID getIdUser() {
         return idUser;
     }
 
-    public void setIdUser(int idUser) {
+    public void setIdUser(UUID idUser) {
         this.idUser = idUser;
     }
 }
