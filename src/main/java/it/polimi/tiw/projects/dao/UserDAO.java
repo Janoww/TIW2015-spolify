@@ -17,10 +17,7 @@ public class UserDAO {
 	}
 
 	public void createUser(String username, String pwd, String name, String surname) throws SQLException, DAOException {
-		String insertQuery = "INSERT INTO User (idUser, username, password, name, surname) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)"; // Use
-																																	// UUID_TO_BIN
-																																	// for
-																																	// MySQL
+		String insertQuery = "INSERT INTO User (idUser, username, password, name, surname) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)";
 		String checkExistence = "SELECT * FROM User WHERE username = ?";
 		try (PreparedStatement checkStatement = connection.prepareStatement(checkExistence);
 				PreparedStatement insertStatement = connection.prepareStatement(insertQuery);) {
@@ -49,7 +46,6 @@ public class UserDAO {
 			try (ResultSet result = pStatement.executeQuery();) {
 				if (result.next()) { // A user was matched with the password
 					User user = new User();
-					// Retrieve UUID string and parse it
 					String userIdStr = result.getString("idUser");
 					user.setIdUser(UUID.fromString(userIdStr));
 					user.setUsername(result.getString("username"));
