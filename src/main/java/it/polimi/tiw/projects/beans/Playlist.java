@@ -7,7 +7,8 @@ public class Playlist {
 
     private int idPlaylist;
     private String name;
-    private String birthday; // Corresponds to the 'birthday' column in the DB
+    private String birthday;
+    private String image; // Path or URL to the image
     private UUID idUser;
     private List<Song> songs;
 
@@ -35,6 +36,14 @@ public class Playlist {
 
     public void setBirthday(String birthday) {
         this.birthday = birthday;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public UUID getIdUser() {

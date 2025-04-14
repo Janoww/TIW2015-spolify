@@ -6,7 +6,6 @@ public class Song {
 
     private int idSong;
     private String title;
-    private String image; // Path or URL to the image
     private int idAlbum;
     private int year;
     private String genre;
@@ -29,14 +28,6 @@ public class Song {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
     }
 
     public int getIdAlbum() {
