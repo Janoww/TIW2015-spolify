@@ -21,14 +21,14 @@ public class AlbumDAO {
      * @param year   The release year of the album.
      * @param artist The artist of the album.
      * @return The newly created Album object with its generated ID.
-     * @throws SQLException if a database access error occurs.
+     * @throws DAOException if a database access error occurs or the name already
+     *                      exists.
      */
-    public Album createAlbum(String name, int year, String artist) throws SQLException {
+    public Album createAlbum(String name, int year, String artist) throws DAOException {
         String query = "INSERT into Album (name, year, artist) VALUES(?, ?, ?)";
         Album newAlbum = null;
         ResultSet generatedKeys = null;
 
-        // Use RETURN_GENERATED_KEYS to get the new album ID
         try (PreparedStatement pStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             pStatement.setString(1, name);
             pStatement.setInt(2, year);
@@ -36,7 +36,9 @@ public class AlbumDAO {
             int affectedRows = pStatement.executeUpdate();
 
             if (affectedRows == 0) {
-                throw new SQLException("Creating album failed, no rows affected.");
+                // This case might not happen with auto-increment keys but kept for robustness
+                throw new DAOException("Creating album failed, no rows affected.",
+                        DAOException.DAOErrorType.GENERIC_ERROR);
             }
 
             generatedKeys = pStatement.getGeneratedKeys();
@@ -49,15 +51,27 @@ public class AlbumDAO {
                 newAlbum.setYear(year);
                 newAlbum.setArtist(artist);
             } else {
-                throw new SQLException("Creating album failed, no ID obtained.");
+                throw new DAOException("Creating album failed, no ID obtained.",
+                        DAOException.DAOErrorType.GENERIC_ERROR);
+            }
+        } catch (SQLException e) {
+            // Check for unique constraint violation (MySQL error code 1062, SQLState
+            // '23000')
+            if ("23000".equals(e.getSQLState())) {
+                throw new DAOException("Album name '" + name + "' already exists.", e,
+                        DAOException.DAOErrorType.NAME_ALREADY_EXISTS);
+            } else {
+                throw new DAOException("Error creating album: " + e.getMessage(), e,
+                        DAOException.DAOErrorType.GENERIC_ERROR);
             }
         } finally {
-            if (generatedKeys != null)
-                try {
+            try {
+                if (generatedKeys != null)
                     generatedKeys.close();
-                } catch (SQLException e) {
-                    // Log or ignore
-                }
+            } catch (SQLException e) {
+                System.err.println("Failed to close ResultSet: " + e.getMessage());
+                throw new DAOException("Failed to close resources", e, DAOException.DAOErrorType.GENERIC_ERROR);
+            }
         }
         return newAlbum;
     }
@@ -67,9 +81,9 @@ public class AlbumDAO {
      *
      * @param idAlbum The ID of the album to find.
      * @return The Album object if found, null otherwise.
-     * @throws SQLException if a database access error occurs.
+     * @throws DAOException if a database access error occurs.
      */
-    public Album findAlbumById(int idAlbum) throws SQLException {
+    public Album findAlbumById(int idAlbum) throws DAOException {
         Album album = null;
         String query = "SELECT idAlbum, name, year, artist FROM Album WHERE idAlbum = ?";
         try (PreparedStatement pStatement = connection.prepareStatement(query)) {
@@ -83,6 +97,9 @@ public class AlbumDAO {
                     album.setArtist(result.getString("artist"));
                 }
             }
+        } catch (SQLException e) {
+            throw new DAOException("Error finding album by ID: " + e.getMessage(), e,
+                    DAOException.DAOErrorType.GENERIC_ERROR);
         }
         return album;
     }
@@ -91,9 +108,9 @@ public class AlbumDAO {
      * Finds all albums in the database.
      *
      * @return A list of all albums.
-     * @throws SQLException if a database access error occurs.
+     * @throws DAOException if a database access error occurs.
      */
-    public List<Album> findAllAlbums() throws SQLException {
+    public List<Album> findAllAlbums() throws DAOException {
         List<Album> albums = new ArrayList<>();
         String query = "SELECT idAlbum, name, year, artist FROM Album ORDER BY artist, year, name";
         try (Statement statement = connection.createStatement();
@@ -106,6 +123,9 @@ public class AlbumDAO {
                 album.setArtist(result.getString("artist"));
                 albums.add(album);
             }
+        } catch (SQLException e) {
+            throw new DAOException("Error finding all albums: " + e.getMessage(), e,
+                    DAOException.DAOErrorType.GENERIC_ERROR);
         }
         return albums;
     }
@@ -120,11 +140,12 @@ public class AlbumDAO {
      * @param artist  The new artist for the album (or null to keep existing).
      * @return true if the update was successful (at least one field updated), false
      *         otherwise.
-     * @throws SQLException             if a database access error occurs.
+     * @throws DAOException             if a database access error occurs or the new
+     *                                  name already exists.
      * @throws IllegalArgumentException if all update parameters (name, year,
      *                                  artist) are null.
      */
-    public boolean updateAlbum(int idAlbum, String name, Integer year, String artist) throws SQLException {
+    public boolean updateAlbum(int idAlbum, String name, Integer year, String artist) throws DAOException {
         // Build the query dynamically
         StringBuilder queryBuilder = new StringBuilder("UPDATE Album SET ");
         List<Object> params = new ArrayList<>();
@@ -174,7 +195,21 @@ public class AlbumDAO {
             }
 
             int affectedRows = pStatement.executeUpdate();
-            return affectedRows > 0;
+            if (affectedRows == 0) {
+                throw new DAOException("Album with ID " + idAlbum + " not found for update.",
+                        DAOException.DAOErrorType.NOT_FOUND);
+            }
+            return true; // If we reach here, affectedRows must be > 0
+        } catch (SQLException e) {
+            // Check for unique constraint violation (MySQL error code 1062, SQLState
+            // '23000')
+            if ("23000".equals(e.getSQLState()) && name != null) { // Check if name was part of the update
+                throw new DAOException("Album name '" + name + "' already exists.", e,
+                        DAOException.DAOErrorType.NAME_ALREADY_EXISTS);
+            } else {
+                throw new DAOException("Error updating album: " + e.getMessage(), e,
+                        DAOException.DAOErrorType.GENERIC_ERROR);
+            }
         }
     }
 
@@ -183,14 +218,21 @@ public class AlbumDAO {
      *
      * @param idAlbum The ID of the album to delete.
      * @return true if the deletion was successful, false otherwise.
-     * @throws SQLException if a database access error occurs.
+     * @throws DAOException if a database access error occurs.
      */
-    public boolean deleteAlbum(int idAlbum) throws SQLException {
+    public boolean deleteAlbum(int idAlbum) throws DAOException {
         String query = "DELETE FROM Album WHERE idAlbum = ?";
         try (PreparedStatement pStatement = connection.prepareStatement(query)) {
             pStatement.setInt(1, idAlbum);
             int affectedRows = pStatement.executeUpdate();
-            return affectedRows > 0;
+            if (affectedRows == 0) {
+                throw new DAOException("Album with ID " + idAlbum + " not found for deletion.",
+                        DAOException.DAOErrorType.NOT_FOUND);
+            }
+            return true; // If we reach here, affectedRows must be > 0
+        } catch (SQLException e) {
+            throw new DAOException("Error deleting album: " + e.getMessage(), e,
+                    DAOException.DAOErrorType.GENERIC_ERROR);
         }
     }
 }
