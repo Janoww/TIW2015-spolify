@@ -10,7 +10,7 @@ public class Playlist {
     private String birthday;
     private String image; // Path or URL to the image
     private UUID idUser;
-    private List<Song> songs;
+    private List<Integer> songs;
 
     // Getters and Setters
 
@@ -54,11 +54,11 @@ public class Playlist {
         this.idUser = idUser;
     }
 
-    public List<Song> getSongs() {
+    public List<Integer> getSongs() {
         return songs;
     }
 
-    public void setSongs(List<Song> songs) {
+    public void setSongs(List<Integer> songs) {
         this.songs = songs;
     }
 }
