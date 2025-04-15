@@ -161,7 +161,7 @@ public class SongDAO {
      * @param songId The ID of the song to delete.
      * @throws SQLException if a database access error occurs.
      */
-    public void deleteSong(int songId) throws SQLException {
+    public void deleteSong(int songId) throws SQLException, DAOException {
         // Remove from registry first (if initialized)
         if (SongRegistry.isInitialized()) {
             SongRegistry.removeSong(songId);
@@ -174,7 +174,7 @@ public class SongDAO {
             pStatement.setInt(1, songId);
             int affectedRows = pStatement.executeUpdate();
             if (affectedRows == 0) {
-                System.err.println("WARN: Attempted to delete non-existent song from DB: ID " + songId);
+                throw new DAOException("Deleting song failed, no rows affected.", DAOException.DAOErrorType.NOT_FOUND);
             }
         }
     }
