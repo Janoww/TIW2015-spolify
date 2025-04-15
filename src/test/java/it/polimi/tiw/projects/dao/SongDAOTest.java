@@ -4,7 +4,6 @@ import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
-import it.polimi.tiw.projects.utils.SongRegistry; // For potential interaction checks if needed
 
 import org.junit.jupiter.api.*;
 
@@ -47,7 +46,6 @@ class SongDAOTest {
     private static final String TEST_ALBUM_TITLE = "JUnit Test Album - " + System.currentTimeMillis();
     private static final String TEST_ALBUM_ARTIST = "JUnit Artist";
     private static final int TEST_ALBUM_YEAR = 2024;
-    private static final String TEST_ALBUM_IMAGE = "/img/junit_test_album.jpg";
     private static Integer testAlbumId = null; // Will be generated
 
     private Integer createdSongId1 = null; // Store IDs of created songs for cleanup/verification
