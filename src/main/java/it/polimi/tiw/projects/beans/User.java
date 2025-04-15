@@ -9,6 +9,8 @@ public class User {
 	private String name;
 	private String surname;
 
+	// Getters and Setters
+
 	public UUID getIdUser() {
 		return idUser;
 	}
