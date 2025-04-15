@@ -2,7 +2,7 @@ package it.polimi.tiw.projects.dao;
 
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.exceptions.DAOException;
-import it.polimi.tiw.projects.utils.SongRegistry; // Added import
+import it.polimi.tiw.projects.utils.SongRegistry;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -77,7 +77,7 @@ public class SongDAO {
                 } catch (SQLException e) {
                 }
         }
-        return newSong; // Return the created song object
+        return newSong;
     }
 
     /**

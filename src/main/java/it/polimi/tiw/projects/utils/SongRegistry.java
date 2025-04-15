@@ -39,7 +39,7 @@ public class SongRegistry {
         if (initialSongs != null) {
             // Populate the ConcurrentHashMap directly
             songMap.putAll(initialSongs.stream()
-                    .collect(Collectors.toMap(Song::getIdSong, Function.identity()))); // Corrected method reference
+                    .collect(Collectors.toMap(Song::getIdSong, Function.identity())));
         }
         initialized = true;
         System.out.println("SongRegistry initialized with " + songMap.size() + " songs.");
@@ -76,11 +76,12 @@ public class SongRegistry {
 
     /**
      * Adds a new song to the registry.
-     * If a song with the same ID already exists, it will be overwritten.
+     * If a song with the same ID already exists, an exception is thrown.
      *
      * @param song The Song object to add.
      * @throws IllegalStateException    if the registry has not been initialized.
-     * @throws IllegalArgumentException if the song is null.
+     * @throws IllegalArgumentException if the song is null or if a song with the
+     *                                  same ID already exists.
      */
     public static void addSong(Song song) {
         if (!initialized) {
@@ -89,7 +90,11 @@ public class SongRegistry {
         if (song == null) {
             throw new IllegalArgumentException("Cannot add a null song.");
         }
-        songMap.put(song.getIdSong(), song);
+        Song previousValue = songMap.putIfAbsent(song.getIdSong(), song);
+
+        if (previousValue != null) {
+            throw new IllegalArgumentException("Song with ID " + song.getIdSong() + " already exists.");
+        }
     }
 
     /**
