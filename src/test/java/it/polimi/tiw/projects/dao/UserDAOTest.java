@@ -132,7 +132,7 @@ public class UserDAOTest {
 
     @Test
     @Order(2)
-    public void testCreateUser_Duplicate() throws SQLException, DAOException {
+    public void testCreateUser_Duplicate() throws DAOException, SQLException {
         // First, create the user successfully and commit
         userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
         connection.commit();
@@ -145,13 +145,13 @@ public class UserDAOTest {
         }, "Creating a duplicate user should throw DAOException.");
 
         assertEquals("Username already exists", exception.getMessage());
-        assertEquals(DAOException.DAOErrorType.USERNAME_ALREADY_EXISTS, exception.getErrorType());
+        assertEquals(DAOException.DAOErrorType.NAME_ALREADY_EXISTS, exception.getErrorType());
         // No explicit rollback needed here, AfterEach handles it.
     }
 
     @Test
     @Order(3)
-    public void testCheckCredentials_Success() throws SQLException, DAOException {
+    public void testCheckCredentials_Success() throws DAOException, SQLException {
         // Create user first and commit
         userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
         connection.commit();
@@ -181,7 +181,7 @@ public class UserDAOTest {
 
     @Test
     @Order(5)
-    public void testCheckCredentials_InvalidPassword() throws SQLException, DAOException {
+    public void testCheckCredentials_InvalidPassword() throws DAOException, SQLException {
         // Create user first and commit
         userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
         connection.commit();
@@ -197,7 +197,7 @@ public class UserDAOTest {
 
     @Test
     @Order(6)
-    public void testModifyUser_Success() throws SQLException, DAOException {
+    public void testModifyUser_Success() throws DAOException, SQLException {
         userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
         connection.commit();
 
@@ -227,7 +227,7 @@ public class UserDAOTest {
 
     @Test
     @Order(7)
-    public void testModifyUser_NullValues() throws SQLException, DAOException {
+    public void testModifyUser_NullValues() throws DAOException, SQLException {
         userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
         connection.commit();
 
@@ -247,7 +247,7 @@ public class UserDAOTest {
 
     @Test
     @Order(8)
-    public void testModifyUser_OnlyName() throws SQLException, DAOException {
+    public void testModifyUser_OnlyName() throws DAOException, SQLException {
 
         userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
         connection.commit();
@@ -268,7 +268,7 @@ public class UserDAOTest {
 
     @Test
     @Order(9)
-    public void testModifyUser_OnlySurname() throws SQLException, DAOException {
+    public void testModifyUser_OnlySurname() throws DAOException, SQLException {
         userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
         connection.commit();
 
