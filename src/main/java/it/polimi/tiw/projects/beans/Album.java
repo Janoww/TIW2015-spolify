@@ -1,11 +1,14 @@
 package it.polimi.tiw.projects.beans;
 
+import java.util.UUID;
+
 public class Album {
 
     private int idAlbum;
     private String name;
     private int year;
     private String artist;
+    private UUID idUser;
 
     // Getters and Setters
 
@@ -39,5 +42,13 @@ public class Album {
 
     public void setArtist(String artist) {
         this.artist = artist;
+    }
+
+    public UUID getIdUser() {
+        return idUser;
+    }
+
+    public void setIdUser(UUID idUser) {
+        this.idUser = idUser;
     }
 }
