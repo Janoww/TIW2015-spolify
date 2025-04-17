@@ -174,11 +174,13 @@ public class AlbumRegistryTest {
         AlbumRegistry.initialize(new ArrayList<>()); // Initialize empty
         assertTrue(AlbumRegistry.getAllAlbums().isEmpty());
 
-        AlbumRegistry.addAlbum(album1);
+        boolean added1 = AlbumRegistry.addAlbum(album1);
+        assertTrue(added1, "addAlbum should return true for the first album.");
         assertEquals(1, AlbumRegistry.getAllAlbums().size(), "Registry should have 1 album after adding.");
         assertEquals(album1, AlbumRegistry.getAlbumById(1), "Should retrieve the added album.");
 
-        AlbumRegistry.addAlbum(album2);
+        boolean added2 = AlbumRegistry.addAlbum(album2);
+        assertTrue(added2, "addAlbum should return true for the second album.");
         assertEquals(2, AlbumRegistry.getAllAlbums().size(), "Registry should have 2 albums after adding another.");
         assertEquals(album2, AlbumRegistry.getAlbumById(2), "Should retrieve the second added album.");
     }
@@ -196,12 +198,10 @@ public class AlbumRegistryTest {
         album1Duplicate.setYear(2025);
 
         // Attempt to add the duplicate album
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            AlbumRegistry.addAlbum(album1Duplicate);
-        }, "Adding an album with a duplicate ID should throw IllegalArgumentException.");
+        boolean addedDuplicate = AlbumRegistry.addAlbum(album1Duplicate);
 
-        // Verify the exception message
-        assertEquals("Album with ID 1 already exists.", exception.getMessage());
+        // Verify the add operation failed
+        assertFalse(addedDuplicate, "Adding an album with a duplicate ID should return false.");
 
         // Verify the registry state hasn't changed
         assertEquals(1, AlbumRegistry.getAllAlbums().size(),
@@ -213,10 +213,10 @@ public class AlbumRegistryTest {
     @Test
     void testAddAlbum_NullAlbum() {
         AlbumRegistry.initialize(new ArrayList<>());
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            AlbumRegistry.addAlbum(null);
-        }, "Adding a null album should throw IllegalArgumentException.");
-        assertEquals("Cannot add a null album.", exception.getMessage());
+        boolean addedNull = AlbumRegistry.addAlbum(null);
+        assertFalse(addedNull, "Adding a null album should return false.");
+        assertTrue(AlbumRegistry.getAllAlbums().isEmpty(),
+                "Registry should remain empty after attempting to add null.");
     }
 
     @Test

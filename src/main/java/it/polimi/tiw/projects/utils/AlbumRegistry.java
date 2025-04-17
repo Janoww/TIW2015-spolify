@@ -79,22 +79,19 @@ public class AlbumRegistry {
      * If an album with the same ID already exists, an exception is thrown.
      *
      * @param album The Album object to add.
-     * @throws IllegalStateException    if the registry has not been initialized.
-     * @throws IllegalArgumentException if the album is null or if an album with the
-     *                                  same ID already exists.
+     * @return {@code true} if the album was added successfully, {@code false} if
+     *         the album is null or an album with the same ID already exists.
+     * @throws IllegalStateException if the registry has not been initialized.
      */
-    public static void addAlbum(Album album) {
+    public static boolean addAlbum(Album album) {
         if (!initialized) {
             throw new IllegalStateException("AlbumRegistry not initialized.");
         }
         if (album == null) {
-            throw new IllegalArgumentException("Cannot add a null album.");
+            System.err.println("Attempted to add a null album.");
+            return false; // Cannot add a null album.
         }
-        Album previousValue = albumMap.putIfAbsent(album.getIdAlbum(), album);
-
-        if (previousValue != null) {
-            throw new IllegalArgumentException("Album with ID " + album.getIdAlbum() + " already exists.");
-        }
+        return albumMap.putIfAbsent(album.getIdAlbum(), album) == null;
     }
 
     /**

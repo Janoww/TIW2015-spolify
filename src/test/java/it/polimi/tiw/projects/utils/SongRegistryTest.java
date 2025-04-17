@@ -187,11 +187,13 @@ public class SongRegistryTest {
         SongRegistry.initialize(new ArrayList<>()); // Initialize empty
         assertTrue(SongRegistry.getAllSongs().isEmpty());
 
-        SongRegistry.addSong(song1);
+        boolean added1 = SongRegistry.addSong(song1);
+        assertTrue(added1, "addSong should return true for the first song.");
         assertEquals(1, SongRegistry.getAllSongs().size(), "Registry should have 1 song after adding.");
         assertEquals(song1, SongRegistry.getSongById(1), "Should retrieve the added song.");
 
-        SongRegistry.addSong(song2);
+        boolean added2 = SongRegistry.addSong(song2);
+        assertTrue(added2, "addSong should return true for the second song.");
         assertEquals(2, SongRegistry.getAllSongs().size(), "Registry should have 2 songs after adding another.");
         assertEquals(song2, SongRegistry.getSongById(2), "Should retrieve the second added song.");
     }
@@ -215,12 +217,10 @@ public class SongRegistryTest {
         song1Duplicate.setIdUser(UUID.fromString("abcdef01-e89b-12d3-a456-426614174000"));
 
         // Attempt to add the duplicate song
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            SongRegistry.addSong(song1Duplicate);
-        }, "Adding a song with a duplicate ID should throw IllegalArgumentException.");
+        boolean addedDuplicate = SongRegistry.addSong(song1Duplicate);
 
-        // Verify the exception message
-        assertEquals("Song with ID 1 already exists.", exception.getMessage());
+        // Verify the add operation failed
+        assertFalse(addedDuplicate, "Adding a song with a duplicate ID should return false.");
 
         // Verify the registry state hasn't changed
         assertEquals(1, SongRegistry.getAllSongs().size(),
@@ -232,10 +232,9 @@ public class SongRegistryTest {
     @Test
     void testAddSong_NullSong() {
         SongRegistry.initialize(new ArrayList<>());
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            SongRegistry.addSong(null);
-        }, "Adding a null song should throw IllegalArgumentException.");
-        assertEquals("Cannot add a null song.", exception.getMessage());
+        boolean addedNull = SongRegistry.addSong(null);
+        assertFalse(addedNull, "Adding a null song should return false.");
+        assertTrue(SongRegistry.getAllSongs().isEmpty(), "Registry should remain empty after attempting to add null.");
     }
 
     @Test

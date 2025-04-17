@@ -79,22 +79,19 @@ public class SongRegistry {
      * If a song with the same ID already exists, an exception is thrown.
      *
      * @param song The Song object to add.
-     * @throws IllegalStateException    if the registry has not been initialized.
-     * @throws IllegalArgumentException if the song is null or if a song with the
-     *                                  same ID already exists.
+     * @return {@code true} if the song was added successfully, {@code false} if the
+     *         song is null or a song with the same ID already exists.
+     * @throws IllegalStateException if the registry has not been initialized.
      */
-    public static void addSong(Song song) {
+    public static boolean addSong(Song song) {
         if (!initialized) {
             throw new IllegalStateException("SongRegistry not initialized.");
         }
         if (song == null) {
-            throw new IllegalArgumentException("Cannot add a null song.");
+            System.err.println("Attempted to add a null song.");
+            return false; // Cannot add a null song.
         }
-        Song previousValue = songMap.putIfAbsent(song.getIdSong(), song);
-
-        if (previousValue != null) {
-            throw new IllegalArgumentException("Song with ID " + song.getIdSong() + " already exists.");
-        }
+        return songMap.putIfAbsent(song.getIdSong(), song) == null;
     }
 
     /**
