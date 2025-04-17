@@ -1,5 +1,6 @@
 package it.polimi.tiw.projects.beans;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 
@@ -7,7 +8,7 @@ public class Playlist {
 
     private int idPlaylist;
     private String name;
-    private String birthday;
+    private Timestamp birthday;
     private String image; // Path or URL to the image
     private UUID idUser;
     private List<Integer> songs;
@@ -30,11 +31,11 @@ public class Playlist {
         this.name = name;
     }
 
-    public String getBirthday() {
+    public Timestamp getBirthday() {
         return birthday;
     }
 
-    public void setBirthday(String birthday) {
+    public void setBirthday(Timestamp birthday) {
         this.birthday = birthday;
     }
 

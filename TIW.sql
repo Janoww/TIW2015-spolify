@@ -144,7 +144,7 @@ DROP TABLE IF EXISTS `playlist-metadata`;
 CREATE TABLE `playlist-metadata` (
   `idPlaylist` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
-  `birthday` varchar(100) NOT NULL,
+  `birthday` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `image` varchar(255) DEFAULT NULL,
   `idUser` binary(16) NOT NULL,
   PRIMARY KEY (`idPlaylist`),
@@ -172,4 +172,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-17  4:14:19
+-- Dump completed on 2025-04-17  4:35:13
