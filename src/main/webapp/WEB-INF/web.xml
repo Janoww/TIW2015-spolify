@@ -18,13 +18,25 @@
     <param-value>com.mysql.cj.jdbc.Driver</param-value>
   </context-param>
   
- 
+  <servlet>
+ 	<servlet-name>CheckLogin</servlet-name>
+  	<servlet-class>it.polimi.tiw.projects.controllers.CheckLogin</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>CheckLogin</servlet-name>
+  	<url-pattern>/CheckLogin</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>SignUp</servlet-name>
+  	<servlet-class>it.polimi.tiw.projects.controllers.SignUp</servlet-class>
+  </servlet>
+  <servlet-mapping>
+	<servlet-name>SignUp</servlet-name>
+  	<url-pattern>/SignUp</url-pattern>
+  </servlet-mapping>
+
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
-    <welcome-file>index.htm</welcome-file>
-    <welcome-file>index.jsp</welcome-file>
-    <welcome-file>default.html</welcome-file>
-    <welcome-file>default.htm</welcome-file>
-    <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
 </web-app>
