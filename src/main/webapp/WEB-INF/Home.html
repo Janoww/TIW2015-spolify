@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<form action="newPlaylist" metod=POST>
+<form action="newPlaylist" method=POST>
 	<fieldset>
 	<legend>New Playlist:</legend>
 		
@@ -38,7 +38,7 @@
 
 </form>
 
-<form action="newSong" metod=POST>
+<form action="newSong" method=POST>
 	<fieldset>
 	<legend>New Song:</legend>
 	
@@ -65,7 +65,7 @@
 		  <option value="metal">Metal</option>
 	</select>
 	 </p>
-	<P><label for="sIcon">Load an Icon:</label> <input type="file" name="sIcon" id="sIcon" accpet="image/*" required> </P>
+	<P><label for="sIcon">Load an Icon:</label> <input type="file" name="sIcon" id="sIcon" accept="image/*" required> </P>
 	<p><label for="sFile">Load the audio file:</label> <input type="file" name="sFile" id="sFile"accept="audio/*"required> </p>
 	
 	<p> <input type="submit" value="Add Song"> </p>
@@ -79,7 +79,7 @@
 <table>
 <tbody th:remove="all-but-first">
   <tr th:each="playlist : ${playlists}">
-    <td th:text="${playlist.name}">Hit Esive 2010</td>
+    <td th:text="${playlist.name}">Hit Estive 2010</td>
   </tr>
   <tr><td>Party</td></tr>
   <tr><td>House</td></tr>
