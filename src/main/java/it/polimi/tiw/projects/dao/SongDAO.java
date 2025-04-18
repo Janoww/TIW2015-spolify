@@ -193,21 +193,17 @@ public class SongDAO {
      * Deletes a song from the database and removes it from the SongRegistry.
      *
      * @param songId The ID of the song to delete.
+     * @return true if the song was successfully deleted, false otherwise.
      * @throws DAOException if a database access error occurs or the song is not
      *                      found.
      */
-    public void deleteSong(int songId) throws DAOException {
+    public boolean deleteSong(int songId) throws DAOException {
         // Remove from registry first (if initialized)
         // Note: If removeSong throws an exception (e.g., song not in registry),
         // it might prevent DB deletion. Consider if this is the desired behavior.
         if (SongRegistry.isInitialized()) {
-            try {
-                SongRegistry.removeSong(songId);
-            } catch (IllegalArgumentException e) {
-                // Log that the song wasn't in the registry, but proceed with DB deletion
-                // attempt
-                System.err.println("WARN: Song ID " + songId + " not found in registry during deletion attempt. "
-                        + e.getMessage());
+            if (SongRegistry.removeSong(songId) == null) {
+                return false;
             }
         } else {
             System.err.println("WARN: SongRegistry not initialized when deleting song ID: " + songId);
@@ -228,5 +224,6 @@ public class SongDAO {
             throw new DAOException("Error deleting song: " + e.getMessage(), e,
                     DAOException.DAOErrorType.GENERIC_ERROR);
         }
+        return true;
     }
 }
