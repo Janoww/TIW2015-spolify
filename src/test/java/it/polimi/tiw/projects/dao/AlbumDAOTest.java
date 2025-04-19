@@ -47,6 +47,8 @@ class AlbumDAOTest {
     // Store IDs of created albums for cleanup/verification
     private Integer createdAlbumId1 = null;
     private Integer createdAlbumId2 = null;
+    
+    //TODO: I think also the statement should be closed after the query, or should i do it in the servlet?
 
     @BeforeAll
     void setUpClass() throws SQLException {

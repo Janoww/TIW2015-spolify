@@ -3,7 +3,7 @@
   <display-name>Spolify</display-name>
     <context-param>
     <param-name>dbUrl</param-name>
-    <param-value>jdbc:mysql://localhost:3306/db_spolify?serverTimezone=UTC</param-value>
+    <param-value>jdbc:mysql://localhost:3306/TIW2025?serverTimezone=UTC</param-value>
   </context-param>
   <context-param>
     <param-name>dbUser</param-name>

@@ -16,7 +16,7 @@ import it.polimi.tiw.projects.exceptions.DAOException;
 
 
 public class CheckLogin extends HttpServlet{
-	
+	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
 	
 	@Override
