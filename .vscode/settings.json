@@ -17,5 +17,6 @@
             "database": "TIW2025",
             "username": "tiw"
         }
-    ]
+    ],
+    "java.configuration.updateBuildConfiguration": "automatic"
 }
