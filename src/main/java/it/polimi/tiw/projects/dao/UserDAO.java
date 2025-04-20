@@ -105,7 +105,7 @@ public class UserDAO {
 			if (result.next()) { // A user was matched with the password
 				User user = new User();
 				String userIdStr = result.getString("idUser");
-				//user.setIdUser(UUID.fromString(userIdStr));
+				user.setIdUser(UUID.fromString(userIdStr));
 				user.setUsername(result.getString("username"));
 				user.setName(result.getString("name"));
 				user.setSurname(result.getString("surname"));
