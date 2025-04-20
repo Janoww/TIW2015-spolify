@@ -96,7 +96,7 @@ public class UserDAO {
 	 *                      invalid.
 	 */
 	public User checkCredentials(String username, String pwd) throws DAOException {
-		String query = "SELECT BIN_TO_UUID(id) as id, username, name, surname FROM User WHERE username = ? AND password = ?";
+		String query = "SELECT BIN_TO_UUID(idUser) as idUser, username, name, surname FROM User WHERE username = ? AND password = ?";
 		ResultSet result = null; // Declare outside try-with-resources for the finally block
 		try (PreparedStatement pStatement = connection.prepareStatement(query);) {
 			pStatement.setString(1, username);
