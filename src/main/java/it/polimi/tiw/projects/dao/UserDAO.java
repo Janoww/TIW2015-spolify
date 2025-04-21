@@ -10,8 +10,8 @@ import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
 
 /**
- * Data Access Object for managing User data in the database.
- * Provides methods for creating, retrieving, and modifying user information.
+ * Data Access Object for managing User data in the database. Provides methods
+ * for creating, retrieving, and modifying user information.
  */
 public class UserDAO {
 	private Connection connection;
@@ -26,8 +26,8 @@ public class UserDAO {
 	}
 
 	/**
-	 * Creates a new user in the database.
-	 * Checks if the username already exists before insertion.
+	 * Creates a new user in the database. Checks if the username already exists
+	 * before insertion.
 	 *
 	 * @param username the username for the new user.
 	 * @param pwd      the password for the new user.
@@ -130,8 +130,8 @@ public class UserDAO {
 	}
 
 	/**
-	 * Modifies the name and/or surname of an existing user.
-	 * If name or surname parameters are null, the existing values are kept.
+	 * Modifies the name and/or surname of an existing user. If name or surname
+	 * parameters are null, the existing values are kept.
 	 *
 	 * @param user    the User object representing the user to modify (must contain
 	 *                the user ID).

@@ -6,60 +6,60 @@ import java.util.UUID;
 
 public class Playlist {
 
-    private int idPlaylist;
-    private String name;
-    private Timestamp birthday;
-    private String image; // Path or URL to the image
-    private UUID idUser;
-    private List<Integer> songs;
+	private int idPlaylist;
+	private String name;
+	private Timestamp birthday;
+	private String image; // Path or URL to the image
+	private UUID idUser;
+	private List<Integer> songs;
 
-    // Getters and Setters
+	// Getters and Setters
 
-    public int getIdPlaylist() {
-        return idPlaylist;
-    }
+	public int getIdPlaylist() {
+		return idPlaylist;
+	}
 
-    public void setIdPlaylist(int idPlaylist) {
-        this.idPlaylist = idPlaylist;
-    }
+	public void setIdPlaylist(int idPlaylist) {
+		this.idPlaylist = idPlaylist;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public Timestamp getBirthday() {
-        return birthday;
-    }
+	public Timestamp getBirthday() {
+		return birthday;
+	}
 
-    public void setBirthday(Timestamp birthday) {
-        this.birthday = birthday;
-    }
+	public void setBirthday(Timestamp birthday) {
+		this.birthday = birthday;
+	}
 
-    public String getImage() {
-        return image;
-    }
+	public String getImage() {
+		return image;
+	}
 
-    public void setImage(String image) {
-        this.image = image;
-    }
+	public void setImage(String image) {
+		this.image = image;
+	}
 
-    public UUID getIdUser() {
-        return idUser;
-    }
+	public UUID getIdUser() {
+		return idUser;
+	}
 
-    public void setIdUser(UUID idUser) {
-        this.idUser = idUser;
-    }
+	public void setIdUser(UUID idUser) {
+		this.idUser = idUser;
+	}
 
-    public List<Integer> getSongs() {
-        return songs;
-    }
+	public List<Integer> getSongs() {
+		return songs;
+	}
 
-    public void setSongs(List<Integer> songs) {
-        this.songs = songs;
-    }
+	public void setSongs(List<Integer> songs) {
+		this.songs = songs;
+	}
 }

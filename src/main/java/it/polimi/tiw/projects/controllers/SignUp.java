@@ -83,23 +83,23 @@ public class SignUp extends HttpServlet {
 			userDAO.createUser(username, password, name, surname);
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-				case NAME_ALREADY_EXISTS: {
-					JakartaServletWebApplication webApplication = JakartaServletWebApplication
-							.buildApplication(getServletContext());
+			case NAME_ALREADY_EXISTS: {
+				JakartaServletWebApplication webApplication = JakartaServletWebApplication
+						.buildApplication(getServletContext());
 
-					// Contexts should contain all the data required for an execution of the
-					// template engine in a variables map, and also reference the locale that must
-					// be used for externalized messages.
-					WebContext ctx = new WebContext(webApplication.buildExchange(req, resp), req.getLocale());
+				// Contexts should contain all the data required for an execution of the
+				// template engine in a variables map, and also reference the locale that must
+				// be used for externalized messages.
+				WebContext ctx = new WebContext(webApplication.buildExchange(req, resp), req.getLocale());
 
-					ctx.setVariable("errorSignUpMsg", "Username already taken");
-					String path = "/index.html";
-					templateEngine.process(path, ctx, resp.getWriter());
-				}
-					break;
-				default: {
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to sign up");
-				}
+				ctx.setVariable("errorSignUpMsg", "Username already taken");
+				String path = "/index.html";
+				templateEngine.process(path, ctx, resp.getWriter());
+			}
+				break;
+			default: {
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to sign up");
+			}
 
 			}
 			return;

@@ -76,16 +76,16 @@ public class CheckLogin extends HttpServlet {
 			user = userDAO.checkCredentials(username, password);
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-				case INVALID_CREDENTIALS: {
-					JakartaServletWebApplication webApplication = JakartaServletWebApplication
-							.buildApplication(getServletContext());
-					WebContext ctx = new WebContext(webApplication.buildExchange(req, resp), req.getLocale());
+			case INVALID_CREDENTIALS: {
+				JakartaServletWebApplication webApplication = JakartaServletWebApplication
+						.buildApplication(getServletContext());
+				WebContext ctx = new WebContext(webApplication.buildExchange(req, resp), req.getLocale());
 
-					ctx.setVariable("errorLogInMsg", "No user found with that username/password combination");
-					String path = "/index.html";
-					templateEngine.process(path, ctx, resp.getWriter());
-				}
-					break;
+				ctx.setVariable("errorLogInMsg", "No user found with that username/password combination");
+				String path = "/index.html";
+				templateEngine.process(path, ctx, resp.getWriter());
+			}
+				break;
 
 			}
 			return;
