@@ -35,8 +35,18 @@
 	<servlet-name>SignUp</servlet-name>
   	<url-pattern>/SignUp</url-pattern>
   </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>GoToHome</servlet-name>
+  	<servlet-class>it.polimi.tiw.projects.controllers.GoToHome</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>GoToHome</servlet-name>
+  	<url-pattern>/Home</url-pattern>
+  </servlet-mapping>
+  
 
-  <welcome-file-list>
+ <welcome-file-list>
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>
 </web-app>
