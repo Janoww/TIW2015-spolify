@@ -58,7 +58,7 @@ public class NewPlaylist extends HttpServlet {
 
 			user = (User) req.getSession().getAttribute("user");
 
-			List<Integer> list = playlistDAO.findPlaylistsByUser(user.getIdUser());
+			List<Integer> list = playlistDAO.findPlaylistIdsByUser(user.getIdUser());
 			playlist = findPlaylistByName(playlistDAO, list, name, user.getIdUser());
 
 			if (playlist == null) {

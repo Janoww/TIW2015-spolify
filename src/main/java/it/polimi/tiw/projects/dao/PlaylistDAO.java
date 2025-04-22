@@ -28,72 +28,72 @@ public class PlaylistDAO {
 	 * @param image   The path or URL to the playlist image (can be null).
 	 * @param idUser  The UUID of the user creating the playlist.
 	 * @param songIds A list of song IDs to include in the playlist.
+	 *
+	 * @return The generated Playlist
 	 * @throws SQLException if a database access error occurs that isn't handled by
 	 *                      DAOException.
 	 * @throws DAOException if the playlist name already exists for the user or
 	 *                      another DAO-specific error occurs.
 	 */
-	public void createPlaylist(String name, String image, UUID idUser, List<Integer> songIds)
+	public Playlist createPlaylist(String name, String image, UUID idUser, List<Integer> songIds)
 			throws SQLException, DAOException {
 		String insertMetadataSQL = "INSERT INTO `playlist-metadata` (name, image, idUser) VALUES (?, ?, UUID_TO_BIN(?))";
 		String insertContentSQL = "INSERT INTO `playlist-content` (idPlaylist, idSong) VALUES (?, ?)";
 		// Check name against the new table name
 		String checkNameSQL = "SELECT idPlaylist FROM `playlist-metadata` WHERE name = ? AND idUser = UUID_TO_BIN(?)";
 
-		PreparedStatement pStatementMetadata = null;
-		PreparedStatement pStatementContent = null;
-		PreparedStatement pStatementCheck = null;
-		ResultSet generatedKeys = null;
-		ResultSet checkResult = null;
 		int newPlaylistId = -1;
+
+		boolean previousAutoCommit = connection.getAutoCommit();
 
 		try {
 			connection.setAutoCommit(false); // Start transaction
 
 			// Check if playlist name already exists for this user
-			pStatementCheck = connection.prepareStatement(checkNameSQL);
-			pStatementCheck.setString(1, name);
-			pStatementCheck.setString(2, idUser.toString());
-			checkResult = pStatementCheck.executeQuery();
-			if (checkResult.next()) {
-				throw new DAOException("Playlist name '" + name + "' already exists for this user.",
-						DAOErrorType.NAME_ALREADY_EXISTS);
+			try (PreparedStatement pStatementCheck = connection.prepareStatement(checkNameSQL)) {
+				pStatementCheck.setString(1, name);
+				pStatementCheck.setString(2, idUser.toString());
+				try (ResultSet checkResult = pStatementCheck.executeQuery()) {
+					if (checkResult.next()) {
+						throw new DAOException("Playlist name '" + name + "' already exists for this user.",
+								DAOErrorType.NAME_ALREADY_EXISTS);
+					}
+				}
 			}
-			checkResult.close();
-			pStatementCheck.close();
 
 			// Insert playlist metadata
-			pStatementMetadata = connection.prepareStatement(insertMetadataSQL, Statement.RETURN_GENERATED_KEYS);
-			pStatementMetadata.setString(1, name);
-			pStatementMetadata.setString(2, image);
-			pStatementMetadata.setString(3, idUser.toString());
-			int affectedRows = pStatementMetadata.executeUpdate();
+			try (PreparedStatement pStatementMetadata = connection.prepareStatement(insertMetadataSQL,
+					Statement.RETURN_GENERATED_KEYS)) {
+				pStatementMetadata.setString(1, name);
+				pStatementMetadata.setString(2, image);
+				pStatementMetadata.setString(3, idUser.toString());
 
-			if (affectedRows == 0) {
-				connection.rollback(); // Rollback before throwing
-				throw new SQLException("Creating playlist metadata failed, no rows affected.");
-			}
+				int affectedRows = pStatementMetadata.executeUpdate();
 
-			generatedKeys = pStatementMetadata.getGeneratedKeys();
-			if (generatedKeys.next()) {
-				newPlaylistId = generatedKeys.getInt(1);
-			} else {
-				connection.rollback(); // Rollback before throwing
-				throw new SQLException("Creating playlist metadata failed, no ID obtained.");
+				if (affectedRows == 0) {
+					connection.rollback(); // Rollback before throwing
+					throw new SQLException("Creating playlist metadata failed, no rows affected.");
+				}
+				try (ResultSet generatedKeys = pStatementMetadata.getGeneratedKeys()) {
+					if (generatedKeys.next()) {
+						newPlaylistId = generatedKeys.getInt(1);
+					} else {
+						connection.rollback(); // Rollback before throwing
+						throw new SQLException("Creating playlist metadata failed, no ID obtained.");
+					}
+				}
 			}
-			generatedKeys.close();
-			pStatementMetadata.close();
 
 			// Insert playlist content (songs)
 			if (songIds != null && !songIds.isEmpty()) {
-				pStatementContent = connection.prepareStatement(insertContentSQL);
-				for (Integer songId : songIds) {
-					pStatementContent.setInt(1, newPlaylistId);
-					pStatementContent.setInt(2, songId);
-					pStatementContent.addBatch();
+				try (PreparedStatement pStatementContent = connection.prepareStatement(insertContentSQL)) {
+					for (Integer songId : songIds) {
+						pStatementContent.setInt(1, newPlaylistId);
+						pStatementContent.setInt(2, songId);
+						pStatementContent.addBatch();
+					}
+					pStatementContent.executeBatch();
 				}
-				pStatementContent.executeBatch();
-				pStatementContent.close();
 			}
 
 			connection.commit(); // Commit transaction
@@ -122,41 +122,15 @@ public class PlaylistDAO {
 			throw new DAOException("Database error during playlist creation.", e, DAOErrorType.GENERIC_ERROR);
 
 		} finally {
-			// Ensure resources are closed even if commit/rollback fails
-			try {
-				if (generatedKeys != null && !generatedKeys.isClosed())
-					generatedKeys.close();
-			} catch (SQLException e) {
-				/* ignore */ }
-			try {
-				if (pStatementMetadata != null && !pStatementMetadata.isClosed())
-					pStatementMetadata.close();
-			} catch (SQLException e) {
-				/* ignore */ }
-			try {
-				if (pStatementContent != null && !pStatementContent.isClosed())
-					pStatementContent.close();
-			} catch (SQLException e) {
-				/* ignore */ }
-			try {
-				if (pStatementCheck != null && !pStatementCheck.isClosed())
-					pStatementCheck.close();
-			} catch (SQLException e) {
-				/* ignore */ }
-			try {
-				if (checkResult != null && !checkResult.isClosed())
-					checkResult.close();
-			} catch (SQLException e) {
-				/* ignore */ }
-
 			if (connection != null) {
 				try {
-					connection.setAutoCommit(true); // Restore default auto-commit behavior
+					connection.setAutoCommit(previousAutoCommit); // Restore to previous auto-commit behavior
 				} catch (SQLException e) {
 					System.err.println("Failed to restore auto-commit: " + e.getMessage());
 				}
 			}
 		}
+		return this.findPlaylistById(newPlaylistId, idUser);
 	}
 
 	/**
@@ -166,31 +140,19 @@ public class PlaylistDAO {
 	 * @return A list of playlist IDs.
 	 * @throws DAOException if a database access error occurs.
 	 */
-	public List<Integer> findPlaylistsByUser(UUID idUser) throws DAOException {
+	public List<Integer> findPlaylistIdsByUser(UUID idUser) throws DAOException {
 		List<Integer> playlistIds = new ArrayList<>();
 		String query = "SELECT idPlaylist FROM `playlist-metadata` WHERE idUser = UUID_TO_BIN(?)";
-		PreparedStatement pStatement = null;
-		ResultSet resultSet = null;
 
-		try {
-			pStatement = connection.prepareStatement(query);
+		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
 			pStatement.setString(1, idUser.toString());
-			resultSet = pStatement.executeQuery();
-
-			while (resultSet.next()) {
-				playlistIds.add(resultSet.getInt("idPlaylist"));
+			try (ResultSet resultSet = pStatement.executeQuery()) {
+				while (resultSet.next()) {
+					playlistIds.add(resultSet.getInt("idPlaylist"));
+				}
 			}
 		} catch (SQLException e) {
 			throw new DAOException("Database error finding playlist IDs by user.", e, DAOErrorType.GENERIC_ERROR);
-		} finally {
-			try {
-				if (resultSet != null)
-					resultSet.close();
-				if (pStatement != null)
-					pStatement.close();
-			} catch (SQLException e) {
-				System.err.println("Failed to close resources: " + e.getMessage());
-			}
 		}
 		return playlistIds;
 	}
@@ -211,69 +173,58 @@ public class PlaylistDAO {
 		String queryMetadata = "SELECT name, birthday, image, BIN_TO_UUID(idUser) as userUUID FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
 		String queryContent = "SELECT idSong FROM `playlist-content` WHERE idPlaylist = ?";
 
-		PreparedStatement pStatementMetadata = null;
-		PreparedStatement pStatementContent = null;
-		ResultSet rsMetadata = null;
-		ResultSet rsContent = null;
-
-		try {
-			// Fetch playlist metadata and verify ownership
-			pStatementMetadata = connection.prepareStatement(queryMetadata);
+		try (PreparedStatement pStatementMetadata = connection.prepareStatement(queryMetadata)) {
 			pStatementMetadata.setInt(1, playlistId);
 			pStatementMetadata.setString(2, userId.toString());
-			rsMetadata = pStatementMetadata.executeQuery();
+			try (ResultSet rsMetadata = pStatementMetadata.executeQuery()) {
+				if (rsMetadata.next()) {
+					playlist = new Playlist();
+					playlist.setIdPlaylist(playlistId);
+					playlist.setName(rsMetadata.getString("name"));
+					playlist.setBirthday(rsMetadata.getTimestamp("birthday"));
+					playlist.setImage(rsMetadata.getString("image"));
+					playlist.setIdUser(UUID.fromString(rsMetadata.getString("userUUID")));
 
-			if (rsMetadata.next()) {
-				playlist = new Playlist();
-				playlist.setIdPlaylist(playlistId);
-				playlist.setName(rsMetadata.getString("name"));
-				playlist.setBirthday(rsMetadata.getTimestamp("birthday"));
-				playlist.setImage(rsMetadata.getString("image"));
-				playlist.setIdUser(UUID.fromString(rsMetadata.getString("userUUID")));
-
-				// Fetch song IDs
-				List<Integer> songIds = new ArrayList<>();
-				pStatementContent = connection.prepareStatement(queryContent);
-				pStatementContent.setInt(1, playlistId);
-				rsContent = pStatementContent.executeQuery();
-				while (rsContent.next()) {
-					songIds.add(rsContent.getInt("idSong"));
+					// Fetch song IDs
+					List<Integer> songIds = new ArrayList<>();
+					try (PreparedStatement pStatementContent = connection.prepareStatement(queryContent)) {
+						pStatementContent.setInt(1, playlistId);
+						try (ResultSet rsContent = pStatementContent.executeQuery()) {
+							while (rsContent.next()) {
+								songIds.add(rsContent.getInt("idSong"));
+							}
+						}
+					}
+					playlist.setSongs(songIds);
 				}
-				playlist.setSongs(songIds);
-				rsContent.close();
-				pStatementContent.close();
+				// If rsMetadata.next() is false, the playlist doesn't exist or doesn't belong
+				// to the user, return null
 			}
-			// If rsMetadata.next() is false, the playlist doesn't exist or doesn't belong
-			// to the user, return null
 		} catch (SQLException e) {
 			throw new DAOException("Database error finding playlist by ID.", e, DAOErrorType.GENERIC_ERROR);
 		} catch (IllegalArgumentException e) {
 			// Catch potential UUID parsing errors
 			throw new DAOException("Error parsing UUID from database.", e, DAOErrorType.GENERIC_ERROR);
-		} finally {
-			// Ensure resources are closed
-			try {
-				if (rsMetadata != null && !rsMetadata.isClosed())
-					rsMetadata.close();
-			} catch (SQLException e) {
-				/* ignore */ }
-			try {
-				if (pStatementMetadata != null && !pStatementMetadata.isClosed())
-					pStatementMetadata.close();
-			} catch (SQLException e) {
-				/* ignore */ }
-			try {
-				if (rsContent != null && !rsContent.isClosed())
-					rsContent.close();
-			} catch (SQLException e) {
-				/* ignore */ }
-			try {
-				if (pStatementContent != null && !pStatementContent.isClosed())
-					pStatementContent.close();
-			} catch (SQLException e) {
-				/* ignore */ }
 		}
 		return playlist;
+	}
+
+	public boolean deletePlaylist(Integer playlistId, UUID userId) {
+		// TODO Auto-generated method stub
+		String query = "SELECT * FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
+		String deleteQuery = "DELETE FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
+		throw new UnsupportedOperationException("Unimplemented method 'deletePlaylist'");
+
+	}
+
+	public boolean addSongToPlaylist(Integer playlistId, int createdSongId2) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'addSongToPlaylist'");
+	}
+
+	public boolean removeSongFromPlaylist(Integer playlistId, Integer createdSongId) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'removeSongFromPlaylist'");
 	}
 
 }
