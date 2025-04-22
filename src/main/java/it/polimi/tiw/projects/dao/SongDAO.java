@@ -32,7 +32,6 @@ public class SongDAO {
 			throws DAOException {
 		String query = "INSERT into Song (title, idAlbum, year, genre, audioFile, idUser) VALUES(?, ?, ?, ?, ?, UUID_TO_BIN(?))";
 		Song newSong = null;
-		ResultSet generatedKeys = null;
 
 		try (PreparedStatement pStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 			pStatement.setString(1, title);
@@ -49,41 +48,33 @@ public class SongDAO {
 						DAOException.DAOErrorType.GENERIC_ERROR);
 			}
 
-			generatedKeys = pStatement.getGeneratedKeys();
-			if (generatedKeys.next()) {
-				int newId = generatedKeys.getInt(1);
-				// Create the Song bean
-				newSong = new Song();
-				newSong.setIdSong(newId);
-				newSong.setTitle(title);
-				newSong.setIdAlbum(idAlbum);
-				newSong.setYear(year);
-				newSong.setGenre(genre);
-				newSong.setAudioFile(audioFile);
-				newSong.setIdUser(idUser);
+			try (ResultSet generatedKeys = pStatement.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+					int newId = generatedKeys.getInt(1);
+					// Create the Song bean
+					newSong = new Song();
+					newSong.setIdSong(newId);
+					newSong.setTitle(title);
+					newSong.setIdAlbum(idAlbum);
+					newSong.setYear(year);
+					newSong.setGenre(genre);
+					newSong.setAudioFile(audioFile);
+					newSong.setIdUser(idUser);
 
-				// Add to registry if initialized
-				if (SongRegistry.isInitialized()) {
-					SongRegistry.addSong(newSong);
+					// Add to registry if initialized
+					if (SongRegistry.isInitialized()) {
+						SongRegistry.addSong(newSong);
+					} else {
+						System.err.println("WARN: SongRegistry not initialized when creating song ID: " + newId);
+					}
 				} else {
-					System.err.println("WARN: SongRegistry not initialized when creating song ID: " + newId);
+					throw new DAOException("Creating song failed, no ID obtained.",
+							DAOException.DAOErrorType.GENERIC_ERROR);
 				}
-			} else {
-				throw new DAOException("Creating song failed, no ID obtained.",
-						DAOException.DAOErrorType.GENERIC_ERROR);
 			}
 		} catch (SQLException e) {
 			throw new DAOException("Error creating song: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
-		} finally {
-			try {
-				if (generatedKeys != null)
-					generatedKeys.close();
-			} catch (SQLException e) {
-				System.err.println("Failed to close ResultSet: " + e.getMessage());
-				throw new DAOException("Failed to close resources during song creation", e,
-						DAOException.DAOErrorType.GENERIC_ERROR);
-			}
 		}
 		return newSong;
 	}
@@ -98,33 +89,24 @@ public class SongDAO {
 	public List<Song> findSongsByUser(UUID userId) throws DAOException {
 		List<Song> songs = new ArrayList<>();
 		String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?)";
-		ResultSet result = null; // Declare outside for finally block
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
 			pStatement.setString(1, userId.toString());
-			result = pStatement.executeQuery();
-			while (result.next()) {
-				Song song = new Song();
-				song.setIdSong(result.getInt("idSong"));
-				song.setTitle(result.getString("title"));
-				song.setIdAlbum(result.getInt("idAlbum"));
-				song.setYear(result.getInt("year"));
-				song.setGenre(result.getString("genre"));
-				song.setAudioFile(result.getString("audioFile"));
-				song.setIdUser(UUID.fromString(result.getString("idUser")));
-				songs.add(song);
+			try (ResultSet result = pStatement.executeQuery()) {
+				while (result.next()) {
+					Song song = new Song();
+					song.setIdSong(result.getInt("idSong"));
+					song.setTitle(result.getString("title"));
+					song.setIdAlbum(result.getInt("idAlbum"));
+					song.setYear(result.getInt("year"));
+					song.setGenre(result.getString("genre"));
+					song.setAudioFile(result.getString("audioFile"));
+					song.setIdUser(UUID.fromString(result.getString("idUser")));
+					songs.add(song);
+				}
 			}
 		} catch (SQLException e) {
 			throw new DAOException("Error finding songs by user: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
-		} finally {
-			try {
-				if (result != null)
-					result.close();
-			} catch (SQLException e) {
-				System.err.println("Failed to close ResultSet: " + e.getMessage());
-				throw new DAOException("Failed to close resources finding songs by user", e,
-						DAOException.DAOErrorType.GENERIC_ERROR);
-			}
 		}
 		return songs;
 	}
@@ -138,9 +120,7 @@ public class SongDAO {
 	public List<Song> findAllSongs() throws DAOException {
 		List<Song> songs = new ArrayList<>();
 		String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song";
-		ResultSet result = null; // Declare outside for finally block
-		try (Statement statement = connection.createStatement()) {
-			result = statement.executeQuery(query);
+		try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(query)) {
 			while (result.next()) {
 				Song song = new Song();
 				song.setIdSong(result.getInt("idSong"));
@@ -155,16 +135,6 @@ public class SongDAO {
 		} catch (SQLException e) {
 			throw new DAOException("Error finding all songs: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
-		} finally {
-			try {
-				if (result != null)
-					result.close();
-			} catch (SQLException e) {
-				System.err.println("Failed to close ResultSet: " + e.getMessage());
-				// Optionally rethrow
-				throw new DAOException("Failed to close resources finding all songs", e,
-						DAOException.DAOErrorType.GENERIC_ERROR);
-			}
 		}
 		return songs;
 	}

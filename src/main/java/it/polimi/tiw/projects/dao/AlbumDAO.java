@@ -29,7 +29,6 @@ public class AlbumDAO {
 	public Album createAlbum(String name, int year, String artist, UUID idUser) throws DAOException {
 		String query = "INSERT into Album (name, year, artist, idUser) VALUES(?, ?, ?, UUID_TO_BIN(?))";
 		Album newAlbum = null;
-		ResultSet generatedKeys = null;
 
 		try (PreparedStatement pStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 			pStatement.setString(1, name);
@@ -44,19 +43,20 @@ public class AlbumDAO {
 						DAOException.DAOErrorType.GENERIC_ERROR);
 			}
 
-			generatedKeys = pStatement.getGeneratedKeys();
-			if (generatedKeys.next()) {
-				int newId = generatedKeys.getInt(1);
-				// Create the Album bean
-				newAlbum = new Album();
-				newAlbum.setIdAlbum(newId);
-				newAlbum.setName(name);
-				newAlbum.setYear(year);
-				newAlbum.setArtist(artist);
-				newAlbum.setIdUser(idUser);
-			} else {
-				throw new DAOException("Creating album failed, no ID obtained.",
-						DAOException.DAOErrorType.GENERIC_ERROR);
+			try (ResultSet generatedKeys = pStatement.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+					int newId = generatedKeys.getInt(1);
+					// Create the Album bean
+					newAlbum = new Album();
+					newAlbum.setIdAlbum(newId);
+					newAlbum.setName(name);
+					newAlbum.setYear(year);
+					newAlbum.setArtist(artist);
+					newAlbum.setIdUser(idUser);
+				} else {
+					throw new DAOException("Creating album failed, no ID obtained.",
+							DAOException.DAOErrorType.GENERIC_ERROR);
+				}
 			}
 		} catch (SQLException e) {
 			// Check for unique constraint violation (MySQL error code 1062, SQLState
@@ -67,14 +67,6 @@ public class AlbumDAO {
 			} else {
 				throw new DAOException("Error creating album: " + e.getMessage(), e,
 						DAOException.DAOErrorType.GENERIC_ERROR);
-			}
-		} finally {
-			try {
-				if (generatedKeys != null)
-					generatedKeys.close();
-			} catch (SQLException e) {
-				System.err.println("Failed to close ResultSet: " + e.getMessage());
-				throw new DAOException("Failed to close resources", e, DAOException.DAOErrorType.GENERIC_ERROR);
 			}
 		}
 		return newAlbum;
@@ -145,32 +137,23 @@ public class AlbumDAO {
 	public List<Album> findAlbumsByUser(UUID userId) throws DAOException {
 		List<Album> userAlbums = new ArrayList<>();
 		String query = "SELECT idAlbum, name, year, artist, BIN_TO_UUID(idUser) as idUser FROM Album WHERE idUser = UUID_TO_BIN(?) ORDER BY year, name";
-		ResultSet result = null;
 
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
 			pStatement.setString(1, userId.toString());
-			result = pStatement.executeQuery();
-			while (result.next()) {
-				Album album = new Album();
-				album.setIdAlbum(result.getInt("idAlbum"));
-				album.setName(result.getString("name"));
-				album.setYear(result.getInt("year"));
-				album.setArtist(result.getString("artist"));
-				album.setIdUser(UUID.fromString(result.getString("idUser")));
-				userAlbums.add(album);
+			try (ResultSet result = pStatement.executeQuery()) {
+				while (result.next()) {
+					Album album = new Album();
+					album.setIdAlbum(result.getInt("idAlbum"));
+					album.setName(result.getString("name"));
+					album.setYear(result.getInt("year"));
+					album.setArtist(result.getString("artist"));
+					album.setIdUser(UUID.fromString(result.getString("idUser")));
+					userAlbums.add(album);
+				}
 			}
 		} catch (SQLException e) {
 			throw new DAOException("Error finding albums by user: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
-		} finally {
-			try {
-				if (result != null)
-					result.close();
-			} catch (SQLException e) {
-				System.err.println("Failed to close ResultSet finding albums by user: " + e.getMessage());
-				throw new DAOException("Failed to close resources finding albums by user", e,
-						DAOException.DAOErrorType.GENERIC_ERROR);
-			}
 		}
 		return userAlbums;
 	}
