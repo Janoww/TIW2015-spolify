@@ -23,33 +23,33 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class GoToHome extends HttpServlet {
- static final long serialVersionUID = 1L;
+	static final long serialVersionUID = 1L;
 	private Connection connection;
 	private TemplateEngine templateEngine;
-	
+
 	public void init() throws ServletException {
-		
+
 		try {
-		ServletContext context = getServletContext();
-		String driver = context.getInitParameter("dbDriver");
-		String user = context.getInitParameter("dbUser");
-		String password = context.getInitParameter("dbPassword");
-		String url = context.getInitParameter("dbUrl");
-		Class.forName(driver);
-		
-		connection = DriverManager.getConnection(url, user, password);
-		
-		JakartaServletWebApplication webApplication = JakartaServletWebApplication.buildApplication(context);
-		
-		WebApplicationTemplateResolver templateResolver = new WebApplicationTemplateResolver(webApplication);
-		
-		templateResolver.setTemplateMode(TemplateMode.HTML);
-		
-		templateResolver.setSuffix(".html");
-		
-		templateEngine = new TemplateEngine();
-		templateEngine.setTemplateResolver(templateResolver);
-		
+			ServletContext context = getServletContext();
+			String driver = context.getInitParameter("dbDriver");
+			String user = context.getInitParameter("dbUser");
+			String password = context.getInitParameter("dbPassword");
+			String url = context.getInitParameter("dbUrl");
+			Class.forName(driver);
+
+			connection = DriverManager.getConnection(url, user, password);
+
+			JakartaServletWebApplication webApplication = JakartaServletWebApplication.buildApplication(context);
+
+			WebApplicationTemplateResolver templateResolver = new WebApplicationTemplateResolver(webApplication);
+
+			templateResolver.setTemplateMode(TemplateMode.HTML);
+
+			templateResolver.setSuffix(".html");
+
+			templateEngine = new TemplateEngine();
+			templateEngine.setTemplateResolver(templateResolver);
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw new UnavailableException("Couldn't get db connection");
@@ -57,26 +57,18 @@ public class GoToHome extends HttpServlet {
 			throw new UnavailableException("Can't load database driver");
 		}
 	}
-	
-	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException{
+
+	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
-		
+
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
-		
+
 		try {
-			List<Integer> playlistIDs = playlistDAO.findPlaylistsByUser(userId);
+			List<Integer> playlistIDs = playlistDAO.findPlaylistIdsByUser(userId);
 		} catch (DAOException e) {
 			e.printStackTrace();
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to sign up");
 		}
-		
-		
-		
-		
-		
-		
-		
-		
 
 	}
 }
