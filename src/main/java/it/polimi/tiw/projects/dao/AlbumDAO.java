@@ -228,7 +228,7 @@ public class AlbumDAO {
 			int affectedRows = pStatement.executeUpdate();
 			if (affectedRows == 0) {
 				throw new DAOException("Album with ID " + idAlbum + " not found for update or user not authorized.",
-						DAOException.DAOErrorType.NOT_FOUND); // Or introduce UNAUTHORIZED type
+						DAOException.DAOErrorType.NOT_FOUND);
 			}
 			return true; // If we reach here, affectedRows must be > 0
 		} catch (SQLException e) {
@@ -262,7 +262,7 @@ public class AlbumDAO {
 			if (affectedRows == 0) {
 				// Could be not found OR not authorized
 				throw new DAOException("Album with ID " + idAlbum + " not found for deletion or user not authorized.",
-						DAOException.DAOErrorType.NOT_FOUND); // Or introduce UNAUTHORIZED type
+						DAOException.DAOErrorType.NOT_FOUND);
 			}
 			return true; // If we reach here, affectedRows must be > 0
 		} catch (SQLException e) {

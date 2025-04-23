@@ -16,6 +16,11 @@ import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
 public class PlaylistDAO {
 	private Connection connection;
 
+	/**
+	 * Constructs a new PlaylistDAO with the given database connection.
+	 *
+	 * @param connection The database connection to use.
+	 */
 	public PlaylistDAO(Connection connection) {
 		this.connection = connection;
 	}
@@ -209,22 +214,112 @@ public class PlaylistDAO {
 		return playlist;
 	}
 
-	public boolean deletePlaylist(Integer playlistId, UUID userId) {
-		// TODO Auto-generated method stub
-		String query = "SELECT * FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
+	/**
+	 * Deletes a specific playlist owned by a user.
+	 * Relies on the database's ON DELETE CASCADE constraint to remove associated
+	 * songs from the `playlist-content` table.
+	 *
+	 * @param playlistId The ID of the playlist to delete.
+	 * @param userId     The UUID of the user who must own the playlist.
+	 * @return true if the playlist was found and deleted, false otherwise.
+	 * @throws DAOException if a database access error occurs.
+	 */
+	public boolean deletePlaylist(int playlistId, UUID userId) throws DAOException {
 		String deleteQuery = "DELETE FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
-		throw new UnsupportedOperationException("Unimplemented method 'deletePlaylist'");
+		int affectedRows = 0;
 
+		try (PreparedStatement pStatement = connection.prepareStatement(deleteQuery)) {
+			pStatement.setInt(1, playlistId);
+			pStatement.setString(2, userId.toString());
+			affectedRows = pStatement.executeUpdate();
+
+		} catch (SQLException e) {
+			// This could indicate a problem with the DELETE statement itself or potentially
+			// an issue during the cascade operation if constraints/permissions interfere.
+			throw new DAOException("Database error deleting playlist metadata for ID: " + playlistId, e,
+					DAOErrorType.GENERIC_ERROR);
+		}
+		return affectedRows > 0;
 	}
 
-	public boolean addSongToPlaylist(Integer playlistId, int createdSongId2) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'addSongToPlaylist'");
+	/**
+	 * Adds a song to a specific playlist owned by a user.
+	 * Checks if the playlist exists and belongs to the user before adding the song.
+	 *
+	 * @param playlistId The ID of the playlist to add the song to.
+	 * @param userId     The UUID of the user who must own the playlist.
+	 * @param songId     The ID of the song to add.
+	 * @return true if the song was added successfully, false if the playlist was
+	 *         not found or doesn't belong to the user.
+	 * @throws DAOException if a database access error occurs.
+	 */
+	public boolean addSongToPlaylist(int playlistId, UUID userId, int songId) throws DAOException {
+		String checkOwnershipQuery = "SELECT * FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
+		String insertQuery = "INSERT INTO `playlist-content` (idPlaylist, idSong) VALUES (?, ?)";
+		int affectedRows = 0;
+
+		// Check ownership
+		try (PreparedStatement pStatement = connection.prepareStatement(checkOwnershipQuery)) {
+			pStatement.setInt(1, playlistId);
+			pStatement.setString(2, userId.toString());
+			try (ResultSet rs = pStatement.executeQuery()) {
+				if (!rs.next())
+					return false; // Playlist not found or doesn't belong to user.
+			}
+		} catch (SQLException e) {
+			throw new DAOException("Database error checking ownership.", e, DAOErrorType.GENERIC_ERROR);
+		}
+
+		// Insert song into playlist
+		try (PreparedStatement pStatement = connection.prepareStatement(insertQuery)) {
+			pStatement.setInt(1, playlistId);
+			pStatement.setInt(2, songId);
+			affectedRows = pStatement.executeUpdate();
+		} catch (SQLException e) {
+			throw new DAOException("Database error adding song to playlist.", e, DAOErrorType.GENERIC_ERROR);
+		}
+		return affectedRows > 0;
 	}
 
-	public boolean removeSongFromPlaylist(Integer playlistId, Integer createdSongId) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'removeSongFromPlaylist'");
+	/**
+	 * Removes a song from a specific playlist owned by a user.
+	 * Checks if the playlist exists and belongs to the user before removing the
+	 * song.
+	 *
+	 * @param playlistId The ID of the playlist to remove the song from.
+	 * @param userId     The UUID of the user who must own the playlist.
+	 * @param songId     The ID of the song to remove.
+	 * @return true if the song was removed successfully, false if the playlist was
+	 *         not found or doesn't belong to the user.
+	 * @throws DAOException if a database access error occurs.
+	 */
+	public boolean removeSongFromPlaylist(int playlistId, UUID userId, int songId) throws DAOException {
+		String checkOwnershipQuery = "SELECT * FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
+		String deleteQuery = "DELETE FROM `playlist-content` WHERE idPlaylist = ? AND idSong = ?";
+		int affectedRows = 0;
+
+		// Check ownership
+		try (PreparedStatement pStatement = connection.prepareStatement(checkOwnershipQuery)) {
+			pStatement.setInt(1, playlistId);
+			pStatement.setString(2, userId.toString());
+			try (ResultSet rs = pStatement.executeQuery()) {
+				if (!rs.next())
+					return false; // Playlist not found or doesn't belong to user.
+			}
+
+		} catch (SQLException e) {
+			throw new DAOException("Database error checking ownership", e, DAOErrorType.GENERIC_ERROR);
+		}
+
+		// Delete Song from Playlist
+		try (PreparedStatement pStatement = connection.prepareStatement(deleteQuery)) {
+			pStatement.setInt(1, playlistId);
+			pStatement.setInt(2, songId);
+			affectedRows = pStatement.executeUpdate();
+		} catch (SQLException e) {
+			throw new DAOException("Database error removing song from playlist.", e, DAOErrorType.GENERIC_ERROR);
+		}
+		return affectedRows > 0;
 	}
 
 }
