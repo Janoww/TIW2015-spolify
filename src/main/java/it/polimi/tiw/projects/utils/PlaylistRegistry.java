@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+// TODO: maybe we delete it because of sync problems with the DB
 /**
  * A registry to hold and provide access to Playlist objects globally. This acts
  * as an in-memory cache, typically initialized at application startup.

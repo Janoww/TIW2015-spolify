@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 import it.polimi.tiw.projects.beans.Song;
 
+// TODO: maybe we delete it because of sync problems with the DB
+
 /**
  * A registry to hold and provide access to Song objects globally. This acts as
  * an in-memory cache, typically initialized at application startup.
