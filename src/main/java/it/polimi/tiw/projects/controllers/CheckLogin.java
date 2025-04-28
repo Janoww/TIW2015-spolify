@@ -38,8 +38,8 @@ public class CheckLogin extends HttpServlet {
 		UserDAO userDAO = new UserDAO(connection);
 		User user = null;
 
-		String username = req.getParameter("lUsername");
-		String password = req.getParameter("lPwd");
+		String username = req.getParameter("lUsername").strip();
+		String password = req.getParameter("lPwd").strip();
 
 		//Checking if the parameters are empty
 		if (username == null || password == null || username.isEmpty() || password.isEmpty()) {

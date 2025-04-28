@@ -34,6 +34,7 @@
 		
 		<p> Hold "cmd" to select multiple songs </p>
 		<p> <input type="submit" value="Add Playlist"> </p>
+		<p th:text=" ${errorNewPlaylistMsg}"></p>
 	</fieldset>
 
 </form>
@@ -69,6 +70,7 @@
 	<p><label for="sFile">Load the audio file:</label> <input type="file" name="sFile" id="sFile"accept="audio/*"required> </p>
 	
 	<p> <input type="submit" value="Add Song"> </p>
+	<p th:text=" ${errorNewSongMsg}"></p>
 	</fieldset>
 	
 </form>

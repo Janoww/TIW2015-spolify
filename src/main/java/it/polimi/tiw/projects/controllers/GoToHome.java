@@ -42,13 +42,22 @@ public class GoToHome extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		SongDAO songDAO = new SongDAO(connection);
-
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 
+		List<Integer> playlistIDs = null;
+		List<Song> songList = null;
+
 		try {
-			List<Integer> playlistIDs = playlistDAO.findPlaylistIdsByUser(userId);
-			
-			List<Playlist> playslists = playlistIDs.stream().map(id -> {
+			playlistIDs = playlistDAO.findPlaylistIdsByUser(userId);
+			songList = songDAO.findSongsByUser(userId);
+		} catch (DAOException e) {
+			e.printStackTrace();
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+			return;
+		}
+		
+		//Get the list of all playlists
+		List<Playlist> playslists = playlistIDs.stream().map(id -> {
 				try {
 					return playlistDAO.findPlaylistById(id, userId);
 				} catch (DAOException e) {
@@ -58,38 +67,13 @@ public class GoToHome extends HttpServlet {
 				}
 			}).toList();
 			
-			List<Song> songList = songDAO.findSongsByUser(userId);
+		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
 			
-			WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
+		ctx.setVariable("playlists", playslists);
+		ctx.setVariable("songs", songList);
 			
-			ctx.setVariable("playlists", playslists);
-			ctx.setVariable("songs", songList);
-			
-			String path = "/WEB-INF/Home.html";
-			templateEngine.process(path, ctx, resp.getWriter());
-
-			
-		} catch (DAOException e) {
-			e.printStackTrace();
-			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
-		}
-		
-		
-
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-
+		String path = "/WEB-INF/Home.html";
+		templateEngine.process(path, ctx, resp.getWriter());
 	}
 	
 	@Override

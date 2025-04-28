@@ -10,6 +10,7 @@ import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.AlbumDAO;
 import it.polimi.tiw.projects.dao.SongDAO;
+import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -32,56 +33,60 @@ public class NewSong extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp) {
-		SongDAO songDAO = null;
-		AlbumDAO albumDAO = null;
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		SongDAO songDAO = new SongDAO(connection);
+		AlbumDAO albumDAO = new AlbumDAO(connection);
 
-		String title = null;
-		String albumName = null;
-		Integer year = null;
-		String artist = null;
-		String genre = null;
-		String image = null;
-		String audioFile = null;
+		String title = req.getParameter("sTitle").strip();
+		String albumName = req.getParameter("sAlbum").strip();
+		Integer year = Integer.valueOf(req.getParameter("sYear").strip());
+		String artist = req.getParameter("sArtist").strip();
+		String genre = req.getParameter("sGenre").strip();
+		String image = req.getParameter("sIcon"); // FIXME
+		String audioFile = req.getParameter("sFile"); // FIXME
+		
+		User user = (User) req.getSession().getAttribute("user");
 
-		try {
-			title = req.getParameter("sTitle");
-			albumName = req.getParameter("sAlbum");
-			year = Integer.valueOf(req.getParameter("sYear"));
-			artist = req.getParameter("sArtist");
-			genre = req.getParameter("sGenre");
-			image = req.getParameter("sIcon"); // FIXME
-			audioFile = req.getParameter("sFile"); // FIXME
-		} catch (Exception e) {
-			// TODO
-		}
-
-		try {
-			songDAO = new SongDAO(connection);
-			albumDAO = new AlbumDAO(connection);
-
-			User user = (User) req.getSession().getAttribute("user");
-			if (user != null) {
-				List<Album> albums = albumDAO.findAlbumsByUser(user.getIdUser());
-				Album album = findAlbum(albums, albumName);
-
-				if (album != null && (!(album.getYear() == year) || !album.getArtist().equalsIgnoreCase(artist))) {
-					// TODO
-				}
-
-				if (album == null) {
-					album = albumDAO.createAlbum(albumName, year, artist, user.getIdUser());
-				}
-				int idAlbum = album.getIdAlbum();
-
-				songDAO.createSong(title, idAlbum, year, genre, audioFile, user.getIdUser());
-
-			} else {
-
-				// TODO
+		if(user != null) {
+			//Trovo la lista degli album
+			List<Album> albums;
+			try {
+				albums = albumDAO.findAlbumsByUser(user.getIdUser());
+			} catch (DAOException e) {
+				e.printStackTrace();
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+				return;
 			}
-		} catch (Exception e) {
-			// TODO
+			//Cerco l'album di interesse
+			Album album = findAlbum(albums, albumName);
+			
+			if (album != null && (!(album.getYear() == year) || !album.getArtist().equalsIgnoreCase(artist))) {
+				//Se l'album esiste ma le informazioni fornite non coincidono:
+				
+				//TODO
+			}
+			
+			if (album == null) {
+				try {
+					album = albumDAO.createAlbum(albumName, year, artist, user.getIdUser());
+				} catch (DAOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			int idAlbum = album.getIdAlbum();
+
+			try {
+				songDAO.createSong(title, idAlbum, year, genre, audioFile, user.getIdUser());
+			} catch (DAOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			
+		} else {
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Session lost");
+			return;
 		}
 
 		String path = getServletContext().getContextPath() + "/Home";

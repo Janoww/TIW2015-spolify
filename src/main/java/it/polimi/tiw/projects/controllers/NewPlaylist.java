@@ -36,7 +36,6 @@ public class NewPlaylist extends HttpServlet {
 
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) {
-
 		PlaylistDAO playlistDAO = null;
 		SongDAO songDAO = null;
 
@@ -49,7 +48,7 @@ public class NewPlaylist extends HttpServlet {
 
 			playlistDAO = new PlaylistDAO(connection);
 			songDAO = new SongDAO(connection);
-			name = req.getParameter("pName");
+			name = req.getParameter("pName").strip();
 			
 			songIDs = Arrays.asList(req.getParameterValues("songsSelect")).stream().map(Integer::parseInt).toList();
 

@@ -37,10 +37,10 @@ public class SignUp extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		UserDAO userDAO = new UserDAO(connection);
 
-		String name = req.getParameter("sName");
-		String surname = req.getParameter("sSurname");
-		String username = req.getParameter("sUsername");
-		String password = req.getParameter("sPwd");
+		String name = req.getParameter("sName").strip();
+		String surname = req.getParameter("sSurname").strip();
+		String username = req.getParameter("sUsername").strip();
+		String password = req.getParameter("sPwd").strip();
 
 		//Checking that parameters are not empty
 		if (name == null || surname == null || username == null || password == null || name.isEmpty()
