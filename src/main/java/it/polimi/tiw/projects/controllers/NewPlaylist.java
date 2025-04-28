@@ -13,7 +13,9 @@ import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.PlaylistDAO;
 import it.polimi.tiw.projects.dao.SongDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import it.polimi.tiw.projects.utils.ConnectionHandler;
 import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,24 +24,17 @@ public class NewPlaylist extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection;
 
-	public void init() {
-		try {
-			ServletContext context = getServletContext();
-			String driver = context.getInitParameter("dbDriver");
-			String url = context.getInitParameter("dbUrl");
-			String user = context.getInitParameter("dbUser");
-			String password = context.getInitParameter("dbPassword");
-
-			Class.forName(driver);
-
-			connection = DriverManager.getConnection(url, user, password);
-		} catch (ClassNotFoundException | SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+	public NewPlaylist() {
+		super();
+	}
+	
+	@Override
+	public void init() throws ServletException {
+		ServletContext context = getServletContext();
+		connection = ConnectionHandler.getConnection(context);
 	}
 
+	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) {
 
 		PlaylistDAO playlistDAO = null;
@@ -63,11 +58,7 @@ public class NewPlaylist extends HttpServlet {
 			List<Integer> list = playlistDAO.findPlaylistIdsByUser(user.getIdUser());
 			playlist = findPlaylistByName(playlistDAO, list, name, user.getIdUser());
 
-			if (playlist == null) {
-			
-				System.out.println(songIDs);
-				
-				
+			if (playlist == null) {		
 				playlistDAO.createPlaylist(name, null, user.getIdUser(), songIDs);
 			} else {
 				// TODO
@@ -86,6 +77,15 @@ public class NewPlaylist extends HttpServlet {
 			e.printStackTrace();
 		}
 
+	}
+	
+	@Override
+	public void destroy() {
+		try {
+			ConnectionHandler.closeConnection(connection);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private Playlist findPlaylistByName(PlaylistDAO dao, List<Integer> list, String name, UUID userId) {
@@ -110,4 +110,6 @@ public class NewPlaylist extends HttpServlet {
 		}
 		return null;
 	}
+	
+	
 }

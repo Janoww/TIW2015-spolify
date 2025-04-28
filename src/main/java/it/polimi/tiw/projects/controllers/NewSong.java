@@ -3,13 +3,16 @@ package it.polimi.tiw.projects.controllers;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
 
 import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.AlbumDAO;
 import it.polimi.tiw.projects.dao.SongDAO;
+import it.polimi.tiw.projects.utils.ConnectionHandler;
 import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,26 +20,18 @@ import jakarta.servlet.http.HttpServletResponse;
 public class NewSong extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
-
-	@Override
-	public void init() {
-
-		try {
-			ServletContext context = getServletContext();
-			String driver = context.getInitParameter("dbDriver");
-			String url = context.getInitParameter("dbUrl");
-			String user = context.getInitParameter("dbUser");
-			String password = context.getInitParameter("dbPassword");
-
-			Class.forName(driver);
-
-			connection = DriverManager.getConnection(url, user, password);
-		} catch (Exception e) {
-			// TODO
-		}
-
+	
+	public NewSong() {
+		super();
 	}
 
+	@Override
+	public void init() throws ServletException{
+			ServletContext context = getServletContext();
+			connection = ConnectionHandler.getConnection(context);
+	}
+
+	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) {
 		SongDAO songDAO = null;
 		AlbumDAO albumDAO = null;
@@ -97,6 +92,15 @@ public class NewSong extends HttpServlet {
 			e.printStackTrace();
 		}
 
+	}
+	
+	@Override
+	public void destroy() {
+		try {
+			ConnectionHandler.closeConnection(connection);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static Album findAlbum(List<Album> list, String albumName) {
