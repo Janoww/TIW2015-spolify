@@ -25,10 +25,10 @@ public class NewPlaylist extends HttpServlet {
 	public void init() {
 		try {
 			ServletContext context = getServletContext();
-			String user = context.getInitParameter("dbUsr");
-			String password = context.getInitParameter("dbPassword");
 			String driver = context.getInitParameter("dbDriver");
 			String url = context.getInitParameter("dbUrl");
+			String user = context.getInitParameter("dbUser");
+			String password = context.getInitParameter("dbPassword");
 
 			Class.forName(driver);
 
@@ -46,15 +46,17 @@ public class NewPlaylist extends HttpServlet {
 		SongDAO songDAO = null;
 
 		String name = null;
-		List<String> songs = null;
+		List<Integer> songIDs = null;
 		User user = null;
 		Playlist playlist = null;
 
 		try {
 
 			playlistDAO = new PlaylistDAO(connection);
+			songDAO = new SongDAO(connection);
 			name = req.getParameter("pName");
-			songs = Arrays.asList(req.getParameterValues("songsSelectt"));
+			
+			songIDs = Arrays.asList(req.getParameterValues("songsSelect")).stream().map(Integer::parseInt).toList();
 
 			user = (User) req.getSession().getAttribute("user");
 
@@ -62,8 +64,10 @@ public class NewPlaylist extends HttpServlet {
 			playlist = findPlaylistByName(playlistDAO, list, name, user.getIdUser());
 
 			if (playlist == null) {
-				List<Integer> songIDs = findSongIDs(user.getIdUser(), songs, songDAO);
-
+			
+				System.out.println(songIDs);
+				
+				
 				playlistDAO.createPlaylist(name, null, user.getIdUser(), songIDs);
 			} else {
 				// TODO
@@ -71,6 +75,7 @@ public class NewPlaylist extends HttpServlet {
 
 		} catch (Exception e) {
 			// TODO
+			e.printStackTrace();
 		}
 
 		String path = getServletContext().getContextPath() + "/Home";

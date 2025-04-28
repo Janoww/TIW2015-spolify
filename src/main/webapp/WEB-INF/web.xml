@@ -45,6 +45,25 @@
   	<url-pattern>/Home</url-pattern>
   </servlet-mapping>
   
+  <servlet>
+  	<servlet-name>NewSong</servlet-name>
+  	<servlet-class>it.polimi.tiw.projects.controllers.NewSong</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>NewSong</servlet-name>
+  	<url-pattern>/NewSong</url-pattern>
+  </servlet-mapping>
+  
+  
+  <servlet>
+  	<servlet-name>NewPlaylist</servlet-name>
+  	<servlet-class>it.polimi.tiw.projects.controllers.NewPlaylist</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  <servlet-name>NewPlaylist</servlet-name>
+  <url-pattern>/NewPlaylist</url-pattern>
+  </servlet-mapping>
+  
 
  <welcome-file-list>
     <welcome-file>index.html</welcome-file>

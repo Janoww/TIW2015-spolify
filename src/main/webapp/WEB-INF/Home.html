@@ -15,21 +15,21 @@
 		<p> <label for="songsSelect">Choose the songs:</label> </p>
 		
 		<select name="songsSelect" id="songsSelect" multiple required>
-		  <option 	th:remove="all-but-first"
+		  <option
 		  			th:each="song : ${songs}"
-		  			th:value="${song.id}"
+		  			th:value="${song.idSong}"
 		  			th:text="${song.title}"
 		  			></option>
-			<option value="0001">See You Again</option>
-			<option value="0002">Never Gonna Give You UP</option>
-			<option value="0003">All Star</option>
-			<option value="0004">Despacito</option>
-			<option value="0005">Volare</option>
-			<option value="0006">Boom Baby</option>
-			<option value="0007">Tanti auguri a te</option>
-			<option value="0008">Happy Birthday to you</option>
-			<option value="0009">Thriller</option>
-			<option value="0010">Bando</option>
+			<option th:remove="all" value="0001">See You Again</option>
+			<option th:remove="all" value="0002">Never Gonna Give You UP</option>
+			<option th:remove="all" value="0003">All Star</option>
+			<option th:remove="all" value="0004">Despacito</option>
+			<option th:remove="all" value="0005">Volare</option>
+			<option th:remove="all" value="0006">Boom Baby</option>
+			<option th:remove="all" value="0007">Tanti auguri a te</option>
+			<option th:remove="all" value="0008">Happy Birthday to you</option>
+			<option th:remove="all" value="0009">Thriller</option>
+			<option th:remove="all" value="0010">Bando</option>
 		</select>
 		
 		<p> Hold "cmd" to select multiple songs </p>
@@ -54,15 +54,15 @@
 		  			th:value="${genre.name}"
 		  			th:text="${genre.name}"
 		  			></option>
-		  <option value="pop">Pop</option>
-		  <option value="hiphop">Hip-Hop</option>
-		  <option value="jazz">Jazz</option>
-		  <option value="classical">Classical</option>
-		  <option value="electronic">Electronic</option>
-		  <option value="reggae">Reggae</option>
-		  <option value="country">Country</option>
-		  <option value="blues">Blues</option>
-		  <option value="metal">Metal</option>
+		  <option  value="pop">Pop</option>
+		  <option  value="hiphop">Hip-Hop</option>
+		  <option  value="jazz">Jazz</option>
+		  <option  value="classical">Classical</option>
+		  <option  value="electronic">Electronic</option>
+		  <option  value="reggae">Reggae</option>
+		  <option  value="country">Country</option>
+		  <option  value="blues">Blues</option>
+		  <option  value="metal">Metal</option>
 	</select>
 	 </p>
 	<P><label for="sIcon">Load an Icon:</label> <input type="file" name="sIcon" id="sIcon" accept="image/*" required> </P>
