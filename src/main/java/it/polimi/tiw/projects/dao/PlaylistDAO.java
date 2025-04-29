@@ -41,9 +41,9 @@ public class PlaylistDAO {
 	public Playlist createPlaylist(String name, UUID idUser, List<Integer> songIds) throws SQLException, DAOException {
 		logger.debug("Attempting to create playlist: name={}, userId={}, songCount={}", name, idUser,
 				songIds != null ? songIds.size() : 0);
+		String checkSongExistsSQL = "SELECT 1 FROM Song WHERE idSong = ?";
 		String insertMetadataSQL = "INSERT INTO playlist_metadata (name, idUser) VALUES (?, UUID_TO_BIN(?))";
 		String insertContentSQL = "INSERT INTO playlist_content (idPlaylist, idSong) VALUES (?, ?)";
-		// Check name against the new table name
 		String checkNameSQL = "SELECT idPlaylist FROM playlist_metadata WHERE name = ? AND idUser = UUID_TO_BIN(?)";
 
 		int newPlaylistId = -1;
@@ -53,7 +53,7 @@ public class PlaylistDAO {
 		try {
 			connection.setAutoCommit(false); // Start transaction
 
-			// Check if playlist name already exists for this user
+			// 1. Check if playlist name already exists for this user
 			try (PreparedStatement pStatementCheck = connection.prepareStatement(checkNameSQL)) {
 				pStatementCheck.setString(1, name);
 				pStatementCheck.setString(2, idUser.toString());
@@ -70,7 +70,33 @@ public class PlaylistDAO {
 				throw new DAOException("Database error checking playlist name.", e, DAOErrorType.GENERIC_ERROR);
 			}
 
-			// Insert playlist metadata
+			// 2. Check if all provided song IDs exist (only if songs are provided)
+			if (songIds != null && !songIds.isEmpty()) {
+				try (PreparedStatement pStatementCheckSong = connection.prepareStatement(checkSongExistsSQL)) {
+					for (Integer songId : songIds) {
+						if (songId == null) {
+							throw new DAOException("Playlist cannot contain null song IDs.",
+									DAOErrorType.CONSTRAINT_VIOLATION);
+						}
+						pStatementCheckSong.setInt(1, songId);
+						try (ResultSet rsSong = pStatementCheckSong.executeQuery()) {
+							if (!rsSong.next()) {
+								logger.warn("Playlist creation failed: Song ID {} does not exist.", songId);
+								throw new DAOException("Song with ID " + songId + " not found.",
+										DAOErrorType.NOT_FOUND);
+							}
+						}
+						pStatementCheckSong.clearParameters(); // Clear parameters for the next iteration
+					}
+					logger.debug("All {} provided song IDs verified.", songIds.size());
+				} catch (SQLException e) {
+					logger.error("SQL error verifying song existence for playlist creation (name={}): {}", name,
+							e.getMessage(), e);
+					throw new DAOException("Database error verifying song existence.", e, DAOErrorType.GENERIC_ERROR);
+				}
+			}
+
+			// 3. Insert playlist metadata
 			try (PreparedStatement pStatementMetadata = connection.prepareStatement(insertMetadataSQL,
 					Statement.RETURN_GENERATED_KEYS)) {
 				pStatementMetadata.setString(1, name);
@@ -102,10 +128,12 @@ public class PlaylistDAO {
 				throw e; // Re-throw to be handled by the outer catch block
 			}
 
-			// Insert playlist content (songs)
+			// 4. Insert playlist content (songs) - Skip existence check here as it was done
+			// before metadata insertion
 			if (songIds != null && !songIds.isEmpty()) {
 				try (PreparedStatement pStatementContent = connection.prepareStatement(insertContentSQL)) {
 					for (Integer songId : songIds) {
+						// songId is guaranteed non-null and existing from the check above
 						pStatementContent.setInt(1, newPlaylistId);
 						pStatementContent.setInt(2, songId);
 						pStatementContent.addBatch();
@@ -142,11 +170,19 @@ public class PlaylistDAO {
 					throw new DAOException("Playlist name '" + name + "' already exists for this user.", e,
 							DAOErrorType.NAME_ALREADY_EXISTS);
 				} else if (e.getMessage().contains("unique_playlist_and_song")) {
-					// ? Decide if this is NAME_ALREADY_EXISTS or GENERIC_ERROR. Let's use GENERIC
-					// ? for now.
-					throw new DAOException("Duplicate song ID found in the playlist.", e, DAOErrorType.GENERIC_ERROR);
+					// This specific FK error should not happen anymore due to the pre-check,
+					// but handle duplicate PK constraint if songs are added non-uniquely in the
+					// list
+					throw new DAOException("Duplicate song ID found in the input list for the playlist.", e,
+							DAOErrorType.DUPLICATE_ENTRY);
 				} else if (e.getMessage().contains("fk_playlist-content_1")) {
-					throw new DAOException("One or more song IDs do not exist.", e, DAOErrorType.NOT_FOUND);
+					// This FK error should theoretically not happen due to the pre-check. Log if it
+					// does.
+					logger.error(
+							"Unexpected FK violation for playlist_content despite pre-check. PlaylistID={}, SQLState={}",
+							newPlaylistId, e.getSQLState());
+					throw new DAOException("Unexpected error associating songs with playlist.", e,
+							DAOErrorType.CONSTRAINT_VIOLATION);
 				}
 			}
 			// Wrap other SQL exceptions
@@ -199,56 +235,89 @@ public class PlaylistDAO {
 	 * appropriately.
 	 *
 	 * @param playlistId The ID of the playlist to find.
-	 * @param userId     The UUID of the user who owns the playlist (for
+	 * @param userId     The UUID of the user who must own the playlist (for
 	 *                   verification).
-	 * @return The Playlist object if found and owned by the user, null otherwise.
-	 * @throws DAOException if a database access error occurs.
+	 * @return The Playlist object if found and owned by the user.
+	 * @throws DAOException if a database access error occurs, the playlist is not
+	 *                      found, or the user is not authorized.
 	 */
 	public Playlist findPlaylistById(int playlistId, UUID userId) throws DAOException {
 		logger.debug("Attempting to find playlist ID: {} for user ID: {}", playlistId, userId);
 		Playlist playlist = null;
-		String queryMetadata = "SELECT name, birthday, BIN_TO_UUID(idUser) as userUUID FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)"; // Removed
-																																									// image
-																																									// column
+		// First check if playlist exists at all
+		String checkExistenceQuery = "SELECT BIN_TO_UUID(idUser) as ownerUUID FROM playlist_metadata WHERE idPlaylist = ?";
+		String queryMetadata = "SELECT name, birthday, BIN_TO_UUID(idUser) as userUUID FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
 		String queryContent = "SELECT idSong FROM playlist_content WHERE idPlaylist = ?";
 
-		try (PreparedStatement pStatementMetadata = connection.prepareStatement(queryMetadata)) {
-			pStatementMetadata.setInt(1, playlistId);
-			pStatementMetadata.setString(2, userId.toString());
-			try (ResultSet rsMetadata = pStatementMetadata.executeQuery()) {
-				if (rsMetadata.next()) {
-					playlist = new Playlist();
-					playlist.setIdPlaylist(playlistId);
-					playlist.setName(rsMetadata.getString("name"));
-					playlist.setBirthday(rsMetadata.getTimestamp("birthday"));
-					playlist.setIdUser(UUID.fromString(rsMetadata.getString("userUUID")));
-
-					// Fetch song IDs
-					List<Integer> songIds = new ArrayList<>();
-					try (PreparedStatement pStatementContent = connection.prepareStatement(queryContent)) {
-						pStatementContent.setInt(1, playlistId);
-						try (ResultSet rsContent = pStatementContent.executeQuery()) {
-							while (rsContent.next()) {
-								songIds.add(rsContent.getInt("idSong"));
-							}
-						}
-						logger.debug("Found {} songs for playlist ID: {}", songIds.size(), playlistId);
-					} catch (SQLException e) {
-						logger.error("SQL error fetching songs for playlist ID {}: {}", playlistId, e.getMessage(), e);
-						throw new DAOException("Database error fetching songs for playlist.", e,
-								DAOErrorType.GENERIC_ERROR); // Re-throw wrapped
+		try {
+			// 1. Check Existence and Ownership
+			UUID ownerUUID = null;
+			try (PreparedStatement pStatementCheck = connection.prepareStatement(checkExistenceQuery)) {
+				pStatementCheck.setInt(1, playlistId);
+				try (ResultSet rsCheck = pStatementCheck.executeQuery()) {
+					if (rsCheck.next()) {
+						ownerUUID = UUID.fromString(rsCheck.getString("ownerUUID"));
+					} else {
+						logger.warn("Playlist ID: {} not found.", playlistId);
+						throw new DAOException("Playlist with ID " + playlistId + " not found.",
+								DAOErrorType.NOT_FOUND);
 					}
-					playlist.setSongs(songIds);
-					logger.debug("Found playlist ID: {} owned by user ID: {}", playlistId, userId);
-				} else {
-					logger.debug("Playlist ID: {} not found or not owned by user ID: {}", playlistId, userId);
-					// * If rsMetadata.next() is false, the playlist doesn't exist or doesn't belong
-					// * to the user, return null
 				}
+			} catch (SQLException e) {
+				logger.error("SQL error checking playlist existence for ID {}: {}", playlistId, e.getMessage(), e);
+				throw new DAOException("Database error checking playlist existence.", e, DAOErrorType.GENERIC_ERROR);
 			}
-		} catch (SQLException e) {
-			logger.error("SQL error finding playlist metadata for ID {}: {}", playlistId, e.getMessage(), e);
-			throw new DAOException("Database error finding playlist by ID.", e, DAOErrorType.GENERIC_ERROR);
+
+			// 2. Verify Ownership
+			if (!ownerUUID.equals(userId)) {
+				logger.warn("User ID {} attempted to access playlist ID {} owned by {}", userId, playlistId, ownerUUID);
+				throw new DAOException("User not authorized to access playlist ID " + playlistId,
+						DAOErrorType.ACCESS_DENIED);
+			}
+
+			// 3. Fetch Full Playlist Details (since existence and ownership are confirmed)
+			try (PreparedStatement pStatementMetadata = connection.prepareStatement(queryMetadata)) {
+				pStatementMetadata.setInt(1, playlistId);
+				pStatementMetadata.setString(2, userId.toString()); // Redundant check, but keeps query logic clear
+				try (ResultSet rsMetadata = pStatementMetadata.executeQuery()) {
+					if (rsMetadata.next()) { // Should always be true if we passed the checks
+						playlist = new Playlist();
+						playlist.setIdPlaylist(playlistId);
+						playlist.setName(rsMetadata.getString("name"));
+						playlist.setBirthday(rsMetadata.getTimestamp("birthday"));
+						playlist.setIdUser(UUID.fromString(rsMetadata.getString("userUUID")));
+
+						// Fetch song IDs
+						List<Integer> songIds = new ArrayList<>();
+						try (PreparedStatement pStatementContent = connection.prepareStatement(queryContent)) {
+							pStatementContent.setInt(1, playlistId);
+							try (ResultSet rsContent = pStatementContent.executeQuery()) {
+								while (rsContent.next()) {
+									songIds.add(rsContent.getInt("idSong"));
+								}
+							}
+							logger.debug("Found {} songs for playlist ID: {}", songIds.size(), playlistId);
+						} catch (SQLException e) {
+							logger.error("SQL error fetching songs for playlist ID {}: {}", playlistId, e.getMessage(),
+									e);
+							throw new DAOException("Database error fetching songs for playlist.", e,
+									DAOErrorType.GENERIC_ERROR); // Re-throw wrapped
+						}
+						playlist.setSongs(songIds);
+						logger.debug("Successfully retrieved playlist ID: {} owned by user ID: {}", playlistId, userId);
+					} else {
+						// This case should theoretically not be reached if existence/ownership checks
+						// passed
+						logger.error("Inconsistency: Playlist ID {} passed checks but metadata query failed.",
+								playlistId);
+						throw new DAOException("Inconsistent state retrieving playlist metadata.",
+								DAOErrorType.GENERIC_ERROR);
+					}
+				}
+			} catch (SQLException e) {
+				logger.error("SQL error finding playlist metadata for ID {}: {}", playlistId, e.getMessage(), e);
+				throw new DAOException("Database error finding playlist by ID.", e, DAOErrorType.GENERIC_ERROR);
+			}
 		} catch (IllegalArgumentException e) {
 			// Catch potential UUID parsing errors
 			logger.error("Error parsing UUID from database for playlist ID {}: {}", playlistId, e.getMessage(), e);
@@ -260,14 +329,14 @@ public class PlaylistDAO {
 	/**
 	 * Deletes a specific playlist owned by a user. Relies on the database's ON
 	 * DELETE CASCADE constraint to remove associated songs from the
-	 * `playlist-content` table.
+	 * `playlist_content` table.
 	 *
 	 * @param playlistId The ID of the playlist to delete.
 	 * @param userId     The UUID of the user who must own the playlist.
-	 * @return true if the playlist was found and deleted, false otherwise.
-	 * @throws DAOException if a database access error occurs.
+	 * @throws DAOException if a database access error occurs, the playlist is not
+	 *                      found, or the user is not authorized.
 	 */
-	public boolean deletePlaylist(int playlistId, UUID userId) throws DAOException {
+	public void deletePlaylist(int playlistId, UUID userId) throws DAOException {
 		logger.debug("Attempting to delete playlist ID: {} by user ID: {}", playlistId, userId);
 		String deleteQuery = "DELETE FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
 		int affectedRows = 0;
@@ -277,15 +346,38 @@ public class PlaylistDAO {
 			pStatement.setString(2, userId.toString());
 			affectedRows = pStatement.executeUpdate();
 
-			if (affectedRows > 0) {
-				logger.info("Playlist ID {} deleted successfully by user {}", playlistId, userId);
-				return true;
+			if (affectedRows == 0) {
+				// Could be NOT_FOUND or ACCESS_DENIED. Check if playlist exists first for
+				// better error.
+				String checkExistenceQuery = "SELECT 1 FROM playlist_metadata WHERE idPlaylist = ?";
+				try (PreparedStatement checkStmt = connection.prepareStatement(checkExistenceQuery)) {
+					checkStmt.setInt(1, playlistId);
+					try (ResultSet rs = checkStmt.executeQuery()) {
+						if (rs.next()) {
+							// Playlist exists, so it must be an authorization issue
+							logger.warn("Delete failed for playlist ID {}: User {} not authorized.", playlistId,
+									userId);
+							throw new DAOException("User not authorized to delete playlist ID " + playlistId,
+									DAOErrorType.ACCESS_DENIED);
+						} else {
+							// Playlist doesn't exist
+							logger.warn("Delete failed for playlist ID {}: Not found.", playlistId);
+							throw new DAOException("Playlist with ID " + playlistId + " not found.",
+									DAOErrorType.NOT_FOUND);
+						}
+					}
+				} catch (SQLException checkEx) {
+					logger.error("SQL error checking playlist existence during delete failure for ID {}: {}",
+							playlistId, checkEx.getMessage(), checkEx);
+					// Fallback to generic error if the check fails
+					throw new DAOException(
+							"Delete failed for playlist ID " + playlistId + ": Not found or user not authorized.",
+							DAOErrorType.GENERIC_ERROR);
+				}
 			} else {
-				logger.warn("Delete failed for playlist ID {}: Not found or user {} not authorized.", playlistId,
-						userId);
-				return false;
+				logger.info("Playlist ID {} deleted successfully by user {}", playlistId, userId);
+				// Success, no return value needed
 			}
-
 		} catch (SQLException e) {
 			logger.error("SQL error deleting playlist ID {} by user {}: {}", playlistId, userId, e.getMessage(), e);
 			// ? This could indicate a problem with the DELETE statement itself or
@@ -303,102 +395,164 @@ public class PlaylistDAO {
 	 * @param playlistId The ID of the playlist to add the song to.
 	 * @param userId     The UUID of the user who must own the playlist.
 	 * @param songId     The ID of the song to add.
-	 * @return true if the song was added successfully, false if the playlist was
-	 *         not found or doesn't belong to the user.
-	 * @throws DAOException if a database access error occurs.
+	 * @throws DAOException if the playlist is not found, the user is not
+	 *                      authorized, the song is not found, the song is already
+	 *                      in the playlist, or a database access error occurs.
 	 */
-	public boolean addSongToPlaylist(int playlistId, UUID userId, int songId) throws DAOException {
+	public void addSongToPlaylist(int playlistId, UUID userId, int songId) throws DAOException {
 		logger.debug("Attempting to add song ID: {} to playlist ID: {} by user ID: {}", songId, playlistId, userId);
-		String checkOwnershipQuery = "SELECT * FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
+		String checkPlaylistOwnershipQuery = "SELECT 1 FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
+		String checkSongExistenceQuery = "SELECT 1 FROM Song WHERE idSong = ?"; // Assuming Song table exists
 		String insertQuery = "INSERT INTO playlist_content (idPlaylist, idSong) VALUES (?, ?)";
-		int affectedRows = 0;
 
-		// Check ownership
-		try (PreparedStatement pStatement = connection.prepareStatement(checkOwnershipQuery)) {
+		// 1. Check Playlist Ownership
+		try (PreparedStatement pStatement = connection.prepareStatement(checkPlaylistOwnershipQuery)) {
 			pStatement.setInt(1, playlistId);
 			pStatement.setString(2, userId.toString());
 			try (ResultSet rs = pStatement.executeQuery()) {
 				if (!rs.next()) {
-					logger.warn("Add song failed: Playlist ID {} not found or not owned by user {}", playlistId,
-							userId);
-					return false; // Playlist not found or doesn't belong to user.
+					// Playlist not found or doesn't belong to user. Check if playlist exists at all
+					// for better error.
+					String checkExistenceQuery = "SELECT 1 FROM playlist_metadata WHERE idPlaylist = ?";
+					try (PreparedStatement checkStmt = connection.prepareStatement(checkExistenceQuery)) {
+						checkStmt.setInt(1, playlistId);
+						try (ResultSet rsCheck = checkStmt.executeQuery()) {
+							if (rsCheck.next()) {
+								logger.warn("Add song failed: User {} not authorized for playlist ID {}", userId,
+										playlistId);
+								throw new DAOException("User not authorized for playlist ID " + playlistId,
+										DAOErrorType.ACCESS_DENIED);
+							} else {
+								logger.warn("Add song failed: Playlist ID {} not found.", playlistId);
+								throw new DAOException("Playlist with ID " + playlistId + " not found.",
+										DAOErrorType.NOT_FOUND);
+							}
+						}
+					} catch (SQLException checkEx) {
+						logger.error("SQL error checking playlist existence during add song failure for ID {}: {}",
+								playlistId, checkEx.getMessage(), checkEx);
+						throw new DAOException("Add song failed: Playlist not found or user not authorized.",
+								DAOErrorType.GENERIC_ERROR);
+					}
 				}
+				// Ownership confirmed if we reach here
 			}
 		} catch (SQLException e) {
 			logger.error("SQL error checking ownership before adding song {} to playlist {}: {}", songId, playlistId,
 					e.getMessage(), e);
-			throw new DAOException("Database error checking ownership.", e, DAOErrorType.GENERIC_ERROR);
+			throw new DAOException("Database error checking playlist ownership.", e, DAOErrorType.GENERIC_ERROR);
 		}
 
-		// Insert song into playlist
+		// 2. Check Song Existence
+		try (PreparedStatement pStatement = connection.prepareStatement(checkSongExistenceQuery)) {
+			pStatement.setInt(1, songId);
+			try (ResultSet rs = pStatement.executeQuery()) {
+				if (!rs.next()) {
+					logger.warn("Add song failed: Song ID {} does not exist.", songId);
+					throw new DAOException("Song with ID " + songId + " not found.", DAOErrorType.NOT_FOUND);
+				}
+			}
+		} catch (SQLException e) {
+			logger.error("SQL error checking existence for song ID {}: {}", songId, e.getMessage(), e);
+			throw new DAOException("Database error checking song existence.", e, DAOErrorType.GENERIC_ERROR);
+		}
+
+		// 3. Insert song into playlist
 		try (PreparedStatement pStatement = connection.prepareStatement(insertQuery)) {
 			pStatement.setInt(1, playlistId);
 			pStatement.setInt(2, songId);
-			affectedRows = pStatement.executeUpdate();
-			if (affectedRows > 0) {
-				logger.info("Song ID {} added successfully to playlist ID {} by user {}", songId, playlistId, userId);
-			} else {
-				// ? This case should ideally not happen if ownership check passed and no
-				// ? constraint violation occurred, but log just in case.
-				logger.warn("Adding song {} to playlist {} returned 0 affected rows unexpectedly.", songId, playlistId);
-			}
+			pStatement.executeUpdate();
+			logger.info("Song ID {} added successfully to playlist ID {} by user {}", songId, playlistId, userId);
+			// Success, no return value needed
 		} catch (SQLException e) {
-			// Handle potential constraint violations (e.g., duplicate song in playlist,
-			// non-existent song ID)
+			// Handle potential constraint violations (duplicate song in playlist)
 			if ("23000".equals(e.getSQLState())) { // Integrity constraint violation
-				if (e.getMessage().contains("unique_playlist_and_song")) {
-					logger.warn("Attempt to add duplicate song ID {} to playlist ID {}", songId, playlistId);
-					// Depending on requirements, you might return false or throw a specific
-					// DAOException
-					return false;
-				} else if (e.getMessage().contains("fk_playlist-content_1")) { // Assuming this is the FK for song ID
-					logger.warn("Attempt to add non-existent song ID {} to playlist ID {}", songId, playlistId);
-					throw new DAOException("Song ID " + songId + " does not exist.", e, DAOErrorType.NOT_FOUND);
+				// Check for primary key violation (duplicate entry)
+				// The exact message might vary, check for common indicators.
+				if (e.getMessage().toLowerCase().contains("duplicate entry") && e.getMessage().contains("PRIMARY")) {
+					logger.warn("Attempt to add duplicate song ID {} to playlist ID {} (PK violation)", songId,
+							playlistId);
+					throw new DAOException("Song ID " + songId + " is already in playlist ID " + playlistId, e,
+							DAOErrorType.DUPLICATE_ENTRY);
+				} else if (e.getMessage().contains("fk_playlist-content_1")) {
+					// This should have been caught by the song existence check, but handle as
+					// fallback
+					logger.warn("Attempt to add non-existent song ID {} to playlist ID {} (FK violation)", songId,
+							playlistId);
+					throw new DAOException("Song ID " + songId + " does not exist (FK check).", e,
+							DAOErrorType.NOT_FOUND);
+				} else {
+					// Other constraint violations
+					logger.error("SQL constraint violation adding song {} to playlist {}: {}", songId, playlistId,
+							e.getMessage(), e);
+					throw new DAOException("Database constraint violation adding song to playlist.", e,
+							DAOErrorType.CONSTRAINT_VIOLATION);
 				}
+			} else {
+				// Other SQL errors
+				logger.error("SQL error adding song {} to playlist {}: {}", songId, playlistId, e.getMessage(), e);
+				throw new DAOException("Database error adding song to playlist.", e, DAOErrorType.GENERIC_ERROR);
 			}
-			logger.error("SQL error adding song {} to playlist {}: {}", songId, playlistId, e.getMessage(), e);
-			throw new DAOException("Database error adding song to playlist.", e, DAOErrorType.GENERIC_ERROR);
 		}
-		return affectedRows > 0;
 	}
 
 	/**
-	 * Removes a song from a specific playlist owned by a user. Checks if the
-	 * playlist exists and belongs to the user before removing the song.
+	 * Removes a song from a specific playlist owned by a user.
 	 *
 	 * @param playlistId The ID of the playlist to remove the song from.
 	 * @param userId     The UUID of the user who must own the playlist.
 	 * @param songId     The ID of the song to remove.
-	 * @return true if the song was removed successfully, false if the playlist was
-	 *         not found or doesn't belong to the user.
-	 * @throws DAOException if a database access error occurs.
+	 * @return true if the song was present and removed successfully, false if the
+	 *         song was not in the playlist.
+	 * @throws DAOException if the playlist is not found, the user is not
+	 *                      authorized, or a database access error occurs.
 	 */
 	public boolean removeSongFromPlaylist(int playlistId, UUID userId, int songId) throws DAOException {
 		logger.debug("Attempting to remove song ID: {} from playlist ID: {} by user ID: {}", songId, playlistId,
 				userId);
-		String checkOwnershipQuery = "SELECT * FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
+		String checkPlaylistOwnershipQuery = "SELECT 1 FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
 		String deleteQuery = "DELETE FROM playlist_content WHERE idPlaylist = ? AND idSong = ?";
 		int affectedRows = 0;
 
-		// Check ownership
-		try (PreparedStatement pStatement = connection.prepareStatement(checkOwnershipQuery)) {
+		// 1. Check Playlist Ownership
+		try (PreparedStatement pStatement = connection.prepareStatement(checkPlaylistOwnershipQuery)) {
 			pStatement.setInt(1, playlistId);
 			pStatement.setString(2, userId.toString());
 			try (ResultSet rs = pStatement.executeQuery()) {
 				if (!rs.next()) {
-					logger.warn("Remove song failed: Playlist ID {} not found or not owned by user {}", playlistId,
-							userId);
-					return false; // Playlist not found or doesn't belong to user.
+					// Playlist not found or doesn't belong to user. Check if playlist exists at all
+					// for better error.
+					String checkExistenceQuery = "SELECT 1 FROM playlist_metadata WHERE idPlaylist = ?";
+					try (PreparedStatement checkStmt = connection.prepareStatement(checkExistenceQuery)) {
+						checkStmt.setInt(1, playlistId);
+						try (ResultSet rsCheck = checkStmt.executeQuery()) {
+							if (rsCheck.next()) {
+								logger.warn("Remove song failed: User {} not authorized for playlist ID {}", userId,
+										playlistId);
+								throw new DAOException("User not authorized for playlist ID " + playlistId,
+										DAOErrorType.ACCESS_DENIED);
+							} else {
+								logger.warn("Remove song failed: Playlist ID {} not found.", playlistId);
+								throw new DAOException("Playlist with ID " + playlistId + " not found.",
+										DAOErrorType.NOT_FOUND);
+							}
+						}
+					} catch (SQLException checkEx) {
+						logger.error("SQL error checking playlist existence during remove song failure for ID {}: {}",
+								playlistId, checkEx.getMessage(), checkEx);
+						throw new DAOException("Remove song failed: Playlist not found or user not authorized.",
+								DAOErrorType.GENERIC_ERROR);
+					}
 				}
+				// Ownership confirmed if we reach here
 			}
-
 		} catch (SQLException e) {
 			logger.error("SQL error checking ownership before removing song {} from playlist {}: {}", songId,
 					playlistId, e.getMessage(), e);
 			throw new DAOException("Database error checking ownership", e, DAOErrorType.GENERIC_ERROR);
 		}
 
-		// Delete Song from Playlist
+		// 2. Delete Song from Playlist
 		try (PreparedStatement pStatement = connection.prepareStatement(deleteQuery)) {
 			pStatement.setInt(1, playlistId);
 			pStatement.setInt(2, songId);
@@ -407,17 +561,14 @@ public class PlaylistDAO {
 				logger.info("Song ID {} removed successfully from playlist ID {} by user {}", songId, playlistId,
 						userId);
 			} else {
-				// ? This implies the song wasn't in the playlist, or the playlist/user check
-				// ? somehow failed between steps (unlikely)
-				logger.warn(
-						"Removing song {} from playlist {} returned 0 affected rows (song might not have been present).",
-						songId, playlistId);
+				// Song wasn't in the playlist, which is not an error state for removal.
+				logger.debug("Song ID {} was not found in playlist ID {} for removal.", songId, playlistId);
 			}
 		} catch (SQLException e) {
 			logger.error("SQL error removing song {} from playlist {}: {}", songId, playlistId, e.getMessage(), e);
 			throw new DAOException("Database error removing song from playlist.", e, DAOErrorType.GENERIC_ERROR);
 		}
-		return affectedRows > 0;
+		return affectedRows > 0; // Return true if removed, false if not present
 	}
 
 }

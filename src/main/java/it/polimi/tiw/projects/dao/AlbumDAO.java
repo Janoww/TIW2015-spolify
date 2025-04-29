@@ -84,8 +84,9 @@ public class AlbumDAO {
 	 * Finds an album by its ID.
 	 *
 	 * @param idAlbum The ID of the album to find.
-	 * @return The Album object if found, null otherwise.
-	 * @throws DAOException if a database access error occurs.
+	 * @return The Album object if found.
+	 * @throws DAOException if a database access error occurs or the album is not
+	 *                      found.
 	 */
 	public Album findAlbumById(int idAlbum) throws DAOException {
 		logger.debug("Attempting to find album by ID: {}", idAlbum);
@@ -103,14 +104,17 @@ public class AlbumDAO {
 					album.setIdUser(UUID.fromString(result.getString("idUser")));
 					logger.debug("Found album with ID: {}", idAlbum);
 				} else {
-					logger.debug("Album not found with ID: {}", idAlbum);
+					logger.warn("Album not found with ID: {}", idAlbum);
+					throw new DAOException("Album with ID " + idAlbum + " not found.",
+							DAOException.DAOErrorType.NOT_FOUND);
 				}
 			}
-		} catch (SQLException e) {
+		} catch (SQLException | IllegalArgumentException e) { // Catch UUID parsing errors too
 			logger.error("SQL error finding album by ID {}: {}", idAlbum, e.getMessage(), e);
 			throw new DAOException("Error finding album by ID: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
+		// If we reach here, album must have been found and populated
 		return album;
 	}
 
@@ -187,15 +191,13 @@ public class AlbumDAO {
 	 * @param name    The new name for the album (or null to keep existing).
 	 * @param year    The new release year for the album (or null to keep existing).
 	 * @param artist  The new artist for the album (or null to keep existing).
-	 * @return true if the update was successful (at least one field updated), false
-	 *         otherwise.
-	 * @throws DAOException             if a database access error occurs, the user
-	 *                                  is not authorized, or the new name already
-	 *                                  exists for this user.
+	 * @throws DAOException             if a database access error occurs, the album
+	 *                                  is not found, the user is not authorized, or
+	 *                                  the new name already exists for this user.
 	 * @throws IllegalArgumentException if all update parameters (name, year,
 	 *                                  artist) are null.
 	 */
-	public boolean updateAlbum(int idAlbum, UUID userId, String name, Integer year, String artist) throws DAOException {
+	public void updateAlbum(int idAlbum, UUID userId, String name, Integer year, String artist) throws DAOException {
 		logger.debug("Attempting to update album ID: {} for user ID: {} with data: name={}, year={}, artist={}",
 				idAlbum, userId, name, year, artist);
 		// Build the query dynamically
@@ -250,11 +252,13 @@ public class AlbumDAO {
 			int affectedRows = pStatement.executeUpdate();
 			if (affectedRows == 0) {
 				logger.warn("Update failed for album ID {}: Not found or user {} not authorized.", idAlbum, userId);
+				// We throw NOT_FOUND here, but it could also be ACCESS_DENIED. The DB doesn't
+				// distinguish.
 				throw new DAOException("Album with ID " + idAlbum + " not found for update or user not authorized.",
 						DAOException.DAOErrorType.NOT_FOUND);
 			}
 			logger.info("Album ID {} updated successfully by user {}", idAlbum, userId);
-			return true; // If we reach here, affectedRows must be > 0
+			// No return value needed, success is indicated by lack of exception
 		} catch (SQLException e) {
 			logger.error("SQL error updating album ID {} for user {}: SQLState={}, Message={}", idAlbum, userId,
 					e.getSQLState(), e.getMessage(), e);
@@ -275,11 +279,10 @@ public class AlbumDAO {
 	 * @param idAlbum The ID of the album to delete.
 	 * @param userId  The UUID of the user attempting the deletion (for
 	 *                authorization).
-	 * @return true if the deletion was successful, false otherwise.
-	 * @throws DAOException if a database access error occurs or the user is not
-	 *                      authorized.
+	 * @throws DAOException if a database access error occurs, the album is not
+	 *                      found, or the user is not authorized.
 	 */
-	public boolean deleteAlbum(int idAlbum, UUID userId) throws DAOException {
+	public void deleteAlbum(int idAlbum, UUID userId) throws DAOException {
 		logger.debug("Attempting to delete album ID: {} by user ID: {}", idAlbum, userId);
 		String query = "DELETE FROM Album WHERE idAlbum = ? AND idUser = UUID_TO_BIN(?)";
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
@@ -288,12 +291,13 @@ public class AlbumDAO {
 			int affectedRows = pStatement.executeUpdate();
 			if (affectedRows == 0) {
 				logger.warn("Delete failed for album ID {}: Not found or user {} not authorized.", idAlbum, userId);
-				// Could be not found OR not authorized
+				// We throw NOT_FOUND here, but it could also be ACCESS_DENIED. The DB doesn't
+				// distinguish.
 				throw new DAOException("Album with ID " + idAlbum + " not found for deletion or user not authorized.",
 						DAOException.DAOErrorType.NOT_FOUND);
 			}
 			logger.info("Album ID {} deleted successfully by user {}", idAlbum, userId);
-			return true; // If we reach here, affectedRows must be > 0
+			// No return value needed, success is indicated by lack of exception
 		} catch (SQLException e) {
 			logger.error("SQL error deleting album ID {} by user {}: {}", idAlbum, userId, e.getMessage(), e);
 			throw new DAOException("Error deleting album: " + e.getMessage(), e,

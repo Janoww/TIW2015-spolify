@@ -3,7 +3,13 @@ package it.polimi.tiw.projects.exceptions;
 public class DAOException extends Exception {
 
 	public enum DAOErrorType {
-		NAME_ALREADY_EXISTS, INVALID_CREDENTIALS, NOT_FOUND, GENERIC_ERROR // For other potential DAO errors
+		NAME_ALREADY_EXISTS, // e.g., User username, Album/Playlist name per user
+		INVALID_CREDENTIALS, // e.g., Login failure
+		NOT_FOUND, // e.g., Entity lookup by ID failed, FK target doesn't exist
+		DUPLICATE_ENTRY, // e.g., Adding a song already in a playlist
+		ACCESS_DENIED, // e.g., Operation on resource not owned by user
+		CONSTRAINT_VIOLATION, // e.g., Other integrity constraint issues
+		GENERIC_ERROR // For other potential DAO errors
 	}
 
 	private final DAOErrorType errorType;

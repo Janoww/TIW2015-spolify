@@ -74,8 +74,24 @@ public class SongDAO {
 			}
 		} catch (SQLException e) {
 			logger.error("SQL error creating song title={}, userId={}: {}", title, idUser, e.getMessage(), e);
-			throw new DAOException("Error creating song: " + e.getMessage(), e,
-					DAOException.DAOErrorType.GENERIC_ERROR);
+			logger.error("SQL Error Code: {}, SQLState: {}", e.getErrorCode(), e.getSQLState()); // Log details
+
+			// Check for foreign key constraint violation on idAlbum (MySQL error code 1452)
+			if (e.getErrorCode() == 1452) {
+				// If MySQL error code 1452 occurs during Song INSERT, it's almost certainly
+				// due to the Album foreign key (fk_Song_2) failing because the idAlbum doesn't
+				// exist.
+				logger.debug("Detected FK violation (Error Code 1452) for Album ID {}. Throwing NOT_FOUND.", idAlbum);
+				throw new DAOException("Album with ID " + idAlbum + " not found.", e,
+						DAOException.DAOErrorType.NOT_FOUND);
+			} else {
+				// Handle other SQL errors (e.g., connection issues, syntax errors, other
+				// constraints if added later)
+				logger.warn("Unhandled SQL error during song creation (Code: {}). Throwing GENERIC_ERROR.",
+						e.getErrorCode());
+				throw new DAOException("Error creating song: " + e.getMessage(), e,
+						DAOException.DAOErrorType.GENERIC_ERROR); // Default to generic for other SQL errors
+			}
 		}
 		return newSong;
 	}
@@ -150,11 +166,10 @@ public class SongDAO {
 	 * Deletes a song from the database.
 	 *
 	 * @param songId The ID of the song to delete.
-	 * @return true if the song was successfully deleted, false otherwise.
 	 * @throws DAOException if a database access error occurs or the song is not
 	 *                      found.
 	 */
-	public boolean deleteSong(int songId) throws DAOException {
+	public void deleteSong(int songId) throws DAOException {
 		logger.debug("Attempting to delete song ID: {}", songId);
 
 		String query = "DELETE FROM Song WHERE idSong = ?";
@@ -168,14 +183,11 @@ public class SongDAO {
 						DAOException.DAOErrorType.NOT_FOUND);
 			}
 			logger.info("Song ID {} deleted successfully from database.", songId);
+			// No return value needed, success is indicated by lack of exception
 		} catch (SQLException e) {
 			logger.error("SQL error deleting song ID {}: {}", songId, e.getMessage(), e);
-			// ? Consider if the song should be re-added to the registry if DB deletion
-			// ? fails after registry removal.
-			// ? This depends on transactional requirements not implemented here.
 			throw new DAOException("Error deleting song: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
-		return true;
 	}
 }
