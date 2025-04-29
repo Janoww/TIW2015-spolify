@@ -9,6 +9,7 @@
   <name>TIW2025-spolify</name>
 
   <build>
+    <finalName>Spolify</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -25,6 +26,10 @@
           <parallel>all</parallel>
           <useUnlimitedThreads>true</useUnlimitedThreads>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.4.0</version>
       </plugin>
     </plugins>
   </build>
@@ -77,9 +82,9 @@
     <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
     <!-- SLF4J Implementation -->
     <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-classic</artifactId>
-        <version>1.5.18</version>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.5.18</version>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/org.thymeleaf/thymeleaf -->
