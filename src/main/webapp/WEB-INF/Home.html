@@ -1,96 +1,104 @@
 <!DOCTYPE html>
-<html xmlns:th= "http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-<meta charset="UTF-8">
-<title>Spolify-Home</title>
+	<meta charset="UTF-8">
+	<title>Spolify-Home</title>
 </head>
+
 <body>
 
-<form action="NewPlaylist" method=POST>
-	<fieldset>
-	<legend>New Playlist:</legend>
-		
-		<p> <label for="pName">Name: </label> <input type="text" name="pName" id="pName" required> </p>
-		
-		<p> <label for="songsSelect">Choose the songs:</label> </p>
-		
-		<select name="songsSelect" id="songsSelect" multiple required>
-		  <option
-		  			th:each="song : ${songs}"
-		  			th:value="${song.idSong}"
-		  			th:text="${song.title}"
-		  			></option>
-			<option th:remove="all" value="0001">See You Again</option>
-			<option th:remove="all" value="0002">Never Gonna Give You UP</option>
-			<option th:remove="all" value="0003">All Star</option>
-			<option th:remove="all" value="0004">Despacito</option>
-			<option th:remove="all" value="0005">Volare</option>
-			<option th:remove="all" value="0006">Boom Baby</option>
-			<option th:remove="all" value="0007">Tanti auguri a te</option>
-			<option th:remove="all" value="0008">Happy Birthday to you</option>
-			<option th:remove="all" value="0009">Thriller</option>
-			<option th:remove="all" value="0010">Bando</option>
-		</select>
-		
-		<p> Hold "cmd" to select multiple songs </p>
-		<p> <input type="submit" value="Add Playlist"> </p>
-		<p th:text=" ${errorNewPlaylistMsg}"></p>
-	</fieldset>
+	<form action="NewPlaylist" method=POST>
+		<fieldset>
+			<legend>New Playlist:</legend>
 
-</form>
+			<p> <label for="pName">Name: </label> <input type="text" name="pName" id="pName" required> </p>
 
-<form action="NewSong" method=POST>
-	<fieldset>
-	<legend>New Song:</legend>
-	
-	<p> <label for="sTitle">Title: </label><input type="text" name="sTitle" id="sTitle" required> </p>
-	<p> <label for="sAlbum">Album: </label><input type="text" name="sAlbum" id="sAlbum" required> </p>
-	<p> <label for="sYear">Year of release: </label><input type="number" name="sYear" id="sYear" required> (Use negatives for b.C.)</p>
-	<p> <label for="sArtist">Artist or Group: </label><input type="text" name="sArtist" id="sArtist" required> </p>
-	
-	<p> <label for="sGenre">Genre:</label>
-	<select id="sGenre" name="sGenre" required>
-		  <option
-		  			th:each="genre : ${genres}"
-		  			th:value="${genre.name()}"
-		  			th:text="${genre.description}"
-		  			></option>
-		  <option th:remove="all" value="pop">Pop</option>
-		  <option th:remove="all" value="hiphop">Hip-Hop</option>
-		  <option th:remove="all" value="jazz">Jazz</option>
-		  <option th:remove="all" value="classical">Classical</option>
-		  <option th:remove="all" value="electronic">Electronic</option>
-		  <option th:remove="all" value="reggae">Reggae</option>
-		  <option th:remove="all" value="country">Country</option>
-		  <option th:remove="all" value="blues">Blues</option>
-		  <option th:remove="all" value="metal">Metal</option>
-	</select>
-	 </p>
-	<P><label for="sIcon">Load an Icon:</label> <input type="file" name="sIcon" id="sIcon" accept="image/*" required> </P>
-	<p><label for="sFile">Load the audio file:</label> <input type="file" name="sFile" id="sFile"accept="audio/*"required> </p>
-	
-	<p> <input type="submit" value="Add Song"> </p>
-	<p th:text=" ${errorNewSongMsg}"></p>
-	</fieldset>
-	
-</form>
+			<p> <label for="songsSelect">Choose the songs:</label> </p>
+
+			<select name="songsSelect" id="songsSelect" multiple required>
+				<option th:each="song : ${songs}" th:value="${song.idSong}" th:text="${song.title}"></option>
+				<option th:remove="all" value="0001">See You Again</option>
+				<option th:remove="all" value="0002">Never Gonna Give You UP</option>
+				<option th:remove="all" value="0003">All Star</option>
+				<option th:remove="all" value="0004">Despacito</option>
+				<option th:remove="all" value="0005">Volare</option>
+				<option th:remove="all" value="0006">Boom Baby</option>
+				<option th:remove="all" value="0007">Tanti auguri a te</option>
+				<option th:remove="all" value="0008">Happy Birthday to you</option>
+				<option th:remove="all" value="0009">Thriller</option>
+				<option th:remove="all" value="0010">Bando</option>
+			</select>
+
+			<p> Hold "cmd" to select multiple songs </p>
+			<p> <input type="submit" value="Add Playlist"> </p>
+			<p th:text=" ${errorNewPlaylistMsg}"></p>
+		</fieldset>
+
+	</form>
+
+	<form action="NewSong" method=POST>
+		<fieldset>
+			<legend>New Song:</legend>
+
+			<p> <label for="sTitle">Title: </label><input type="text" name="sTitle" id="sTitle" required> </p>
+			<p> <label for="sAlbum">Album: </label><input type="text" name="sAlbum" id="sAlbum" required> </p>
+			<p> <label for="sYear">Year of release: </label><input type="number" name="sYear" id="sYear" required> (Use
+				negatives for b.C.)</p>
+			<p> <label for="sArtist">Artist or Group: </label><input type="text" name="sArtist" id="sArtist" required>
+			</p>
+
+			<p> <label for="sGenre">Genre:</label>
+				<select id="sGenre" name="sGenre" required>
+					<option th:each="genre : ${genres}" th:value="${genre.name()}" th:text="${genre.description}">
+					</option>
+					<option th:remove="all" value="pop">Pop</option>
+					<option th:remove="all" value="hiphop">Hip-Hop</option>
+					<option th:remove="all" value="jazz">Jazz</option>
+					<option th:remove="all" value="classical">Classical</option>
+					<option th:remove="all" value="electronic">Electronic</option>
+					<option th:remove="all" value="reggae">Reggae</option>
+					<option th:remove="all" value="country">Country</option>
+					<option th:remove="all" value="blues">Blues</option>
+					<option th:remove="all" value="metal">Metal</option>
+				</select>
+			</p>
+			<P><label for="sIcon">Load an Icon:</label> <input type="file" name="sIcon" id="sIcon" accept="image/*"
+					required> </P>
+			<p><label for="sFile">Load the audio file:</label> <input type="file" name="sFile" id="sFile"
+					accept="audio/*" required> </p>
+
+			<p> <input type="submit" value="Add Song"> </p>
+			<p th:text=" ${errorNewSongMsg}"></p>
+		</fieldset>
+
+	</form>
 
 
 
-<h1> Playlists: </h1>
-<table>
-<tbody th:remove="all-but-first">
-  <tr th:each="playlist : ${playlists}">
-    <td th:text="${playlist.name}">Hit Estive 2010</td>
-  </tr>
-  <tr><td>Party</td></tr>
-  <tr><td>House</td></tr>
-  <tr><td>Sleeping</td></tr>
-  <tr><td>Camping</td></tr>
-</tbody>
-</table>
+	<h1> Playlists: </h1>
+	<table>
+		<tbody th:remove="all-but-first">
+			<tr th:each="playlist : ${playlists}">
+				<td th:text="${playlist.name}">Hit Estive 2010</td>
+			</tr>
+			<tr>
+				<td>Party</td>
+			</tr>
+			<tr>
+				<td>House</td>
+			</tr>
+			<tr>
+				<td>Sleeping</td>
+			</tr>
+			<tr>
+				<td>Camping</td>
+			</tr>
+		</tbody>
+	</table>
 
 
 
 </body>
+
 </html>
