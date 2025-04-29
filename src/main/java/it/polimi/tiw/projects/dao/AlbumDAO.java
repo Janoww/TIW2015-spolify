@@ -24,21 +24,29 @@ public class AlbumDAO {
 	 * @param name   The name of the album.
 	 * @param year   The release year of the album.
 	 * @param artist The artist of the album.
+	 * @param image  The path to the album's image file (can be null).
 	 * @param idUser The UUID of the user creating the album.
 	 * @return The newly created Album object with its generated ID.
 	 * @throws DAOException if a database access error occurs or the name already
 	 *                      exists for this user.
 	 */
-	public Album createAlbum(String name, int year, String artist, UUID idUser) throws DAOException {
-		logger.debug("Attempting to create album: name={}, year={}, artist={}, userId={}", name, year, artist, idUser);
-		String query = "INSERT into Album (name, year, artist, idUser) VALUES(?, ?, ?, UUID_TO_BIN(?))";
+	public Album createAlbum(String name, int year, String artist, String image, UUID idUser) throws DAOException {
+		logger.debug("Attempting to create album: name={}, year={}, artist={}, image={}, userId={}", name, year, artist,
+				image, idUser);
+		String query = "INSERT into Album (name, year, artist, image, idUser) VALUES(?, ?, ?, ?, UUID_TO_BIN(?))";
 		Album newAlbum = null;
 
 		try (PreparedStatement pStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 			pStatement.setString(1, name);
 			pStatement.setInt(2, year);
 			pStatement.setString(3, artist);
-			pStatement.setString(4, idUser.toString());
+			// Handle potentially null image
+			if (image != null) {
+				pStatement.setString(4, image);
+			} else {
+				pStatement.setNull(4, Types.VARCHAR);
+			}
+			pStatement.setString(5, idUser.toString());
 			int affectedRows = pStatement.executeUpdate();
 
 			if (affectedRows == 0) {
@@ -56,6 +64,7 @@ public class AlbumDAO {
 					newAlbum.setName(name);
 					newAlbum.setYear(year);
 					newAlbum.setArtist(artist);
+					newAlbum.setImage(image);
 					newAlbum.setIdUser(idUser);
 					logger.info("Album created successfully with ID: {}", newAlbum.getIdAlbum());
 				} else {
@@ -91,7 +100,7 @@ public class AlbumDAO {
 	public Album findAlbumById(int idAlbum) throws DAOException {
 		logger.debug("Attempting to find album by ID: {}", idAlbum);
 		Album album = null;
-		String query = "SELECT idAlbum, name, year, artist, BIN_TO_UUID(idUser) as idUser FROM Album WHERE idAlbum = ?";
+		String query = "SELECT idAlbum, name, year, artist, image, BIN_TO_UUID(idUser) as idUser FROM Album WHERE idAlbum = ?";
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
 			pStatement.setInt(1, idAlbum);
 			try (ResultSet result = pStatement.executeQuery()) {
@@ -101,6 +110,7 @@ public class AlbumDAO {
 					album.setName(result.getString("name"));
 					album.setYear(result.getInt("year"));
 					album.setArtist(result.getString("artist"));
+					album.setImage(result.getString("image"));
 					album.setIdUser(UUID.fromString(result.getString("idUser")));
 					logger.debug("Found album with ID: {}", idAlbum);
 				} else {
@@ -127,7 +137,7 @@ public class AlbumDAO {
 	public List<Album> findAllAlbums() throws DAOException {
 		logger.debug("Attempting to find all albums");
 		List<Album> albums = new ArrayList<>();
-		String query = "SELECT idAlbum, name, year, artist, BIN_TO_UUID(idUser) as idUser FROM Album ORDER BY artist, year, name";
+		String query = "SELECT idAlbum, name, year, artist, image, BIN_TO_UUID(idUser) as idUser FROM Album ORDER BY artist, year, name";
 		try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(query)) {
 			while (result.next()) {
 				Album album = new Album();
@@ -135,6 +145,7 @@ public class AlbumDAO {
 				album.setName(result.getString("name"));
 				album.setYear(result.getInt("year"));
 				album.setArtist(result.getString("artist"));
+				album.setImage(result.getString("image"));
 				album.setIdUser(UUID.fromString(result.getString("idUser")));
 				albums.add(album);
 			}
@@ -157,7 +168,7 @@ public class AlbumDAO {
 	public List<Album> findAlbumsByUser(UUID userId) throws DAOException {
 		logger.debug("Attempting to find albums for user ID: {}", userId);
 		List<Album> userAlbums = new ArrayList<>();
-		String query = "SELECT idAlbum, name, year, artist, BIN_TO_UUID(idUser) as idUser FROM Album WHERE idUser = UUID_TO_BIN(?) ORDER BY year, name";
+		String query = "SELECT idAlbum, name, year, artist, image, BIN_TO_UUID(idUser) as idUser FROM Album WHERE idUser = UUID_TO_BIN(?) ORDER BY year, name";
 
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
 			pStatement.setString(1, userId.toString());
@@ -168,6 +179,7 @@ public class AlbumDAO {
 					album.setName(result.getString("name"));
 					album.setYear(result.getInt("year"));
 					album.setArtist(result.getString("artist"));
+					album.setImage(result.getString("image"));
 					album.setIdUser(UUID.fromString(result.getString("idUser")));
 					userAlbums.add(album);
 				}
@@ -191,15 +203,18 @@ public class AlbumDAO {
 	 * @param name    The new name for the album (or null to keep existing).
 	 * @param year    The new release year for the album (or null to keep existing).
 	 * @param artist  The new artist for the album (or null to keep existing).
+	 * @param image   The new image path for the album (or null to keep existing).
 	 * @throws DAOException             if a database access error occurs, the album
 	 *                                  is not found, the user is not authorized, or
 	 *                                  the new name already exists for this user.
 	 * @throws IllegalArgumentException if all update parameters (name, year,
-	 *                                  artist) are null.
+	 *                                  artist, image) are null.
 	 */
-	public void updateAlbum(int idAlbum, UUID userId, String name, Integer year, String artist) throws DAOException {
-		logger.debug("Attempting to update album ID: {} for user ID: {} with data: name={}, year={}, artist={}",
-				idAlbum, userId, name, year, artist);
+	public void updateAlbum(int idAlbum, UUID userId, String name, Integer year, String artist, String image)
+			throws DAOException {
+		logger.debug(
+				"Attempting to update album ID: {} for user ID: {} with data: name={}, year={}, artist={}, image={}",
+				idAlbum, userId, name, year, artist, image);
 		// Build the query dynamically
 		StringBuilder queryBuilder = new StringBuilder("UPDATE Album SET ");
 		List<Object> params = new ArrayList<>();
@@ -222,6 +237,13 @@ public class AlbumDAO {
 				queryBuilder.append(", ");
 			queryBuilder.append("artist = ?");
 			params.add(artist);
+			firstField = false;
+		}
+		if (image != null) {
+			if (!firstField)
+				queryBuilder.append(", ");
+			queryBuilder.append("image = ?");
+			params.add(image);
 			firstField = false;
 		}
 
@@ -247,6 +269,10 @@ public class AlbumDAO {
 				} else if (param instanceof Integer) {
 					pStatement.setInt(i + 1, (Integer) param);
 				}
+				// * Note: We don't handle setNull here because the update logic only adds
+				// * non-null parameters to the list. If a user wants to set image to NULL,
+				// * they would need a different mechanism or a specific value indicating NULL.
+				// * For now, this update only sets non-null values.
 			}
 
 			int affectedRows = pStatement.executeUpdate();

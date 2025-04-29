@@ -21,15 +21,15 @@ import jakarta.servlet.http.HttpServletResponse;
 public class NewSong extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
-	
+
 	public NewSong() {
 		super();
 	}
 
 	@Override
-	public void init() throws ServletException{
-			ServletContext context = getServletContext();
-			connection = ConnectionHandler.getConnection(context);
+	public void init() throws ServletException {
+		ServletContext context = getServletContext();
+		connection = ConnectionHandler.getConnection(context);
 	}
 
 	@Override
@@ -44,11 +44,11 @@ public class NewSong extends HttpServlet {
 		String genre = req.getParameter("sGenre").strip();
 		String image = req.getParameter("sIcon"); // FIXME
 		String audioFile = req.getParameter("sFile"); // FIXME
-		
+
 		User user = (User) req.getSession().getAttribute("user");
 
-		if(user != null) {
-			//Trovo la lista degli album
+		if (user != null) {
+			// Trovo la lista degli album
 			List<Album> albums;
 			try {
 				albums = albumDAO.findAlbumsByUser(user.getIdUser());
@@ -57,18 +57,18 @@ public class NewSong extends HttpServlet {
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
 				return;
 			}
-			//Cerco l'album di interesse
+			// Cerco l'album di interesse
 			Album album = findAlbum(albums, albumName);
-			
+
 			if (album != null && (!(album.getYear() == year) || !album.getArtist().equalsIgnoreCase(artist))) {
-				//Se l'album esiste ma le informazioni fornite non coincidono:
-				
-				//TODO
+				// Se l'album esiste ma le informazioni fornite non coincidono:
+
+				// TODO
 			}
-			
+
 			if (album == null) {
 				try {
-					album = albumDAO.createAlbum(albumName, year, artist, user.getIdUser());
+					album = albumDAO.createAlbum(albumName, year, artist, image, user.getIdUser());
 				} catch (DAOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -82,8 +82,7 @@ public class NewSong extends HttpServlet {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-			
+
 		} else {
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Session lost");
 			return;
@@ -98,7 +97,7 @@ public class NewSong extends HttpServlet {
 		}
 
 	}
-	
+
 	@Override
 	public void destroy() {
 		try {

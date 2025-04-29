@@ -8,9 +8,18 @@ public class Album {
 	private String name;
 	private int year;
 	private String artist;
+	private String image;
 	private UUID idUser;
 
 	// Getters and Setters
+
+	public String getImage() {
+		return image;
+	}
+
+	public void setImage(String image) {
+		this.image = image;
+	}
 
 	public int getIdAlbum() {
 		return idAlbum;
