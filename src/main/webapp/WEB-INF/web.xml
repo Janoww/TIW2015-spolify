@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://jakarta.ee/xml/ns/jakartaee" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd" version="6.0">
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="https://jakarta.ee/xml/ns/jakartaee"
+  xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+  version="6.0">
   <display-name>Spolify</display-name>
-    <context-param>
+  <context-param>
     <param-name>dbUrl</param-name>
     <param-value>jdbc:mysql://localhost:3306/TIW2025</param-value>
   </context-param>
@@ -17,55 +20,55 @@
     <param-name>dbDriver</param-name>
     <param-value>com.mysql.cj.jdbc.Driver</param-value>
   </context-param>
-  
-  <servlet>
- 	<servlet-name>CheckLogin</servlet-name>
-  	<servlet-class>it.polimi.tiw.projects.controllers.CheckLogin</servlet-class>
-  </servlet>
-  <servlet-mapping>
-  	<servlet-name>CheckLogin</servlet-name>
-  	<url-pattern>/CheckLogin</url-pattern>
-  </servlet-mapping>
-  
-  <servlet>
-  	<servlet-name>SignUp</servlet-name>
-  	<servlet-class>it.polimi.tiw.projects.controllers.SignUp</servlet-class>
-  </servlet>
-  <servlet-mapping>
-	<servlet-name>SignUp</servlet-name>
-  	<url-pattern>/SignUp</url-pattern>
-  </servlet-mapping>
-  
-  <servlet>
-  	<servlet-name>GoToHome</servlet-name>
-  	<servlet-class>it.polimi.tiw.projects.controllers.GoToHome</servlet-class>
-  </servlet>
-  <servlet-mapping>
-  	<servlet-name>GoToHome</servlet-name>
-  	<url-pattern>/Home</url-pattern>
-  </servlet-mapping>
-  
-  <servlet>
-  	<servlet-name>NewSong</servlet-name>
-  	<servlet-class>it.polimi.tiw.projects.controllers.NewSong</servlet-class>
-  </servlet>
-  <servlet-mapping>
-  	<servlet-name>NewSong</servlet-name>
-  	<url-pattern>/NewSong</url-pattern>
-  </servlet-mapping>
-  
-  
-  <servlet>
-  	<servlet-name>NewPlaylist</servlet-name>
-  	<servlet-class>it.polimi.tiw.projects.controllers.NewPlaylist</servlet-class>
-  </servlet>
-  <servlet-mapping>
-  <servlet-name>NewPlaylist</servlet-name>
-  <url-pattern>/NewPlaylist</url-pattern>
-  </servlet-mapping>
-  
 
- <welcome-file-list>
+  <servlet>
+    <servlet-name>CheckLogin</servlet-name>
+    <servlet-class>it.polimi.tiw.projects.controllers.CheckLogin</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CheckLogin</servlet-name>
+    <url-pattern>/CheckLogin</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>SignUp</servlet-name>
+    <servlet-class>it.polimi.tiw.projects.controllers.SignUp</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SignUp</servlet-name>
+    <url-pattern>/SignUp</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>GoToHome</servlet-name>
+    <servlet-class>it.polimi.tiw.projects.controllers.GoToHome</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GoToHome</servlet-name>
+    <url-pattern>/Home</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>NewSong</servlet-name>
+    <servlet-class>it.polimi.tiw.projects.controllers.NewSong</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>NewSong</servlet-name>
+    <url-pattern>/NewSong</url-pattern>
+  </servlet-mapping>
+
+
+  <servlet>
+    <servlet-name>NewPlaylist</servlet-name>
+    <servlet-class>it.polimi.tiw.projects.controllers.NewPlaylist</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>NewPlaylist</servlet-name>
+    <url-pattern>/NewPlaylist</url-pattern>
+  </servlet-mapping>
+
+
+  <welcome-file-list>
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>
 </web-app>
