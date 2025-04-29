@@ -21,7 +21,7 @@ public class CheckLogin extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
 	private TemplateEngine templateEngine;
-	
+
 	public CheckLogin() {
 		super();
 	}
@@ -41,29 +41,30 @@ public class CheckLogin extends HttpServlet {
 		String username = req.getParameter("lUsername").strip();
 		String password = req.getParameter("lPwd").strip();
 
-		//Checking if the parameters are empty
+		// Checking if the parameters are empty
 		if (username == null || password == null || username.isEmpty() || password.isEmpty()) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing credential value");
 			return;
 		}
-		
-		//Searching for the user
+
+		// Searching for the user
 		try {
 			user = userDAO.checkCredentials(username, password);
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-				case INVALID_CREDENTIALS: { //No user found with that username/password combination
-					WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
-	
-					ctx.setVariable("errorLogInMsg", "No user found with that username/password combination");
-					String path = "/index.html";
-					templateEngine.process(path, ctx, resp.getWriter());
-				}break;
+			case INVALID_CREDENTIALS: { // No user found with that username/password combination
+				WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
+
+				ctx.setVariable("errorLogInMsg", "No user found with that username/password combination");
+				String path = "/index.html";
+				templateEngine.process(path, ctx, resp.getWriter());
+			}
+				break;
 			}
 			return;
 		}
-		
-		//Assign the user to the session
+
+		// Assign the user to the session
 		req.getSession().setAttribute("user", user);
 		String path = getServletContext().getContextPath() + "/Home";
 		resp.sendRedirect(path);

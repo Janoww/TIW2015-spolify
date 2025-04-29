@@ -12,13 +12,13 @@ import jakarta.servlet.http.HttpServlet;
 public class AddSongToPL extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection;
-	
+
 	public AddSongToPL() {
 		super();
 	}
-	
+
 	@Override
-	public void init() throws ServletException{
+	public void init() throws ServletException {
 		ServletContext context = getServletContext();
 		connection = ConnectionHandler.getConnection(context);
 
@@ -27,7 +27,7 @@ public class AddSongToPL extends HttpServlet {
 	public void doPost() {
 
 	}
-	
+
 	@Override
 	public void destroy() {
 		try {

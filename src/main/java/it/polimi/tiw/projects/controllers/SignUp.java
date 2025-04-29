@@ -42,46 +42,47 @@ public class SignUp extends HttpServlet {
 		String username = req.getParameter("sUsername").strip();
 		String password = req.getParameter("sPwd").strip();
 
-		//Checking that parameters are not empty
+		// Checking that parameters are not empty
 		if (name == null || surname == null || username == null || password == null || name.isEmpty()
 				|| surname.isEmpty() || password.isEmpty() || username.isEmpty()) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing credential value");
 			return;
 		}
-		
-		//Try to create a new user
+
+		// Try to create a new user
 		try {
 			userDAO.createUser(username, password, name, surname);
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-			
-				case NAME_ALREADY_EXISTS: { //If a user with that name already exists:
-					WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
-	
-					ctx.setVariable("errorSignUpMsg", "Username already taken");
-					String path = "/index.html";
-					templateEngine.process(path, ctx, resp.getWriter());
-				} break;
-				
-				default: { //If another exception occurs
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to sign up");
-				}
+
+			case NAME_ALREADY_EXISTS: { // If a user with that name already exists:
+				WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
+
+				ctx.setVariable("errorSignUpMsg", "Username already taken");
+				String path = "/index.html";
+				templateEngine.process(path, ctx, resp.getWriter());
+			}
+				break;
+
+			default: { // If another exception occurs
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to sign up");
+			}
 
 			}
 			return;
 		}
 
-		//If we are here the user was created successfully, let's retrieve it
+		// If we are here the user was created successfully, let's retrieve it
 		User user = null;
 		try {
 			user = userDAO.checkCredentials(username, password);
-		} catch (DAOException e) { //Failed to retrieve the newly created user
+		} catch (DAOException e) { // Failed to retrieve the newly created user
 			e.printStackTrace();
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not Possible to check credentials");
 			return;
 		}
-		
-		//Assign the user to the session
+
+		// Assign the user to the session
 		req.getSession().setAttribute("user", user);
 		String path = getServletContext().getContextPath() + "/Home";
 		resp.sendRedirect(path);

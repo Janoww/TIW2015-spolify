@@ -28,16 +28,16 @@ public class GoToHome extends HttpServlet {
 	static final long serialVersionUID = 1L;
 	private Connection connection;
 	private TemplateEngine templateEngine;
-	
+
 	public GoToHome() {
 		super();
 	}
 
 	@Override
 	public void init() throws ServletException {
-			ServletContext context = getServletContext();
-			connection = ConnectionHandler.getConnection(context);
-			templateEngine = TemplateHandler.initializeEngine(context);
+		ServletContext context = getServletContext();
+		connection = ConnectionHandler.getConnection(context);
+		templateEngine = TemplateHandler.initializeEngine(context);
 	}
 
 	@Override
@@ -58,28 +58,28 @@ public class GoToHome extends HttpServlet {
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
 			return;
 		}
-		
-		//Get the list of all playlists
+
+		// Get the list of all playlists
 		List<Playlist> playslists = playlistIDs.stream().map(id -> {
-				try {
-					return playlistDAO.findPlaylistById(id, userId);
-				} catch (DAOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					return null;
-				}
-			}).toList();
-			
+			try {
+				return playlistDAO.findPlaylistById(id, userId);
+			} catch (DAOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return null;
+			}
+		}).toList();
+
 		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
-			
+
 		ctx.setVariable("playlists", playslists);
 		ctx.setVariable("songs", songList);
 		ctx.setVariable("genres", genresList);
-			
+
 		String path = "/WEB-INF/Home.html";
 		templateEngine.process(path, ctx, resp.getWriter());
 	}
-	
+
 	@Override
 	public void destroy() {
 		try {
