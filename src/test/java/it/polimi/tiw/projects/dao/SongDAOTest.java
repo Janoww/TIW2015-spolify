@@ -77,8 +77,9 @@ class SongDAOTest {
 			testUserId = testUser.getIdUser();
 			System.out.println("Test user created with ID: " + testUserId);
 
-			// Create the test album required for creating songs
-			Album testAlbum = albumDAO.createAlbum(TEST_ALBUM_TITLE, TEST_ALBUM_YEAR, TEST_ALBUM_ARTIST, testUserId);
+			// Create the test album required for creating songs (pass null for image)
+			Album testAlbum = albumDAO.createAlbum(TEST_ALBUM_TITLE, TEST_ALBUM_YEAR, TEST_ALBUM_ARTIST, null,
+					testUserId);
 			connection.commit(); // Commit album creation
 			assertNotNull(testAlbum, "Test album could not be created.");
 			testAlbumId = testAlbum.getIdAlbum();

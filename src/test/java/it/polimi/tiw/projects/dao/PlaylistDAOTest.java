@@ -79,8 +79,8 @@ public class PlaylistDAOTest {
             User testUser = userDAO.checkCredentials(TEST_USERNAME, TEST_PASSWORD);
             testUserId = testUser.getIdUser();
 
-            // Create test album and song
-            Album album = albumDAO.createAlbum(TEST_ALBUM_NAME, TEST_ALBUM_YEAR, TEST_ALBUM_ARTIST, testUserId);
+            // Create test album and song (pass null for image)
+            Album album = albumDAO.createAlbum(TEST_ALBUM_NAME, TEST_ALBUM_YEAR, TEST_ALBUM_ARTIST, null, testUserId);
             connection.commit();
             createdAlbumId = album.getIdAlbum();
 
