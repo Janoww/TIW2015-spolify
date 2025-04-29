@@ -29,33 +29,35 @@ The database consists of the following tables:
 (See ERD: erd.puml)
 
 * **User:** Stores user credentials and basic information.
-  * `user_id` (PK, INT, Auto-Increment)
-  * `username` (VARCHAR, UNIQUE, NOT NULL)
-  * `password` (VARCHAR, NOT NULL - *Store hashed passwords*)
-  * `name` (VARCHAR, NOT NULL)
-  * `surname` (VARCHAR, NOT NULL)
-* **Album:** Stores album details.
-  * `album_id` (PK, INT, Auto-Increment)
-  * `title` (VARCHAR, NOT NULL)
-  * `artist` (VARCHAR, NOT NULL)
-  * `publication_year` (INT, NOT NULL)
-  * `image_path` (VARCHAR, NOT NULL - *Path to the album cover image*)
-* **Song:** Stores song metadata and file paths.
-  * `song_id` (PK, INT, Auto-Increment)
-  * `title` (VARCHAR, NOT NULL)
-  * `genre` (VARCHAR, NOT NULL - *Assuming predefined genres*)
-  * `audio_file_path` (VARCHAR, NOT NULL - *Path to the audio file*)
-  * `album_id` (FK, INT, NOT NULL - References Album)
-  * `owner_user_id` (FK, INT, NOT NULL - References User)
-* **Playlist:** Stores playlist information.
-  * `playlist_id` (PK, INT, Auto-Increment)
-  * `title` (VARCHAR, NOT NULL)
-  * `creation_date` (DATE, NOT NULL)
-  * `owner_user_id` (FK, INT, NOT NULL - References User)
-* **PlaylistSong:** Joining table for the N-N relationship between Playlist and Song. Includes custom ordering.
-  * `playlist_id` (PK, FK, INT, NOT NULL - References Playlist)
-  * `song_id` (PK, FK, INT, NOT NULL - References Song)
-  * `custom_order` (INT, NULL - Stores the user-defined order index; NULL indicates default order)
+  * `idUser` (PK, BINARY(16), NOT NULL)
+  * `username` (VARCHAR(100), UNIQUE, NOT NULL)
+  * `password` (VARCHAR(100), NOT NULL - *Store hashed passwords*)
+  * `name` (VARCHAR(100))
+  * `surname` (VARCHAR(100))
+* **Album:** Stores album details. Each album is associated with a user.
+  * `idAlbum` (PK, INT, Auto-Increment, NOT NULL)
+  * `name` (VARCHAR(100), NOT NULL) - *Unique per user*
+  * `year` (INT, NOT NULL)
+  * `artist` (VARCHAR(100), NOT NULL)
+  * `image` (VARCHAR(255)) - *Path to the album cover image*
+  * `idUser` (FK, BINARY(16), NOT NULL - References User.idUser)
+* **Song:** Stores song metadata and file paths. Each song belongs to an album and is associated with a user.
+  * `idSong` (PK, INT, Auto-Increment, NOT NULL)
+  * `title` (VARCHAR(100), NOT NULL)
+  * `idAlbum` (FK, INT, NOT NULL - References Album.idAlbum)
+  * `year` (INT, NOT NULL) - *Year of the song, potentially different from album year*
+  * `genre` (VARCHAR(100))
+  * `audioFile` (VARCHAR(255), NOT NULL - *Path to the audio file*)
+  * `idUser` (FK, BINARY(16), NOT NULL - References User.idUser)
+* **playlist_metadata:** Stores playlist metadata. Each playlist is created by a user.
+  * `idPlaylist` (PK, INT, Auto-Increment, NOT NULL)
+  * `name` (VARCHAR(100), NOT NULL) - *Unique per user*
+  * `birthday` (TIMESTAMP, NOT NULL, DEFAULT CURRENT_TIMESTAMP) - *Creation timestamp*
+  * `idUser` (FK, BINARY(16), NOT NULL - References User.idUser)
+* **playlist_content:** Joining table for the N-N relationship between `playlist_metadata` and `Song`.
+  * `idPlaylist` (PK, FK, INT, NOT NULL - References playlist_metadata.idPlaylist)
+  * `idSong` (PK, FK, INT, NOT NULL - References Song.idSong)
+  * *Unique constraint on (`idSong`, `idPlaylist`)*
 
 ## 4. API Endpoints (Servlets)
 
