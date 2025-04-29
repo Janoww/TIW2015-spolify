@@ -6,6 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
 
@@ -14,6 +17,7 @@ import it.polimi.tiw.projects.exceptions.DAOException;
  * for creating, retrieving, and modifying user information.
  */
 public class UserDAO {
+	private static final Logger logger = LoggerFactory.getLogger(UserDAO.class);
 	private Connection connection;
 
 	/**
@@ -37,6 +41,7 @@ public class UserDAO {
 	 *                      already exists.
 	 */
 	public void createUser(String username, String pwd, String name, String surname) throws DAOException {
+		logger.debug("Attempting to create user: username={}, name={}, surname={}", username, name, surname);
 		String insertQuery = "INSERT INTO User (idUser, username, password, name, surname) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)";
 		String checkExistence = "SELECT * FROM User WHERE username = ?";
 		try (PreparedStatement checkStatement = connection.prepareStatement(checkExistence);
@@ -44,9 +49,11 @@ public class UserDAO {
 			checkStatement.setString(1, username);
 			try (ResultSet result = checkStatement.executeQuery()) {
 				if (result.next()) {
+					logger.warn("User creation failed: Username '{}' already exists.", username);
 					throw new DAOException("Username already exists", DAOException.DAOErrorType.NAME_ALREADY_EXISTS);
 				} else {
 					UUID userId = UUID.randomUUID();
+					logger.debug("Generated new user ID: {}", userId);
 					insertStatement.setString(1, userId.toString());
 					insertStatement.setString(2, username);
 					insertStatement.setString(3, pwd);
@@ -54,19 +61,24 @@ public class UserDAO {
 					insertStatement.setString(5, surname);
 					int affectedRows = insertStatement.executeUpdate();
 					if (affectedRows == 0) {
+						logger.error("Creating user failed, no rows affected for username: {}", username);
 						// Should not happen with a valid insert unless there's a concurrent issue or DB
 						// problem
 						throw new DAOException("Creating user failed, no rows affected.",
 								DAOException.DAOErrorType.GENERIC_ERROR);
 					}
+					logger.info("User '{}' created successfully with ID: {}", username, userId);
 				}
 			}
 		} catch (SQLException e) {
+			logger.error("SQL error during user creation for username {}: SQLState={}, Message={}", username,
+					e.getSQLState(), e.getMessage(), e);
 			// Check for unique constraint violation on username (MySQL error code 1062,
 			// SQLState '23000')
 			// This is a secondary check in case the initial SELECT misses a concurrent
 			// insert
 			if ("23000".equals(e.getSQLState())) {
+				// Logged above, re-throwing specific exception
 				throw new DAOException("Username '" + username + "' already exists.", e,
 						DAOException.DAOErrorType.NAME_ALREADY_EXISTS);
 			} else {
@@ -86,6 +98,7 @@ public class UserDAO {
 	 *                      invalid.
 	 */
 	public User checkCredentials(String username, String pwd) throws DAOException {
+		logger.debug("Attempting to check credentials for username: {}", username);
 		String query = "SELECT BIN_TO_UUID(idUser) as idUser, username, name, surname FROM User WHERE username = ? AND password = ?";
 		try (PreparedStatement pStatement = connection.prepareStatement(query);) {
 			pStatement.setString(1, username);
@@ -98,13 +111,16 @@ public class UserDAO {
 					user.setUsername(result.getString("username"));
 					user.setName(result.getString("name"));
 					user.setSurname(result.getString("surname"));
+					logger.info("Credentials valid for username: {}", username);
 					return user;
 				} else {
+					logger.warn("Invalid credentials provided for username: {}", username);
 					// No user found with that username/password combination
 					throw new DAOException("Invalid credentials", DAOException.DAOErrorType.INVALID_CREDENTIALS);
 				}
 			}
-		} catch (SQLException e) {
+		} catch (SQLException | IllegalArgumentException e) { // Catch UUID parsing errors too
+			logger.error("Error checking credentials for username {}: {}", username, e.getMessage(), e);
 			throw new DAOException("Error checking credentials: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
@@ -122,6 +138,7 @@ public class UserDAO {
 	 *                      found.
 	 */
 	public void modifyUser(User user, String name, String surname) throws DAOException {
+		logger.debug("Attempting to modify user ID: {} with name={}, surname={}", user.getIdUser(), name, surname);
 		String query = "UPDATE User SET name = ?, surname = ? WHERE idUser = UUID_TO_BIN(?)";
 
 		String finalName = (name == null) ? user.getName() : name;
@@ -134,14 +151,18 @@ public class UserDAO {
 			int affectedRows = pStatement.executeUpdate();
 
 			if (affectedRows == 0) {
+				logger.warn("User modification failed: User ID {} not found.", user.getIdUser());
 				throw new DAOException("User with ID " + user.getIdUser() + " not found for modification.",
 						DAOException.DAOErrorType.NOT_FOUND);
 			}
 			// Update the user bean in memory if modification was successful
+			logger.info("User ID {} modified successfully. New name={}, surname={}", user.getIdUser(), finalName,
+					finalSurname);
 			user.setName(finalName);
 			user.setSurname(finalSurname);
 
 		} catch (SQLException e) {
+			logger.error("SQL error modifying user ID {}: {}", user.getIdUser(), e.getMessage(), e);
 			throw new DAOException("Error modifying user: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}

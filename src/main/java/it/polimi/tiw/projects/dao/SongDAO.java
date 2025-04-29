@@ -3,6 +3,8 @@ package it.polimi.tiw.projects.dao;
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.SongRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class SongDAO {
+	private static final Logger logger = LoggerFactory.getLogger(SongDAO.class);
 	private Connection connection;
 
 	public SongDAO(Connection connection) {
@@ -30,6 +33,8 @@ public class SongDAO {
 	 */
 	public Song createSong(String title, int idAlbum, int year, String genre, String audioFile, UUID idUser)
 			throws DAOException {
+		logger.debug("Attempting to create song: title={}, idAlbum={}, year={}, genre={}, audioFile={}, userId={}",
+				title, idAlbum, year, genre, audioFile, idUser);
 		String query = "INSERT into Song (title, idAlbum, year, genre, audioFile, idUser) VALUES(?, ?, ?, ?, ?, UUID_TO_BIN(?))";
 		Song newSong = null;
 
@@ -60,19 +65,23 @@ public class SongDAO {
 					newSong.setGenre(genre);
 					newSong.setAudioFile(audioFile);
 					newSong.setIdUser(idUser);
+					logger.info("Song created successfully with ID: {}", newId);
 
 					// Add to registry if initialized
 					if (SongRegistry.isInitialized()) {
 						SongRegistry.addSong(newSong);
+						logger.debug("Song ID {} added to SongRegistry.", newId);
 					} else {
-						System.err.println("WARN: SongRegistry not initialized when creating song ID: " + newId);
+						logger.warn("SongRegistry not initialized when creating song ID: {}", newId);
 					}
 				} else {
+					logger.error("Creating song failed, no ID obtained for title={}, userId={}", title, idUser);
 					throw new DAOException("Creating song failed, no ID obtained.",
 							DAOException.DAOErrorType.GENERIC_ERROR);
 				}
 			}
 		} catch (SQLException e) {
+			logger.error("SQL error creating song title={}, userId={}: {}", title, idUser, e.getMessage(), e);
 			throw new DAOException("Error creating song: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
@@ -87,6 +96,7 @@ public class SongDAO {
 	 * @throws DAOException if a database access error occurs.
 	 */
 	public List<Song> findSongsByUser(UUID userId) throws DAOException {
+		logger.debug("Attempting to find songs for user ID: {}", userId);
 		List<Song> songs = new ArrayList<>();
 		String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?)";
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
@@ -103,8 +113,10 @@ public class SongDAO {
 					song.setIdUser(UUID.fromString(result.getString("idUser")));
 					songs.add(song);
 				}
+				logger.debug("Found {} songs for user ID: {}", songs.size(), userId);
 			}
-		} catch (SQLException e) {
+		} catch (SQLException | IllegalArgumentException e) { // Catch UUID parsing errors too
+			logger.error("Error finding songs for user ID {}: {}", userId, e.getMessage(), e);
 			throw new DAOException("Error finding songs by user: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
@@ -118,6 +130,7 @@ public class SongDAO {
 	 * @throws DAOException if a database access error occurs.
 	 */
 	public List<Song> findAllSongs() throws DAOException {
+		logger.debug("Attempting to find all songs");
 		List<Song> songs = new ArrayList<>();
 		String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song";
 		try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(query)) {
@@ -132,7 +145,9 @@ public class SongDAO {
 				song.setIdUser(UUID.fromString(result.getString("idUser")));
 				songs.add(song);
 			}
-		} catch (SQLException e) {
+			logger.debug("Found {} songs in total.", songs.size());
+		} catch (SQLException | IllegalArgumentException e) { // Catch UUID parsing errors too
+			logger.error("Error finding all songs: {}", e.getMessage(), e);
 			throw new DAOException("Error finding all songs: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
@@ -149,14 +164,26 @@ public class SongDAO {
 	 * @throws IllegalStateException if the registry is already initialized.
 	 */
 	public static synchronized void initializeRegistry(Connection connection) throws DAOException {
+		logger.info("Attempting to initialize SongRegistry...");
 		// Check initialization status using SongRegistry method
 		if (SongRegistry.isInitialized()) {
-			System.out.println("SongRegistry already initialized. Skipping DB load.");
+			// System.out.println("SongRegistry already initialized. Skipping DB load.");
+			logger.info("SongRegistry already initialized. Skipping DB load.");
 			return; // Exit if already initialized
 		}
-		SongDAO dao = new SongDAO(connection); // Create a temporary DAO instance
-		List<Song> allSongs = dao.findAllSongs(); // Fetch all songs
-		SongRegistry.initialize(allSongs); // Initialize the registry
+		try {
+			SongDAO dao = new SongDAO(connection); // Create a temporary DAO instance
+			List<Song> allSongs = dao.findAllSongs(); // Fetch all songs
+			SongRegistry.initialize(allSongs); // Initialize the registry
+			logger.info("SongRegistry initialized successfully with {} songs.", allSongs.size());
+		} catch (DAOException e) {
+			logger.error("Failed to initialize SongRegistry due to DAOException: {}", e.getMessage(), e);
+			throw e; // Re-throw the exception after logging
+		} catch (Exception e) { // Catch any other potential runtime exceptions during initialization
+			logger.error("Unexpected error during SongRegistry initialization: {}", e.getMessage(), e);
+			throw new DAOException("Unexpected error initializing song registry.", e,
+					DAOException.DAOErrorType.GENERIC_ERROR);
+		}
 	}
 
 	/**
@@ -168,15 +195,27 @@ public class SongDAO {
 	 *                      found.
 	 */
 	public boolean deleteSong(int songId) throws DAOException {
+		logger.debug("Attempting to delete song ID: {}", songId);
 		// Remove from registry first (if initialized)
-		// Note: If removeSong throws an exception (e.g., song not in registry),
-		// it might prevent DB deletion. Consider if this is the desired behavior.
+		// ? Note: If removeSong throws an exception (e.g., song not in registry),
+		// ? it might prevent DB deletion. Consider if this is the desired behavior.
+		boolean removedFromRegistry = false;
 		if (SongRegistry.isInitialized()) {
-			if (SongRegistry.removeSong(songId) == null) {
-				return false;
+			if (SongRegistry.removeSong(songId) != null) {
+				logger.debug("Song ID {} removed from SongRegistry.", songId);
+				removedFromRegistry = true;
+			} else {
+				logger.warn("Attempted to delete song ID {}, but it was not found in the initialized SongRegistry.",
+						songId);
+				// ? Decide if this should prevent DB deletion. Current logic allows DB delete
+				// ? attempt.
+				// return false; // Uncomment this line if not found in registry means deletion
+				// should fail.
 			}
 		} else {
-			System.err.println("WARN: SongRegistry not initialized when deleting song ID: " + songId);
+			// System.err.println("WARN: SongRegistry not initialized when deleting song ID:
+			// " + songId);
+			logger.warn("SongRegistry not initialized when deleting song ID: {}", songId);
 		}
 
 		String query = "DELETE FROM Song WHERE idSong = ?";
@@ -185,12 +224,27 @@ public class SongDAO {
 			int affectedRows = pStatement.executeUpdate();
 			if (affectedRows == 0) {
 				// If the song wasn't in the registry AND not in the DB, this is consistent.
-				// If it WAS in the registry but not deleted from DB, that's an issue,
-				// but this exception covers the "not found in DB" case.
-				throw new DAOException("Deleting song failed, song ID " + songId + " not found.",
+				// ? If it WAS in the registry but not deleted from DB, that's an issue,
+				// ? but this exception covers the "not found in DB" case.
+				logger.warn("Deleting song ID {} from database failed (0 rows affected). Song might not exist in DB.",
+						songId);
+				// If it was removed from registry but not found in DB, maybe log inconsistency?
+				if (removedFromRegistry) {
+					logger.error(
+							"Inconsistency: Song ID {} was removed from registry but not found in database for deletion.",
+							songId);
+					// Depending on requirements, maybe throw an exception here.
+				}
+				// Throwing NOT_FOUND is appropriate if the primary goal is DB deletion.
+				throw new DAOException("Deleting song failed, song ID " + songId + " not found in database.",
 						DAOException.DAOErrorType.NOT_FOUND);
 			}
+			logger.info("Song ID {} deleted successfully from database.", songId);
 		} catch (SQLException e) {
+			logger.error("SQL error deleting song ID {}: {}", songId, e.getMessage(), e);
+			// ? Consider if the song should be re-added to the registry if DB deletion
+			// ? fails after registry removal.
+			// ? This depends on transactional requirements not implemented here.
 			throw new DAOException("Error deleting song: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}

@@ -2,6 +2,8 @@ package it.polimi.tiw.projects.dao;
 
 import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -9,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class AlbumDAO {
+	private static final Logger logger = LoggerFactory.getLogger(AlbumDAO.class);
 	private Connection connection;
 
 	public AlbumDAO(Connection connection) {
@@ -27,6 +30,7 @@ public class AlbumDAO {
 	 *                      exists for this user.
 	 */
 	public Album createAlbum(String name, int year, String artist, UUID idUser) throws DAOException {
+		logger.debug("Attempting to create album: name={}, year={}, artist={}, userId={}", name, year, artist, idUser);
 		String query = "INSERT into Album (name, year, artist, idUser) VALUES(?, ?, ?, UUID_TO_BIN(?))";
 		Album newAlbum = null;
 
@@ -38,7 +42,7 @@ public class AlbumDAO {
 			int affectedRows = pStatement.executeUpdate();
 
 			if (affectedRows == 0) {
-				// This case might not happen with auto-increment keys but kept for robustness
+				// ? This case might not happen with auto-increment keys but kept for robustness
 				throw new DAOException("Creating album failed, no rows affected.",
 						DAOException.DAOErrorType.GENERIC_ERROR);
 			}
@@ -53,12 +57,16 @@ public class AlbumDAO {
 					newAlbum.setYear(year);
 					newAlbum.setArtist(artist);
 					newAlbum.setIdUser(idUser);
+					logger.info("Album created successfully with ID: {}", newAlbum.getIdAlbum());
 				} else {
+					logger.error("Creating album failed, no ID obtained for name={}, userId={}", name, idUser);
 					throw new DAOException("Creating album failed, no ID obtained.",
 							DAOException.DAOErrorType.GENERIC_ERROR);
 				}
 			}
 		} catch (SQLException e) {
+			logger.error("SQL error during album creation for name={}, userId={}: SQLState={}, Message={}", name,
+					idUser, e.getSQLState(), e.getMessage(), e);
 			// Check for unique constraint violation (MySQL error code 1062, SQLState
 			// '23000') - Handles the composite unique key (name, idUser)
 			if ("23000".equals(e.getSQLState())) {
@@ -80,6 +88,7 @@ public class AlbumDAO {
 	 * @throws DAOException if a database access error occurs.
 	 */
 	public Album findAlbumById(int idAlbum) throws DAOException {
+		logger.debug("Attempting to find album by ID: {}", idAlbum);
 		Album album = null;
 		String query = "SELECT idAlbum, name, year, artist, BIN_TO_UUID(idUser) as idUser FROM Album WHERE idAlbum = ?";
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
@@ -92,9 +101,13 @@ public class AlbumDAO {
 					album.setYear(result.getInt("year"));
 					album.setArtist(result.getString("artist"));
 					album.setIdUser(UUID.fromString(result.getString("idUser")));
+					logger.debug("Found album with ID: {}", idAlbum);
+				} else {
+					logger.debug("Album not found with ID: {}", idAlbum);
 				}
 			}
 		} catch (SQLException e) {
+			logger.error("SQL error finding album by ID {}: {}", idAlbum, e.getMessage(), e);
 			throw new DAOException("Error finding album by ID: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
@@ -108,6 +121,7 @@ public class AlbumDAO {
 	 * @throws DAOException if a database access error occurs.
 	 */
 	public List<Album> findAllAlbums() throws DAOException {
+		logger.debug("Attempting to find all albums");
 		List<Album> albums = new ArrayList<>();
 		String query = "SELECT idAlbum, name, year, artist, BIN_TO_UUID(idUser) as idUser FROM Album ORDER BY artist, year, name";
 		try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(query)) {
@@ -120,7 +134,9 @@ public class AlbumDAO {
 				album.setIdUser(UUID.fromString(result.getString("idUser")));
 				albums.add(album);
 			}
+			logger.debug("Found {} albums", albums.size());
 		} catch (SQLException e) {
+			logger.error("SQL error finding all albums: {}", e.getMessage(), e);
 			throw new DAOException("Error finding all albums: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
@@ -135,6 +151,7 @@ public class AlbumDAO {
 	 * @throws DAOException if a database access error occurs.
 	 */
 	public List<Album> findAlbumsByUser(UUID userId) throws DAOException {
+		logger.debug("Attempting to find albums for user ID: {}", userId);
 		List<Album> userAlbums = new ArrayList<>();
 		String query = "SELECT idAlbum, name, year, artist, BIN_TO_UUID(idUser) as idUser FROM Album WHERE idUser = UUID_TO_BIN(?) ORDER BY year, name";
 
@@ -150,8 +167,10 @@ public class AlbumDAO {
 					album.setIdUser(UUID.fromString(result.getString("idUser")));
 					userAlbums.add(album);
 				}
+				logger.debug("Found {} albums for user ID: {}", userAlbums.size(), userId);
 			}
 		} catch (SQLException e) {
+			logger.error("SQL error finding albums for user ID {}: {}", userId, e.getMessage(), e);
 			throw new DAOException("Error finding albums by user: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
@@ -177,6 +196,8 @@ public class AlbumDAO {
 	 *                                  artist) are null.
 	 */
 	public boolean updateAlbum(int idAlbum, UUID userId, String name, Integer year, String artist) throws DAOException {
+		logger.debug("Attempting to update album ID: {} for user ID: {} with data: name={}, year={}, artist={}",
+				idAlbum, userId, name, year, artist);
 		// Build the query dynamically
 		StringBuilder queryBuilder = new StringBuilder("UPDATE Album SET ");
 		List<Object> params = new ArrayList<>();
@@ -204,6 +225,7 @@ public class AlbumDAO {
 
 		// Check if any field was actually added for update
 		if (params.isEmpty()) {
+			logger.warn("Update attempt for album ID {} failed: No fields provided for update.", idAlbum);
 			throw new IllegalArgumentException("No fields provided for update.");
 		}
 
@@ -227,11 +249,15 @@ public class AlbumDAO {
 
 			int affectedRows = pStatement.executeUpdate();
 			if (affectedRows == 0) {
+				logger.warn("Update failed for album ID {}: Not found or user {} not authorized.", idAlbum, userId);
 				throw new DAOException("Album with ID " + idAlbum + " not found for update or user not authorized.",
 						DAOException.DAOErrorType.NOT_FOUND);
 			}
+			logger.info("Album ID {} updated successfully by user {}", idAlbum, userId);
 			return true; // If we reach here, affectedRows must be > 0
 		} catch (SQLException e) {
+			logger.error("SQL error updating album ID {} for user {}: SQLState={}, Message={}", idAlbum, userId,
+					e.getSQLState(), e.getMessage(), e);
 			// Check for unique constraint violation (name, idUser)
 			if ("23000".equals(e.getSQLState()) && name != null) {
 				throw new DAOException("Album name '" + name + "' already exists for this user.", e,
@@ -254,18 +280,22 @@ public class AlbumDAO {
 	 *                      authorized.
 	 */
 	public boolean deleteAlbum(int idAlbum, UUID userId) throws DAOException {
+		logger.debug("Attempting to delete album ID: {} by user ID: {}", idAlbum, userId);
 		String query = "DELETE FROM Album WHERE idAlbum = ? AND idUser = UUID_TO_BIN(?)";
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
 			pStatement.setInt(1, idAlbum);
 			pStatement.setString(2, userId.toString());
 			int affectedRows = pStatement.executeUpdate();
 			if (affectedRows == 0) {
+				logger.warn("Delete failed for album ID {}: Not found or user {} not authorized.", idAlbum, userId);
 				// Could be not found OR not authorized
 				throw new DAOException("Album with ID " + idAlbum + " not found for deletion or user not authorized.",
 						DAOException.DAOErrorType.NOT_FOUND);
 			}
+			logger.info("Album ID {} deleted successfully by user {}", idAlbum, userId);
 			return true; // If we reach here, affectedRows must be > 0
 		} catch (SQLException e) {
+			logger.error("SQL error deleting album ID {} by user {}: {}", idAlbum, userId, e.getMessage(), e);
 			throw new DAOException("Error deleting album: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}

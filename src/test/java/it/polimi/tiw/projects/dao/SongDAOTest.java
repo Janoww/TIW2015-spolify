@@ -388,7 +388,8 @@ class SongDAOTest {
 		});
 
 		// Updated expected message based on SongDAO implementation
-		assertEquals("Deleting song failed, song ID " + nonExistentSongId + " not found.", exception.getMessage());
+		assertEquals("Deleting song failed, song ID " + nonExistentSongId + " not found in database.",
+				exception.getMessage());
 		assertEquals(DAOException.DAOErrorType.NOT_FOUND, exception.getErrorType());
 	}
 
