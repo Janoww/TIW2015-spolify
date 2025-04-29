@@ -1,7 +1,6 @@
 package it.polimi.tiw.projects.dao;
 
 import it.polimi.tiw.projects.beans.Album;
-import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
