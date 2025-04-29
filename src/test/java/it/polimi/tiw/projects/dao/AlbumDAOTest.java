@@ -334,10 +334,16 @@ class AlbumDAOTest {
 	@Test
 	@Order(4)
 	@DisplayName("Test finding an album by a non-existent ID")
-	void testFindAlbumById_NotFound() throws DAOException {
+	void testFindAlbumById_NotFound() {
 		int nonExistentId = -999;
-		Album foundAlbum = assertDoesNotThrow(() -> albumDAO.findAlbumById(nonExistentId));
-		assertNull(foundAlbum, "Finding a non-existent album ID should return null.");
+		// Expect DAOException with NOT_FOUND type
+		DAOException exception = assertThrows(DAOException.class, () -> {
+			albumDAO.findAlbumById(nonExistentId);
+		}, "Finding a non-existent album ID should throw DAOException.");
+
+		assertEquals(DAOException.DAOErrorType.NOT_FOUND, exception.getErrorType());
+		assertTrue(exception.getMessage().contains("Album with ID " + nonExistentId + " not found."),
+				"Exception message should indicate album not found.");
 	}
 
 	@Test
@@ -422,10 +428,11 @@ class AlbumDAOTest {
 		createdAlbumId1 = originalAlbum.getIdAlbum();
 		connection.commit();
 
-		// Update the album (as the owner)
-		boolean updated = assertDoesNotThrow(() -> albumDAO.updateAlbum(createdAlbumId1, testUserId,
-				TEST_ALBUM_NAME_UPDATED, TEST_ALBUM_YEAR_UPDATED, TEST_ALBUM_ARTIST_UPDATED));
-		assertTrue(updated, "Update operation should return true on success.");
+		// Update the album (as the owner) - Now returns void, success is no exception
+		assertDoesNotThrow(
+				() -> albumDAO.updateAlbum(createdAlbumId1, testUserId, TEST_ALBUM_NAME_UPDATED,
+						TEST_ALBUM_YEAR_UPDATED, TEST_ALBUM_ARTIST_UPDATED),
+				"Successful update should not throw an exception.");
 		connection.commit(); // Commit the update
 
 		// Verify the update
@@ -446,12 +453,9 @@ class AlbumDAOTest {
 		createdAlbumId1 = originalAlbum.getIdAlbum();
 		connection.commit();
 
-		boolean updated = assertDoesNotThrow(
-				() -> albumDAO.updateAlbum(createdAlbumId1, testUserId, TEST_ALBUM_NAME_UPDATED, null, null) // Only
-																												// update
-																												// name
-		);
-		assertTrue(updated);
+		// Update name only - Now returns void
+		assertDoesNotThrow(() -> albumDAO.updateAlbum(createdAlbumId1, testUserId, TEST_ALBUM_NAME_UPDATED, null, null),
+				"Successful partial name update should not throw an exception.");
 		connection.commit();
 
 		Album updatedAlbum = albumDAO.findAlbumById(createdAlbumId1);
@@ -471,12 +475,9 @@ class AlbumDAOTest {
 		createdAlbumId1 = originalAlbum.getIdAlbum();
 		connection.commit();
 
-		boolean updated = assertDoesNotThrow(
-				() -> albumDAO.updateAlbum(createdAlbumId1, testUserId, null, TEST_ALBUM_YEAR_UPDATED, null) // Only
-																												// update
-																												// year
-		);
-		assertTrue(updated);
+		// Update year only - Now returns void
+		assertDoesNotThrow(() -> albumDAO.updateAlbum(createdAlbumId1, testUserId, null, TEST_ALBUM_YEAR_UPDATED, null),
+				"Successful partial year update should not throw an exception.");
 		connection.commit();
 
 		Album updatedAlbum = albumDAO.findAlbumById(createdAlbumId1);
@@ -496,12 +497,10 @@ class AlbumDAOTest {
 		createdAlbumId1 = originalAlbum.getIdAlbum();
 		connection.commit();
 
-		boolean updated = assertDoesNotThrow(
-				() -> albumDAO.updateAlbum(createdAlbumId1, testUserId, null, null, TEST_ALBUM_ARTIST_UPDATED) // Only
-																												// update
-																												// artist
-		);
-		assertTrue(updated);
+		// Update artist only - Now returns void
+		assertDoesNotThrow(
+				() -> albumDAO.updateAlbum(createdAlbumId1, testUserId, null, null, TEST_ALBUM_ARTIST_UPDATED),
+				"Successful partial artist update should not throw an exception.");
 		connection.commit();
 
 		Album updatedAlbum = albumDAO.findAlbumById(createdAlbumId1);
@@ -586,13 +585,17 @@ class AlbumDAOTest {
 		// Verify it exists before delete
 		assertNotNull(findAlbumByIdDirectly(createdAlbumId1), "Album should exist before deletion.");
 
-		// Delete the album using DAO (as the owner)
-		boolean deleted = assertDoesNotThrow(() -> albumDAO.deleteAlbum(createdAlbumId1, testUserId));
-		assertTrue(deleted, "Delete operation should return true on success.");
+		// Delete the album using DAO (as the owner) - Now returns void
+		assertDoesNotThrow(() -> albumDAO.deleteAlbum(createdAlbumId1, testUserId),
+				"Successful delete should not throw an exception.");
 		connection.commit(); // Commit the deletion
 
-		// Verify it's gone using DAO find method
-		assertNull(albumDAO.findAlbumById(createdAlbumId1), "Album should not be findable via DAO after deletion.");
+		// Verify it's gone using DAO find method (which now throws NOT_FOUND)
+		DAOException findException = assertThrows(DAOException.class, () -> {
+			albumDAO.findAlbumById(createdAlbumId1);
+		}, "Finding deleted album should throw DAOException.");
+		assertEquals(DAOException.DAOErrorType.NOT_FOUND, findException.getErrorType());
+
 		// Also verify directly
 		assertNull(findAlbumByIdDirectly(createdAlbumId1), "Album should not be findable directly after deletion.");
 

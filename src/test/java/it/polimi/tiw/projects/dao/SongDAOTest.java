@@ -330,8 +330,9 @@ class SongDAOTest {
 		// Verify it exists before delete
 		assertNotNull(findSongByIdDirectly(createdSongId1), "Song should exist before deletion.");
 
-		// Delete the song
-		assertDoesNotThrow(() -> songDAO.deleteSong(createdSongId1));
+		// Delete the song - Now returns void
+		assertDoesNotThrow(() -> songDAO.deleteSong(createdSongId1),
+				"Successful delete should not throw an exception.");
 		connection.commit(); // Commit the deletion
 
 		// Verify it's gone
@@ -354,6 +355,25 @@ class SongDAOTest {
 		assertEquals("Deleting song failed, song ID " + nonExistentSongId + " not found in database.",
 				exception.getMessage());
 		assertEquals(DAOException.DAOErrorType.NOT_FOUND, exception.getErrorType());
+	}
+
+	@Test
+	@Order(8)
+	@DisplayName("Test creating a song with a non-existent album ID")
+	void testCreateSong_AlbumNotFound() {
+		assertNotNull(testUserId, "Test User ID must be set.");
+		int nonExistentAlbumId = -999;
+
+		DAOException exception = assertThrows(DAOException.class, () -> {
+			songDAO.createSong(TEST_SONG_TITLE_1, nonExistentAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
+					testUserId);
+			// Rollback will happen in @AfterEach
+		}, "Creating a song with a non-existent album ID should throw DAOException.");
+
+		assertEquals(DAOException.DAOErrorType.NOT_FOUND, exception.getErrorType(),
+				"Exception type should be NOT_FOUND.");
+		assertTrue(exception.getMessage().contains("Album with ID " + nonExistentAlbumId + " not found."),
+				"Exception message should indicate album not found.");
 	}
 
 	// --- Helper method for direct DB verification ---
