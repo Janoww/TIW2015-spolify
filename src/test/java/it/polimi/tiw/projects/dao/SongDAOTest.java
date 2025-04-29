@@ -1,10 +1,11 @@
 package it.polimi.tiw.projects.dao;
 
 import it.polimi.tiw.projects.beans.Album;
+import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
-import it.polimi.tiw.projects.utils.SongRegistry;
+// import it.polimi.tiw.projects.utils.SongRegistry; // Removed registry import
 
 import org.junit.jupiter.api.*;
 
@@ -116,8 +117,6 @@ class SongDAOTest {
 				System.out.println("Database connection closed for SongDAOTest.");
 			}
 		}
-		// Reset SongRegistry if needed and possible
-		// SongRegistry.reset(); // Assuming a reset method exists
 	}
 
 	@BeforeEach
@@ -127,8 +126,6 @@ class SongDAOTest {
 		connection.commit();
 		createdSongId1 = null; // Reset stored IDs
 		createdSongId2 = null;
-		// Reset SongRegistry before each test
-		SongRegistry.reset();
 	}
 
 	@AfterEach
@@ -232,44 +229,10 @@ class SongDAOTest {
 		assertEquals(TEST_SONG_TITLE_1, foundSongAfterCommit.getTitle());
 	}
 
+	// Removed testInitializeRegistry_Success as the registry is gone
+
 	@Test
 	@Order(2)
-	@DisplayName("Test successful initialization of SongRegistry")
-	void testInitializeRegistry_Success() throws DAOException, SQLException {
-		assertFalse(SongRegistry.isInitialized(), "Registry should not be initialized before test");
-		assertNotNull(testAlbumId, "Test Album ID must be set before creating songs.");
-
-		// Create a song and commit it to DB
-		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-				testUserId);
-		createdSongId1 = song1.getIdSong();
-		connection.commit();
-		System.out.println("Created song with ID: " + createdSongId1 + " for registry test.");
-
-		// Initialize the registry
-		assertDoesNotThrow(() -> SongDAO.initializeRegistry(connection), "Initializing registry should not throw");
-
-		// Verify registry state
-		assertTrue(SongRegistry.isInitialized(), "Registry should be initialized after call");
-		assertEquals(1, SongRegistry.getAllSongs().size(), "Registry should contain exactly 1 song");
-
-		Song songFromRegistry = SongRegistry.getSongById(createdSongId1);
-		assertNotNull(songFromRegistry, "Song created should be found in the registry");
-		assertEquals(TEST_SONG_TITLE_1, songFromRegistry.getTitle());
-		assertEquals(testAlbumId, songFromRegistry.getIdAlbum());
-		assertEquals(testUserId, songFromRegistry.getIdUser());
-
-		// Test idempotency (calling initialize again should not fail or change
-		// state)
-		System.out.println("Calling initializeRegistry again to test idempotency...");
-		assertDoesNotThrow(() -> SongDAO.initializeRegistry(connection), "Re-initializing registry should not throw");
-		assertTrue(SongRegistry.isInitialized(), "Registry should still be initialized");
-		assertEquals(1, SongRegistry.getAllSongs().size(), "Registry should still contain exactly 1 song");
-		System.out.println("Idempotency test passed.");
-	}
-
-	@Test
-	@Order(3)
 	@DisplayName("Test finding songs by user")
 	void testFindSongsByUser_Success() throws DAOException, SQLException {
 		assertNotNull(testAlbumId, "Test Album ID must be set before creating songs.");
@@ -295,7 +258,7 @@ class SongDAOTest {
 	}
 
 	@Test
-	@Order(4)
+	@Order(3)
 	@DisplayName("Test finding songs by user when none exist")
 	void testFindSongsByUser_Empty() throws DAOException {
 		// Ensure no songs exist for a different random user ID
@@ -307,7 +270,7 @@ class SongDAOTest {
 	}
 
 	@Test
-	@Order(5)
+	@Order(4)
 	@DisplayName("Test finding all songs")
 	void testFindAllSongs_Success() throws DAOException, SQLException {
 		assertNotNull(testAlbumId, "Test Album ID must be set before creating songs.");
@@ -335,7 +298,7 @@ class SongDAOTest {
 	}
 
 	@Test
-	@Order(6)
+	@Order(5)
 	@DisplayName("Test finding all songs when DB is empty (after cleanup)")
 	void testFindAllSongs_Empty() throws DAOException, SQLException {
 		// Cleanup ensures no test songs are present. Assuming DB might have other
@@ -354,7 +317,7 @@ class SongDAOTest {
 	}
 
 	@Test
-	@Order(7)
+	@Order(6)
 	@DisplayName("Test deleting a song successfully")
 	void testDeleteSong_Success() throws DAOException, SQLException {
 		assertNotNull(testAlbumId, "Test Album ID must be set before creating a song.");
@@ -377,7 +340,7 @@ class SongDAOTest {
 	}
 
 	@Test
-	@Order(8)
+	@Order(7)
 	@DisplayName("Test deleting a non-existent song")
 	void testDeleteSong_NotFound() {
 		int nonExistentSongId = -999; // An ID that certainly doesn't exist
