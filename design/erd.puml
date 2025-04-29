@@ -1,0 +1,54 @@
+@startuml ERD
+
+!theme vibrant
+
+entity User {
+  + user_id : INT <<PK>>
+  --
+  * username : VARCHAR <<UNIQUE>>
+  * password : VARCHAR
+  * name : VARCHAR
+  * surname : VARCHAR
+}
+
+entity Album {
+  + album_id : INT <<PK>>
+  --
+  * title : VARCHAR
+  * artist : VARCHAR
+  * publication_year : INT
+  * image_path : VARCHAR
+}
+
+entity Song {
+  + song_id : INT <<PK>>
+  --
+  * title : VARCHAR
+  * genre : VARCHAR
+  * audio_file_path : VARCHAR
+  # album_id : INT <<FK>>
+  # owner_user_id : INT <<FK>>
+}
+
+entity Playlist {
+  + playlist_id : INT <<PK>>
+  --
+  * title : VARCHAR
+  * creation_date : DATE
+  # owner_user_id : INT <<FK>>
+}
+
+entity PlaylistSong {
+  # playlist_id : INT <<FK>> <<PK>>
+  # song_id : INT <<FK>> <<PK>>
+  --
+  custom_order : INT <<NULLABLE>>
+}
+
+User "1" -- "0..*" Song : owns/uploads
+User "1" -- "0..*" Playlist : creates
+Album "1" -- "1..*" Song : contains
+Playlist "1" -- "0..*" PlaylistSong : has
+Song "1" -- "0..*" PlaylistSong : belongs to
+
+@enduml

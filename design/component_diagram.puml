@@ -1,0 +1,22 @@
+@startuml Component Diagram
+
+!theme vibrant
+
+package "Frontend (Browser)" {
+  [JavaScript SPA] <<Component>>
+}
+
+package "Backend (Tomcat 10.1)" {
+  [REST API Servlets] <<Component>>
+  [DAO Layer] <<Component>>
+}
+
+package "Database (MySQL)" {
+  [MySQL Database] <<Database>>
+}
+
+[JavaScript SPA] ..> [REST API Servlets] : HTTP Requests (JSON)
+[REST API Servlets] ..> [DAO Layer] : Java Calls
+[DAO Layer] ..> [MySQL Database] : SQL Queries
+
+@enduml
