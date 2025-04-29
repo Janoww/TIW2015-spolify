@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class TemplateHandler {
 
-public static TemplateEngine initializeEngine(ServletContext context) {
+	public static TemplateEngine initializeEngine(ServletContext context) {
 		// In Thymeleaf 3.1+, they introduced a new, flexible abstraction layer for web
 		// environments called WebApplication, It wraps the standard ServletContext in a
 		// higher-level abstraction that Thymeleaf understands.
@@ -26,22 +26,21 @@ public static TemplateEngine initializeEngine(ServletContext context) {
 		templateResolver.setTemplateMode(TemplateMode.HTML);
 		// This will convert "home" to "home.html"
 		templateResolver.setSuffix(".html");
-	
+
 		TemplateEngine templateEngine = new TemplateEngine();
 		templateEngine.setTemplateResolver(templateResolver);
-		
+
 		return templateEngine;
 	}
 
-public static WebContext getWebContext(HttpServletRequest req, HttpServletResponse resp, ServletContext context) {
-	
-	JakartaServletWebApplication webApplication = JakartaServletWebApplication
-			.buildApplication(context);
+	public static WebContext getWebContext(HttpServletRequest req, HttpServletResponse resp, ServletContext context) {
 
-	// Contexts should contain all the data required for an execution of the
-	// template engine in a variables map, and also reference the locale that must
-	// be used for externalized messages.
-	return new WebContext(webApplication.buildExchange(req, resp), req.getLocale());
-}
+		JakartaServletWebApplication webApplication = JakartaServletWebApplication.buildApplication(context);
+
+		// Contexts should contain all the data required for an execution of the
+		// template engine in a variables map, and also reference the locale that must
+		// be used for externalized messages.
+		return new WebContext(webApplication.buildExchange(req, resp), req.getLocale());
+	}
 
 }
