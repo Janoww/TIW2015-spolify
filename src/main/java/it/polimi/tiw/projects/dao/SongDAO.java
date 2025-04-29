@@ -28,7 +28,10 @@ public class SongDAO {
 	 * @param audioFile The path or URL to the audio file.
 	 * @param idUser    The UUID of the user who uploaded the song.
 	 * @return The newly created Song object with its generated ID.
-	 * @throws DAOException if a database access error occurs.
+	 * @throws DAOException if the specified album ID does not exist
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NOT_FOUND})
+	 *                      or another database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public Song createSong(String title, int idAlbum, int year, String genre, String audioFile, UUID idUser)
 			throws DAOException {
@@ -101,7 +104,8 @@ public class SongDAO {
 	 *
 	 * @param userId The UUID of the user.
 	 * @return A list of songs uploaded by the user.
-	 * @throws DAOException if a database access error occurs.
+	 * @throws DAOException if a database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public List<Song> findSongsByUser(UUID userId) throws DAOException {
 		logger.debug("Attempting to find songs for user ID: {}", userId);
@@ -135,7 +139,8 @@ public class SongDAO {
 	 * Finds all songs in the database.
 	 *
 	 * @return A list of all songs.
-	 * @throws DAOException if a database access error occurs.
+	 * @throws DAOException if a database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public List<Song> findAllSongs() throws DAOException {
 		logger.debug("Attempting to find all songs");
@@ -166,8 +171,10 @@ public class SongDAO {
 	 * Deletes a song from the database.
 	 *
 	 * @param songId The ID of the song to delete.
-	 * @throws DAOException if a database access error occurs or the song is not
-	 *                      found.
+	 * @throws DAOException if the song is not found
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NOT_FOUND})
+	 *                      or another database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public void deleteSong(int songId) throws DAOException {
 		logger.debug("Attempting to delete song ID: {}", songId);

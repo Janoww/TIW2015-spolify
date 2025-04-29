@@ -27,8 +27,10 @@ public class AlbumDAO {
 	 * @param image  The path to the album's image file (can be null).
 	 * @param idUser The UUID of the user creating the album.
 	 * @return The newly created Album object with its generated ID.
-	 * @throws DAOException if a database access error occurs or the name already
-	 *                      exists for this user.
+	 * @throws DAOException if a database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR})
+	 *                      or the name already exists for this user
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NAME_ALREADY_EXISTS}).
 	 */
 	public Album createAlbum(String name, int year, String artist, String image, UUID idUser) throws DAOException {
 		logger.debug("Attempting to create album: name={}, year={}, artist={}, image={}, userId={}", name, year, artist,
@@ -94,8 +96,10 @@ public class AlbumDAO {
 	 *
 	 * @param idAlbum The ID of the album to find.
 	 * @return The Album object if found.
-	 * @throws DAOException if a database access error occurs or the album is not
-	 *                      found.
+	 * @throws DAOException if a database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR})
+	 *                      or the album is not found
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NOT_FOUND}).
 	 */
 	public Album findAlbumById(int idAlbum) throws DAOException {
 		logger.debug("Attempting to find album by ID: {}", idAlbum);
@@ -132,7 +136,8 @@ public class AlbumDAO {
 	 * Finds all albums in the database.
 	 *
 	 * @return A list of all albums.
-	 * @throws DAOException if a database access error occurs.
+	 * @throws DAOException if a database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public List<Album> findAllAlbums() throws DAOException {
 		logger.debug("Attempting to find all albums");
@@ -163,7 +168,8 @@ public class AlbumDAO {
 	 *
 	 * @param userId The UUID of the user.
 	 * @return A list of albums created by the user, ordered by year and name.
-	 * @throws DAOException if a database access error occurs.
+	 * @throws DAOException if a database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public List<Album> findAlbumsByUser(UUID userId) throws DAOException {
 		logger.debug("Attempting to find albums for user ID: {}", userId);
@@ -204,9 +210,13 @@ public class AlbumDAO {
 	 * @param year    The new release year for the album (or null to keep existing).
 	 * @param artist  The new artist for the album (or null to keep existing).
 	 * @param image   The new image path for the album (or null to keep existing).
-	 * @throws DAOException             if a database access error occurs, the album
-	 *                                  is not found, the user is not authorized, or
-	 *                                  the new name already exists for this user.
+	 * @throws DAOException             if a database access error occurs
+	 *                                  ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}),
+	 *                                  the album is not found or the user is not
+	 *                                  authorized
+	 *                                  ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NOT_FOUND}),
+	 *                                  or the new name already exists for this user
+	 *                                  ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NAME_ALREADY_EXISTS}).
 	 * @throws IllegalArgumentException if all update parameters (name, year,
 	 *                                  artist, image) are null.
 	 */
@@ -305,8 +315,10 @@ public class AlbumDAO {
 	 * @param idAlbum The ID of the album to delete.
 	 * @param userId  The UUID of the user attempting the deletion (for
 	 *                authorization).
-	 * @throws DAOException if a database access error occurs, the album is not
-	 *                      found, or the user is not authorized.
+	 * @throws DAOException if a database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}),
+	 *                      the album is not found, or the user is not authorized
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NOT_FOUND}).
 	 */
 	public void deleteAlbum(int idAlbum, UUID userId) throws DAOException {
 		logger.debug("Attempting to delete album ID: {} by user ID: {}", idAlbum, userId);

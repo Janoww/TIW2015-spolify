@@ -37,8 +37,10 @@ public class UserDAO {
 	 * @param pwd      the password for the new user.
 	 * @param name     the first name of the new user.
 	 * @param surname  the last name of the new user.
-	 * @throws DAOException if a database access error occurs or the username
-	 *                      already exists.
+	 * @throws DAOException if the username already exists
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NAME_ALREADY_EXISTS})
+	 *                      or another database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public void createUser(String username, String pwd, String name, String surname) throws DAOException {
 		logger.debug("Attempting to create user: username={}, name={}, surname={}", username, name, surname);
@@ -94,8 +96,10 @@ public class UserDAO {
 	 * @param username the username to check.
 	 * @param pwd      the password to check.
 	 * @return a User object containing the user's details if credentials are valid.
-	 * @throws DAOException if a database access error occurs or credentials are
-	 *                      invalid.
+	 * @throws DAOException if the credentials are invalid
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#INVALID_CREDENTIALS})
+	 *                      or another database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public User checkCredentials(String username, String pwd) throws DAOException {
 		logger.debug("Attempting to check credentials for username: {}", username);
@@ -134,8 +138,10 @@ public class UserDAO {
 	 *                the user ID).
 	 * @param name    the new first name (or null to keep the existing one).
 	 * @param surname the new last name (or null to keep the existing one).
-	 * @throws DAOException if a database access error occurs or the user is not
-	 *                      found.
+	 * @throws DAOException if the user is not found
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NOT_FOUND})
+	 *                      or another database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public void modifyUser(User user, String name, String surname) throws DAOException {
 		logger.debug("Attempting to modify user ID: {} with name={}, surname={}", user.getIdUser(), name, surname);

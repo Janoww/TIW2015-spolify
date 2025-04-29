@@ -35,8 +35,15 @@ public class PlaylistDAO {
 	 * @return The generated Playlist
 	 * @throws SQLException if a database access error occurs that isn't handled by
 	 *                      DAOException.
-	 * @throws DAOException if the playlist name already exists for the user or
-	 *                      another DAO-specific error occurs.
+	 * @throws DAOException if the playlist name already exists for the user
+	 *                      ({@link DAOErrorType#NAME_ALREADY_EXISTS}), a provided
+	 *                      song ID is not found ({@link DAOErrorType#NOT_FOUND}), a
+	 *                      constraint violation occurs (e.g., null song ID)
+	 *                      ({@link DAOErrorType#CONSTRAINT_VIOLATION}), a duplicate
+	 *                      song ID is provided in the input list
+	 *                      ({@link DAOErrorType#DUPLICATE_ENTRY}), or another
+	 *                      database error occurs
+	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
 	 */
 	public Playlist createPlaylist(String name, UUID idUser, List<Integer> songIds) throws SQLException, DAOException {
 		logger.debug("Attempting to create playlist: name={}, userId={}, songCount={}", name, idUser,
@@ -207,7 +214,8 @@ public class PlaylistDAO {
 	 *
 	 * @param idUser The UUID of the user.
 	 * @return A list of playlist IDs.
-	 * @throws DAOException if a database access error occurs.
+	 * @throws DAOException if a database access error occurs
+	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
 	 */
 	public List<Integer> findPlaylistIdsByUser(UUID idUser) throws DAOException {
 		logger.debug("Attempting to find playlist IDs for user ID: {}", idUser);
@@ -238,8 +246,12 @@ public class PlaylistDAO {
 	 * @param userId     The UUID of the user who must own the playlist (for
 	 *                   verification).
 	 * @return The Playlist object if found and owned by the user.
-	 * @throws DAOException if a database access error occurs, the playlist is not
-	 *                      found, or the user is not authorized.
+	 * @throws DAOException if the playlist is not found
+	 *                      ({@link DAOErrorType#NOT_FOUND}), the user is not
+	 *                      authorized to access it
+	 *                      ({@link DAOErrorType#ACCESS_DENIED}), or another
+	 *                      database error occurs
+	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
 	 */
 	public Playlist findPlaylistById(int playlistId, UUID userId) throws DAOException {
 		logger.debug("Attempting to find playlist ID: {} for user ID: {}", playlistId, userId);
@@ -333,8 +345,12 @@ public class PlaylistDAO {
 	 *
 	 * @param playlistId The ID of the playlist to delete.
 	 * @param userId     The UUID of the user who must own the playlist.
-	 * @throws DAOException if a database access error occurs, the playlist is not
-	 *                      found, or the user is not authorized.
+	 * @throws DAOException if the playlist is not found
+	 *                      ({@link DAOErrorType#NOT_FOUND}), the user is not
+	 *                      authorized to delete it
+	 *                      ({@link DAOErrorType#ACCESS_DENIED}), or another
+	 *                      database error occurs
+	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
 	 */
 	public void deletePlaylist(int playlistId, UUID userId) throws DAOException {
 		logger.debug("Attempting to delete playlist ID: {} by user ID: {}", playlistId, userId);
@@ -395,9 +411,17 @@ public class PlaylistDAO {
 	 * @param playlistId The ID of the playlist to add the song to.
 	 * @param userId     The UUID of the user who must own the playlist.
 	 * @param songId     The ID of the song to add.
-	 * @throws DAOException if the playlist is not found, the user is not
-	 *                      authorized, the song is not found, the song is already
-	 *                      in the playlist, or a database access error occurs.
+	 * @throws DAOException if the playlist is not found
+	 *                      ({@link DAOErrorType#NOT_FOUND}), the user is not
+	 *                      authorized for the playlist
+	 *                      ({@link DAOErrorType#ACCESS_DENIED}), the song is not
+	 *                      found ({@link DAOErrorType#NOT_FOUND}), the song is
+	 *                      already in the playlist
+	 *                      ({@link DAOErrorType#DUPLICATE_ENTRY}), a constraint
+	 *                      violation occurs
+	 *                      ({@link DAOErrorType#CONSTRAINT_VIOLATION}), or another
+	 *                      database error occurs
+	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
 	 */
 	public void addSongToPlaylist(int playlistId, UUID userId, int songId) throws DAOException {
 		logger.debug("Attempting to add song ID: {} to playlist ID: {} by user ID: {}", songId, playlistId, userId);
@@ -504,8 +528,12 @@ public class PlaylistDAO {
 	 * @param songId     The ID of the song to remove.
 	 * @return true if the song was present and removed successfully, false if the
 	 *         song was not in the playlist.
-	 * @throws DAOException if the playlist is not found, the user is not
-	 *                      authorized, or a database access error occurs.
+	 * @throws DAOException if the playlist is not found
+	 *                      ({@link DAOErrorType#NOT_FOUND}), the user is not
+	 *                      authorized for the playlist
+	 *                      ({@link DAOErrorType#ACCESS_DENIED}), or another
+	 *                      database error occurs
+	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
 	 */
 	public boolean removeSongFromPlaylist(int playlistId, UUID userId, int songId) throws DAOException {
 		logger.debug("Attempting to remove song ID: {} from playlist ID: {} by user ID: {}", songId, playlistId,
