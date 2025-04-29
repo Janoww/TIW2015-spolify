@@ -27,7 +27,7 @@ public class NewPlaylist extends HttpServlet {
 	public NewPlaylist() {
 		super();
 	}
-	
+
 	@Override
 	public void init() throws ServletException {
 		ServletContext context = getServletContext();
@@ -49,7 +49,7 @@ public class NewPlaylist extends HttpServlet {
 			playlistDAO = new PlaylistDAO(connection);
 			songDAO = new SongDAO(connection);
 			name = req.getParameter("pName").strip();
-			
+
 			songIDs = Arrays.asList(req.getParameterValues("songsSelect")).stream().map(Integer::parseInt).toList();
 
 			user = (User) req.getSession().getAttribute("user");
@@ -57,8 +57,8 @@ public class NewPlaylist extends HttpServlet {
 			List<Integer> list = playlistDAO.findPlaylistIdsByUser(user.getIdUser());
 			playlist = findPlaylistByName(playlistDAO, list, name, user.getIdUser());
 
-			if (playlist == null) {		
-				playlistDAO.createPlaylist(name, null, user.getIdUser(), songIDs);
+			if (playlist == null) {
+				playlistDAO.createPlaylist(name, user.getIdUser(), songIDs);
 			} else {
 				// TODO
 			}
@@ -77,7 +77,7 @@ public class NewPlaylist extends HttpServlet {
 		}
 
 	}
-	
+
 	@Override
 	public void destroy() {
 		try {
@@ -109,6 +109,5 @@ public class NewPlaylist extends HttpServlet {
 		}
 		return null;
 	}
-	
-	
+
 }

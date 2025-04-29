@@ -43,7 +43,6 @@ public class PlaylistDAOTest {
 
     private static final String TEST_PLAYLIST_NAME = "JUnit Test Playlist";
     private static final String TEST_PLAYLIST_NAME_DUPLICATE = "JUnit Test Playlist Duplicate";
-    private static final String TEST_PLAYLIST_IMAGE = "/images/test.jpg";
     private static final String TEST_SONG_TITLE = "JUnit Test Song";
     private static final int TEST_SONG_YEAR = 2025;
     private static final String TEST_SONG_GENRE = "Test";
@@ -119,7 +118,7 @@ public class PlaylistDAOTest {
 
     private void cleanupTestPlaylists() throws SQLException {
         if (testUserId != null) {
-            String deleteSQL = "DELETE FROM `playlist-metadata` WHERE idUser = UUID_TO_BIN(?)";
+            String deleteSQL = "DELETE FROM playlist_metadata WHERE idUser = UUID_TO_BIN(?)";
             try (PreparedStatement pStatement = connection.prepareStatement(deleteSQL)) {
                 pStatement.setString(1, testUserId.toString());
                 pStatement.executeUpdate();
@@ -163,7 +162,7 @@ public class PlaylistDAOTest {
 
         // Verify metadata - should NOT exist before commit
         try (PreparedStatement pStatement = connection.prepareStatement(
-                "SELECT idPlaylist FROM `playlist-metadata` WHERE name = ? AND idUser = UUID_TO_BIN(?)")) {
+                "SELECT idPlaylist FROM playlist_metadata WHERE name = ? AND idUser = UUID_TO_BIN(?)")) {
             pStatement.setString(1, TEST_PLAYLIST_NAME);
             pStatement.setString(2, testUserId.toString());
             try (ResultSet rs = pStatement.executeQuery()) {
@@ -173,7 +172,7 @@ public class PlaylistDAOTest {
 
         // Verify content - should NOT exist before commit
         try (PreparedStatement pStatement = connection.prepareStatement(
-                "SELECT pc.idSong FROM `playlist-content` pc JOIN `playlist-metadata` pm ON pc.idPlaylist = pm.idPlaylist WHERE pm.name = ? AND pm.idUser = UUID_TO_BIN(?)")) {
+                "SELECT pc.idSong FROM playlist_content pc JOIN playlist_metadata pm ON pc.idPlaylist = pm.idPlaylist WHERE pm.name = ? AND pm.idUser = UUID_TO_BIN(?)")) {
             pStatement.setString(1, TEST_PLAYLIST_NAME);
             pStatement.setString(2, testUserId.toString());
             try (ResultSet rs = pStatement.executeQuery()) {
@@ -181,19 +180,17 @@ public class PlaylistDAOTest {
             }
         }
 
-        assertDoesNotThrow(
-                () -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, TEST_PLAYLIST_IMAGE, testUserId, songIds));
+        assertDoesNotThrow(() -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, testUserId, songIds));
 
         connection.commit(); // Manually commit the transaction
 
         // Verify metadata - should exist after commit
         try (PreparedStatement pStatement = connection.prepareStatement(
-                "SELECT idPlaylist, birthday, image FROM `playlist-metadata` WHERE name = ? AND idUser = UUID_TO_BIN(?)")) {
+                "SELECT idPlaylist, birthday FROM playlist_metadata WHERE name = ? AND idUser = UUID_TO_BIN(?)")) {
             pStatement.setString(1, TEST_PLAYLIST_NAME);
             pStatement.setString(2, testUserId.toString());
             try (ResultSet rs = pStatement.executeQuery()) {
                 assertTrue(rs.next(), "Playlist metadata should exist after commit");
-                assertEquals(TEST_PLAYLIST_IMAGE, rs.getString("image"), "Image should match");
                 assertNotNull(rs.getTimestamp("birthday"), "Birthday should not be null after commit");
                 createdPlaylistId = rs.getInt("idPlaylist"); // Store the ID for later use/verification
                 assertFalse(rs.next(), "Should only be one playlist with this name for this user");
@@ -203,7 +200,7 @@ public class PlaylistDAOTest {
 
         // Verify content - should exist after commit
         try (PreparedStatement pStatement = connection
-                .prepareStatement("SELECT idSong FROM `playlist-content` WHERE idPlaylist = ?")) {
+                .prepareStatement("SELECT idSong FROM playlist_content WHERE idPlaylist = ?")) {
             pStatement.setInt(1, createdPlaylistId);
             try (ResultSet rs = pStatement.executeQuery()) {
                 assertTrue(rs.next(), "Playlist content should exist after commit");
@@ -220,14 +217,13 @@ public class PlaylistDAOTest {
         songIds.add(createdSongId);
 
         // First creation should succeed
-        assertDoesNotThrow(() -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME_DUPLICATE, TEST_PLAYLIST_IMAGE,
-                testUserId, songIds));
+        assertDoesNotThrow(() -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME_DUPLICATE, testUserId, songIds));
 
         connection.commit();
 
         // Second creation should fail
-        DAOException exception = assertThrows(DAOException.class, () -> playlistDAO
-                .createPlaylist(TEST_PLAYLIST_NAME_DUPLICATE, TEST_PLAYLIST_IMAGE, testUserId, songIds));
+        DAOException exception = assertThrows(DAOException.class,
+                () -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME_DUPLICATE, testUserId, songIds));
 
         connection.rollback(); // Rollback the failed transaction explicitly for clarity
 
@@ -237,7 +233,7 @@ public class PlaylistDAOTest {
         // Verify only one playlist exists with the duplicate name after the failed
         // attempt
         try (PreparedStatement pStatement = connection.prepareStatement(
-                "SELECT COUNT(*) as count FROM `playlist-metadata` WHERE name = ? AND idUser = UUID_TO_BIN(?)")) {
+                "SELECT COUNT(*) as count FROM playlist_metadata WHERE name = ? AND idUser = UUID_TO_BIN(?)")) {
             pStatement.setString(1, TEST_PLAYLIST_NAME_DUPLICATE);
             pStatement.setString(2, testUserId.toString());
             try (ResultSet rs = pStatement.executeQuery()) {
@@ -252,8 +248,7 @@ public class PlaylistDAOTest {
     public void testFindPlaylistsByUser() throws Exception {
         List<Integer> songIds = new ArrayList<>();
         songIds.add(createdSongId);
-        assertDoesNotThrow(
-                () -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, TEST_PLAYLIST_IMAGE, testUserId, songIds));
+        assertDoesNotThrow(() -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, testUserId, songIds));
 
         connection.commit();
 
@@ -264,14 +259,13 @@ public class PlaylistDAOTest {
 
         // Optional: Direct DB check to be absolutely sure
         try (PreparedStatement pStatement = connection.prepareStatement(
-                "SELECT name, image, birthday FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)")) {
+                "SELECT name, birthday FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)")) {
             pStatement.setInt(1, playlists.get(0));
             pStatement.setString(2, testUserId.toString());
 
             try (ResultSet rs = pStatement.executeQuery()) {
                 assertTrue(rs.next(), "Playlist should exist in DB");
                 assertEquals(TEST_PLAYLIST_NAME, rs.getString("name"));
-                assertEquals(TEST_PLAYLIST_IMAGE, rs.getString("image"));
                 assertNotNull(rs.getTimestamp("birthday"));
                 assertFalse(rs.next(), "Should only be one matching playlist in DB");
             }
@@ -282,20 +276,24 @@ public class PlaylistDAOTest {
     @Order(4)
     public void testFindPlaylistById() throws Exception {
         List<Integer> songIds = List.of(createdSongId);
-        Playlist createdPlaylist = assertDoesNotThrow(
-                () -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, TEST_PLAYLIST_IMAGE, testUserId, songIds));
-        connection.commit(); // Commit the creation before trying to find it
 
-        assertNotNull(createdPlaylist, "createPlaylist should return the created playlist");
-        assertNotNull(createdPlaylist.getIdPlaylist(), "Created playlist must have an ID");
-        Integer playlistIdToFind = createdPlaylist.getIdPlaylist();
+        Playlist createdPlaylist = playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, testUserId, songIds);
+        // Commit is needed here in the test context, as createPlaylist might throw an
+        // exception before its internal commit.
+        // The DAO method handles its own commit on success.
+        connection.commit();
 
-        Playlist foundPlaylist = assertDoesNotThrow(() -> playlistDAO.findPlaylistById(playlistIdToFind, testUserId));
+        assertNotNull(createdPlaylist, "createPlaylist should return the created playlist object");
+        // Check if the ID is set (primitive int cannot be null, but check if it's the
+        // default 0 if not set)
+        assertTrue(createdPlaylist.getIdPlaylist() > 0, "Created playlist must have a valid ID (> 0) from the DAO");
+        Integer playlistIdToFind = createdPlaylist.getIdPlaylist(); // Get ID from the returned object
 
-        assertNotNull(foundPlaylist, "Found playlist should not be null");
+        Playlist foundPlaylist = playlistDAO.findPlaylistById(playlistIdToFind, testUserId);
+
+        assertNotNull(foundPlaylist, "Found playlist should not be null when searching by ID");
         assertEquals(playlistIdToFind, foundPlaylist.getIdPlaylist(), "Playlist ID should match");
         assertEquals(TEST_PLAYLIST_NAME, foundPlaylist.getName(), "Playlist name should match");
-        assertEquals(TEST_PLAYLIST_IMAGE, foundPlaylist.getImage(), "Playlist image should match");
         assertNotNull(foundPlaylist.getBirthday(), "Playlist birthday should not be null");
 
         assertNotNull(foundPlaylist.getSongs(), "Playlist songs list should not be null");
@@ -308,15 +306,15 @@ public class PlaylistDAOTest {
     public void testCreatePlaylist_InvalidSong() throws SQLException { // Added throws SQLException
         List<Integer> invalidSongIds = List.of(-1);
 
-        DAOException exception = assertThrows(DAOException.class, () -> playlistDAO
-                .createPlaylist("Invalid Song Playlist", TEST_PLAYLIST_IMAGE, testUserId, invalidSongIds));
+        DAOException exception = assertThrows(DAOException.class,
+                () -> playlistDAO.createPlaylist("Invalid Song Playlist", testUserId, invalidSongIds));
         connection.rollback(); // Ensure transaction is rolled back after expected failure
 
         assertEquals(DAOErrorType.NOT_FOUND, exception.getErrorType());
 
         // Verify no playlist metadata was created
         try (PreparedStatement pStatement = connection.prepareStatement(
-                "SELECT idPlaylist FROM `playlist-metadata` WHERE name = ? AND idUser = UUID_TO_BIN(?)")) {
+                "SELECT idPlaylist FROM playlist_metadata WHERE name = ? AND idUser = UUID_TO_BIN(?)")) {
             pStatement.setString(1, "Invalid Song Playlist");
             pStatement.setString(2, testUserId.toString());
             try (ResultSet rs = pStatement.executeQuery()) {

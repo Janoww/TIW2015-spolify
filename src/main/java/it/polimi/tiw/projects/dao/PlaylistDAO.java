@@ -29,7 +29,6 @@ public class PlaylistDAO {
 	 * songs. Uses a transaction to ensure atomicity.
 	 *
 	 * @param name    The name of the playlist.
-	 * @param image   The path or URL to the playlist image (can be null).
 	 * @param idUser  The UUID of the user creating the playlist.
 	 * @param songIds A list of song IDs to include in the playlist.
 	 *
@@ -39,14 +38,13 @@ public class PlaylistDAO {
 	 * @throws DAOException if the playlist name already exists for the user or
 	 *                      another DAO-specific error occurs.
 	 */
-	public Playlist createPlaylist(String name, String image, UUID idUser, List<Integer> songIds)
-			throws SQLException, DAOException {
-		logger.debug("Attempting to create playlist: name={}, image={}, userId={}, songCount={}", name, image, idUser,
+	public Playlist createPlaylist(String name, UUID idUser, List<Integer> songIds) throws SQLException, DAOException {
+		logger.debug("Attempting to create playlist: name={}, userId={}, songCount={}", name, idUser,
 				songIds != null ? songIds.size() : 0);
-		String insertMetadataSQL = "INSERT INTO `playlist-metadata` (name, image, idUser) VALUES (?, ?, UUID_TO_BIN(?))";
-		String insertContentSQL = "INSERT INTO `playlist-content` (idPlaylist, idSong) VALUES (?, ?)";
+		String insertMetadataSQL = "INSERT INTO playlist_metadata (name, idUser) VALUES (?, UUID_TO_BIN(?))";
+		String insertContentSQL = "INSERT INTO playlist_content (idPlaylist, idSong) VALUES (?, ?)";
 		// Check name against the new table name
-		String checkNameSQL = "SELECT idPlaylist FROM `playlist-metadata` WHERE name = ? AND idUser = UUID_TO_BIN(?)";
+		String checkNameSQL = "SELECT idPlaylist FROM playlist_metadata WHERE name = ? AND idUser = UUID_TO_BIN(?)";
 
 		int newPlaylistId = -1;
 
@@ -76,8 +74,7 @@ public class PlaylistDAO {
 			try (PreparedStatement pStatementMetadata = connection.prepareStatement(insertMetadataSQL,
 					Statement.RETURN_GENERATED_KEYS)) {
 				pStatementMetadata.setString(1, name);
-				pStatementMetadata.setString(2, image);
-				pStatementMetadata.setString(3, idUser.toString());
+				pStatementMetadata.setString(2, idUser.toString());
 
 				int affectedRows = pStatementMetadata.executeUpdate();
 
@@ -179,7 +176,7 @@ public class PlaylistDAO {
 	public List<Integer> findPlaylistIdsByUser(UUID idUser) throws DAOException {
 		logger.debug("Attempting to find playlist IDs for user ID: {}", idUser);
 		List<Integer> playlistIds = new ArrayList<>();
-		String query = "SELECT idPlaylist FROM `playlist-metadata` WHERE idUser = UUID_TO_BIN(?)";
+		String query = "SELECT idPlaylist FROM playlist_metadata WHERE idUser = UUID_TO_BIN(?)";
 
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
 			pStatement.setString(1, idUser.toString());
@@ -210,8 +207,10 @@ public class PlaylistDAO {
 	public Playlist findPlaylistById(int playlistId, UUID userId) throws DAOException {
 		logger.debug("Attempting to find playlist ID: {} for user ID: {}", playlistId, userId);
 		Playlist playlist = null;
-		String queryMetadata = "SELECT name, birthday, image, BIN_TO_UUID(idUser) as userUUID FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
-		String queryContent = "SELECT idSong FROM `playlist-content` WHERE idPlaylist = ?";
+		String queryMetadata = "SELECT name, birthday, BIN_TO_UUID(idUser) as userUUID FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)"; // Removed
+																																									// image
+																																									// column
+		String queryContent = "SELECT idSong FROM playlist_content WHERE idPlaylist = ?";
 
 		try (PreparedStatement pStatementMetadata = connection.prepareStatement(queryMetadata)) {
 			pStatementMetadata.setInt(1, playlistId);
@@ -222,7 +221,6 @@ public class PlaylistDAO {
 					playlist.setIdPlaylist(playlistId);
 					playlist.setName(rsMetadata.getString("name"));
 					playlist.setBirthday(rsMetadata.getTimestamp("birthday"));
-					playlist.setImage(rsMetadata.getString("image"));
 					playlist.setIdUser(UUID.fromString(rsMetadata.getString("userUUID")));
 
 					// Fetch song IDs
@@ -271,7 +269,7 @@ public class PlaylistDAO {
 	 */
 	public boolean deletePlaylist(int playlistId, UUID userId) throws DAOException {
 		logger.debug("Attempting to delete playlist ID: {} by user ID: {}", playlistId, userId);
-		String deleteQuery = "DELETE FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
+		String deleteQuery = "DELETE FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
 		int affectedRows = 0;
 
 		try (PreparedStatement pStatement = connection.prepareStatement(deleteQuery)) {
@@ -311,8 +309,8 @@ public class PlaylistDAO {
 	 */
 	public boolean addSongToPlaylist(int playlistId, UUID userId, int songId) throws DAOException {
 		logger.debug("Attempting to add song ID: {} to playlist ID: {} by user ID: {}", songId, playlistId, userId);
-		String checkOwnershipQuery = "SELECT * FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
-		String insertQuery = "INSERT INTO `playlist-content` (idPlaylist, idSong) VALUES (?, ?)";
+		String checkOwnershipQuery = "SELECT * FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
+		String insertQuery = "INSERT INTO playlist_content (idPlaylist, idSong) VALUES (?, ?)";
 		int affectedRows = 0;
 
 		// Check ownership
@@ -378,8 +376,8 @@ public class PlaylistDAO {
 	public boolean removeSongFromPlaylist(int playlistId, UUID userId, int songId) throws DAOException {
 		logger.debug("Attempting to remove song ID: {} from playlist ID: {} by user ID: {}", songId, playlistId,
 				userId);
-		String checkOwnershipQuery = "SELECT * FROM `playlist-metadata` WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
-		String deleteQuery = "DELETE FROM `playlist-content` WHERE idPlaylist = ? AND idSong = ?";
+		String checkOwnershipQuery = "SELECT * FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
+		String deleteQuery = "DELETE FROM playlist_content WHERE idPlaylist = ? AND idSong = ?";
 		int affectedRows = 0;
 
 		// Check ownership

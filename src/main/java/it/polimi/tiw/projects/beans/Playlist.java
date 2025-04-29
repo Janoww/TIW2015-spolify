@@ -9,7 +9,6 @@ public class Playlist {
 	private int idPlaylist;
 	private String name;
 	private Timestamp birthday;
-	private String image; // Path or URL to the image
 	private UUID idUser;
 	private List<Integer> songs;
 
@@ -37,14 +36,6 @@ public class Playlist {
 
 	public void setBirthday(Timestamp birthday) {
 		this.birthday = birthday;
-	}
-
-	public String getImage() {
-		return image;
-	}
-
-	public void setImage(String image) {
-		this.image = image;
 	}
 
 	public UUID getIdUser() {
