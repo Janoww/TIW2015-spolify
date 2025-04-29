@@ -3,7 +3,7 @@
 !theme vibrant
 
 entity User {
-  + user_id : INT <<PK>>
+  + user_id : UUID <<PK>>
   --
   * username : VARCHAR <<UNIQUE>>
   * password : VARCHAR
@@ -27,28 +27,26 @@ entity Song {
   * genre : VARCHAR
   * audio_file_path : VARCHAR
   # album_id : INT <<FK>>
-  # owner_user_id : INT <<FK>>
+  # owner_user_id : UUID <<FK>>
 }
 
-entity Playlist {
+entity Playlist_medadata {
   + playlist_id : INT <<PK>>
   --
   * title : VARCHAR
   * creation_date : DATE
-  # owner_user_id : INT <<FK>>
+  # owner_user_id : UUID <<FK>>
 }
 
-entity PlaylistSong {
+entity Playlist_content {
   # playlist_id : INT <<FK>> <<PK>>
   # song_id : INT <<FK>> <<PK>>
-  --
-  custom_order : INT <<NULLABLE>>
 }
 
 User "1" -- "0..*" Song : owns/uploads
-User "1" -- "0..*" Playlist : creates
+User "1" -- "0..*" Playlist_medadata : creates
 Album "1" -- "1..*" Song : contains
-Playlist "1" -- "0..*" PlaylistSong : has
-Song "1" -- "0..*" PlaylistSong : belongs to
+Playlist_medadata "1" -- "0..*" Playlist_content : has
+Song "1" -- "0..*" Playlist_content : belongs to
 
 @enduml

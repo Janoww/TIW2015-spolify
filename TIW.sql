@@ -29,12 +29,13 @@ CREATE TABLE `Album` (
   `name` varchar(100) NOT NULL,
   `year` int NOT NULL,
   `artist` varchar(100) NOT NULL,
+  `image` varchar(255) DEFAULT NULL,
   `idUser` binary(16) NOT NULL,
   PRIMARY KEY (`idAlbum`),
   UNIQUE KEY `unique_name_per_user` (`name`,`idUser`),
   KEY `fk_Album_1_idx` (`idUser`),
   CONSTRAINT `fk_Album_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=104 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=819 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -66,7 +67,7 @@ CREATE TABLE `Song` (
   KEY `fk_Song_1_idx` (`idUser`),
   CONSTRAINT `fk_Song_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_Song_2` FOREIGN KEY (`idAlbum`) REFERENCES `Album` (`idAlbum`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=310 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -88,7 +89,7 @@ DROP TABLE IF EXISTS `User`;
 CREATE TABLE `User` (
   `idUser` binary(16) NOT NULL,
   `username` varchar(100) NOT NULL,
-  `password` char(100) NOT NULL,
+  `password` varchar(100) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `surname` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`idUser`),
@@ -106,61 +107,59 @@ LOCK TABLES `User` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `playlist-content`
+-- Table structure for table `playlist_content`
 --
 
-DROP TABLE IF EXISTS `playlist-content`;
+DROP TABLE IF EXISTS `playlist_content`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `playlist-content` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `playlist_content` (
   `idPlaylist` int NOT NULL,
   `idSong` int NOT NULL,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`idPlaylist`,`idSong`),
   UNIQUE KEY `unique_playlist_and_song` (`idSong`,`idPlaylist`),
   KEY `fk_playlist-content_1_idx` (`idSong`),
   KEY `fk_playlist-content_2_idx` (`idPlaylist`),
   CONSTRAINT `fk_playlist-content_1` FOREIGN KEY (`idSong`) REFERENCES `Song` (`idSong`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_playlist-content_2` FOREIGN KEY (`idPlaylist`) REFERENCES `playlist-metadata` (`idPlaylist`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_playlist-content_2` FOREIGN KEY (`idPlaylist`) REFERENCES `playlist_metadata` (`idPlaylist`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `playlist-content`
+-- Dumping data for table `playlist_content`
 --
 
-LOCK TABLES `playlist-content` WRITE;
-/*!40000 ALTER TABLE `playlist-content` DISABLE KEYS */;
-/*!40000 ALTER TABLE `playlist-content` ENABLE KEYS */;
+LOCK TABLES `playlist_content` WRITE;
+/*!40000 ALTER TABLE `playlist_content` DISABLE KEYS */;
+/*!40000 ALTER TABLE `playlist_content` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `playlist-metadata`
+-- Table structure for table `playlist_metadata`
 --
 
-DROP TABLE IF EXISTS `playlist-metadata`;
+DROP TABLE IF EXISTS `playlist_metadata`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `playlist-metadata` (
+CREATE TABLE `playlist_metadata` (
   `idPlaylist` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `birthday` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `image` varchar(255) DEFAULT NULL,
   `idUser` binary(16) NOT NULL,
   PRIMARY KEY (`idPlaylist`),
   UNIQUE KEY `unique_playlist_per_user` (`idUser`,`name`),
   KEY `fk_playlist-metadata_1_idx` (`idUser`),
   CONSTRAINT `fk_playlist-metadata_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=121 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `playlist-metadata`
+-- Dumping data for table `playlist_metadata`
 --
 
-LOCK TABLES `playlist-metadata` WRITE;
-/*!40000 ALTER TABLE `playlist-metadata` DISABLE KEYS */;
-/*!40000 ALTER TABLE `playlist-metadata` ENABLE KEYS */;
+LOCK TABLES `playlist_metadata` WRITE;
+/*!40000 ALTER TABLE `playlist_metadata` DISABLE KEYS */;
+/*!40000 ALTER TABLE `playlist_metadata` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -172,4 +171,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-17  4:35:13
+-- Dump completed on 2025-04-29 15:07:57
