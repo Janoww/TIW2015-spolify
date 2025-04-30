@@ -1,7 +1,6 @@
 package it.polimi.tiw.projects.controllers;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import it.polimi.tiw.projects.utils.ConnectionHandler;

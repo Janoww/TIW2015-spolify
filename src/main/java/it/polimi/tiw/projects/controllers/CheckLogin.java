@@ -58,10 +58,13 @@ public class CheckLogin extends HttpServlet {
 				ctx.setVariable("errorLogInMsg", "No user found with that username/password combination");
 				String path = "/index.html";
 				templateEngine.process(path, ctx, resp.getWriter());
-			}
 				break;
 			}
-			return;
+			default: { // If another exception occurs
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to log in");
+				return;
+			}
+			}
 		}
 
 		// Assign the user to the session
