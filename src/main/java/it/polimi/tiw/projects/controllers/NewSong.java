@@ -3,12 +3,10 @@ package it.polimi.tiw.projects.controllers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 
 import it.polimi.tiw.projects.beans.Album;
-import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.AlbumDAO;
 import it.polimi.tiw.projects.dao.SongDAO;
@@ -125,23 +123,18 @@ public class NewSong extends HttpServlet {
 			try {
 				songDAO.createSong(title, idAlbum, year, genre.name(), audioUrl, user.getIdUser());
 			} catch (DAOException e) {
-				// TODO Auto-generated catch block
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
 				e.printStackTrace();
 			}
 
 		} else {
-			//TODO redirect to login
+			//The user was not retrieved
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Session lost");
 			return;
 		}
 
 		String path = getServletContext().getContextPath() + "/Home";
-		try {
-			resp.sendRedirect(path);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		resp.sendRedirect(path);
 
 	}
 
@@ -158,11 +151,6 @@ public class NewSong extends HttpServlet {
 		return list.stream().filter(a -> a.getName().equalsIgnoreCase(albumName)).findFirst().orElse(null);
 	}
 
-	private static boolean isParamNotEmpty(String string) {
-		return string == null || string.isBlank();
-	}
-	
-	
 	private static String areParametersOk(HttpServletRequest req) {
 	    try {
 	        String title = req.getParameter("sTitle");

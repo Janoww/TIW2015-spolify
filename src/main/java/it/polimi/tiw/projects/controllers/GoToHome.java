@@ -64,7 +64,6 @@ public class GoToHome extends HttpServlet {
 			try {
 				return playlistDAO.findPlaylistById(id, userId);
 			} catch (DAOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return null;
 			}
@@ -75,7 +74,11 @@ public class GoToHome extends HttpServlet {
 		ctx.setVariable("playlists", playslists);
 		ctx.setVariable("songs", songList);
 		ctx.setVariable("genres", genresList);
-
+		
+		ctx.setVariable("errorNewPlaylistMsg", req.getAttribute("errorNewPlaylistMsg"));
+		ctx.setVariable("errorNewSongMsg", req.getAttribute("errorNewSongMsg"));
+		ctx.setVariable("errorOpeningPlaylist", req.getAttribute("errorOpeningPlaylist"));
+		
 		String path = "/WEB-INF/Home.html";
 		templateEngine.process(path, ctx, resp.getWriter());
 	}

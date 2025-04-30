@@ -71,6 +71,15 @@
     <servlet-name>NewPlaylist</servlet-name>
     <url-pattern>/NewPlaylist</url-pattern>
   </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>GetPlaylistDetails</servlet-name>
+  	<servlet-class>it.polimi.tiw.project.controllers.GetMissionDetails</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>GetPlaylistDetails</servlet-name>
+  	<url-pattern>/GetPlaylistDetails</url-pattern>
+  </servlet-mapping>
 
 
   <welcome-file-list>

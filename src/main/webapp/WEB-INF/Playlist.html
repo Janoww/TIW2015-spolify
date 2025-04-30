@@ -9,12 +9,17 @@
 
 <body>
 	<h1 th:text="${playlist.name}">Hit-Estive-2015</h1>
+	
 
 
 	<table>
+		<tbody th:remove="all-but-first">
 		<tr>
-			<td>
-				<p>We No Speak Americano</p><img src="" alt="IDK">
+			<td th:each="swa : ${songWithAlbum}">
+				<div>
+                    <img th:src="@{${swa.album.image}}" alt="Album Image" width="100"/>
+                    <p th:text="${swa.song.title}">We No Speak Americano</p>
+                </div>
 			</td>
 			<td>
 				<p>Oye Baby</p><img src="" alt="IDK">
@@ -29,9 +34,25 @@
 				<p>Alejandro</p><img src="" alt="IDK">
 			</td>
 		</tr>
+		</tbody>
 	</table>
 
-	<button> &lt Precedenti</button><button> &gt Successivi</button>
+    <div th:if="${page > 0}">
+        <form method="get" th:action="@{/GetPlaylistDetails}">
+            <input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
+            <input type="hidden" name="page" th:value="${page - 1}" />
+            <button type="submit">PRECEDENTI</button>
+        </form>
+    </div>
+	
+	
+	<div th:if="${page < totPages}">
+        <form method="get" th:action="@{/GetPlaylistDetails}">
+            <input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
+            <input type="hidden" name="page" th:value="${page + 1}" />
+            <button type="submit">SUCCESSIVI</button>
+        </form>
+    </div>
 
 	<form action="addSongToPL" metod=POST>
 		<fieldset>
