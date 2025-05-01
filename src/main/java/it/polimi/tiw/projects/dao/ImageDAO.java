@@ -16,28 +16,31 @@ import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// FIXME: To refactor similar to AudioDAO
 public class ImageDAO {
     private static final Logger log = LoggerFactory.getLogger(ImageDAO.class);
 
-    private static final String BASE_FOLDER_NAME = "Spolify";
     private static final String IMAGE_SUBFOLDER = "image";
-    private static final Path STORAGE_DIRECTORY;
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".jpg", ".jpeg", ".png", ".webp");
     private static final int MAX_FILENAME_PREFIX_LENGTH = 190;
+    private final Path imageStorageDirectory;
 
-    static {
-        // Initialize storage directory path relative to user's home
-        String homeDir = System.getProperty("user.home");
-        STORAGE_DIRECTORY = Paths.get(homeDir, BASE_FOLDER_NAME, IMAGE_SUBFOLDER);
+    public ImageDAO(Path baseStorageDirectory) {
+        this.imageStorageDirectory = baseStorageDirectory.resolve(IMAGE_SUBFOLDER).normalize();
+
         try {
-            // Create directories if they don't exist
-            Files.createDirectories(STORAGE_DIRECTORY);
+            // Create the specific song subdirectory if it doesn't exist
+            Files.createDirectories(this.imageStorageDirectory);
+            log.info("ImageDAO initialized. Image storage directory: {}", this.imageStorageDirectory);
         } catch (IOException e) {
-            // Log the exception appropriately during application startup
-            log.error("CRITICAL: Could not create image storage directory: {}", STORAGE_DIRECTORY, e);
-            // Depending on the application's needs, you might want to throw a
-            // RuntimeException that prevents the application from starting correctly.
+            log.error("CRITICAL: Could not create image storage directory: {}", this.imageStorageDirectory, e);
+            // Throw a runtime exception as the image DAO cannot function without its
+            // storage
             throw new RuntimeException("Could not initialize image storage directory", e);
+        } catch (SecurityException e) {
+            log.error("CRITICAL: Security permissions prevent creating image storage directory: {}",
+                    this.imageStorageDirectory, e);
+            throw new RuntimeException("Security permissions prevent creating image storage directory", e);
         }
     }
 
@@ -55,9 +58,9 @@ public class ImageDAO {
      *                                  operations (reading stream, creating temp
      *                                  file, moving file).
      * @throws IllegalArgumentException If the file extension is not allowed, the
-     *                                  file is not a valid image,
-     *                                  or the originalFileName is invalid (e.g.,
-     *                                  null, empty, no extension).
+     *                                  file is not a valid image, or the
+     *                                  originalFileName is invalid (e.g., null,
+     *                                  empty, no extension).
      */
     public String saveImage(InputStream imageStream, String originalFileName)
             throws DAOException, IllegalArgumentException {
@@ -101,7 +104,7 @@ public class ImageDAO {
 
             // 4. Generate final filename
             String finalFilename = generateUniqueFilename(originalFileName, extension);
-            Path finalPath = STORAGE_DIRECTORY.resolve(finalFilename);
+            Path finalPath = imageStorageDirectory.resolve(finalFilename);
             log.debug("Generated final path: {}", finalPath);
 
             // 5. Move temporary file to permanent storage
