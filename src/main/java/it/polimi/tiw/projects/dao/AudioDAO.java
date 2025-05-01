@@ -8,21 +8,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Map; // Added Map import
-import java.util.Set; // Added Set import (though Map.ofEntries is used)
+import java.util.Map;
 import java.util.UUID;
-// Removed javax.sound imports
-import org.apache.tika.Tika; // Added Tika import
-// MediaType is no longer needed directly in the validation logic
+import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AudioDAO {
     private static final Logger log = LoggerFactory.getLogger(AudioDAO.class);
 
-    private static final String BASE_FOLDER_NAME = "Spolify";
-    private static final String AUDIO_SUBFOLDER = "song";
-    private static final Path STORAGE_DIRECTORY;
+    // Removed BASE_FOLDER_NAME constant as base path is now injected
+    private static final String AUDIO_SUBFOLDER = "song"; // Keep subfolder name internal
+    private final Path baseStorageDirectory; // Instance field for the base storage path (e.g., /path/to/Spolify)
+    private final Path songStorageDirectory; // Instance field for the specific song storage path (e.g.,
+                                             // /path/to/Spolify/song)
+
     // Map of allowed MIME types (derived from Tika definitions) to their canonical
     // file extensions
     private static final Map<String, String> ALLOWED_MIME_TYPES_MAP = Map.ofEntries(
@@ -42,39 +42,52 @@ public class AudioDAO {
     );
     private static final int MAX_FILENAME_PREFIX_LENGTH = 190;
 
-    static {
-        // Initialize storage directory path relative to user's home
-        String homeDir = System.getProperty("user.home");
-        STORAGE_DIRECTORY = Paths.get(homeDir, BASE_FOLDER_NAME, AUDIO_SUBFOLDER);
+    /**
+     * Constructs an AudioDAO with a specified base storage directory.
+     * The 'song' subdirectory within this base directory will be created if it
+     * doesn't exist.
+     *
+     * @param baseStorageDirectory The Path object representing the base directory
+     *                             (e.g., where 'song' subfolder should reside).
+     * @throws RuntimeException if the 'song' subdirectory cannot be created within
+     *                          the base directory.
+     */
+    public AudioDAO(Path baseStorageDirectory) {
+        this.baseStorageDirectory = baseStorageDirectory.normalize(); // Store normalized base path
+        this.songStorageDirectory = this.baseStorageDirectory.resolve(AUDIO_SUBFOLDER).normalize(); // Derive and store
+                                                                                                    // song path
+
         try {
-            // Create directories if they don't exist
-            Files.createDirectories(STORAGE_DIRECTORY);
+            // Create the specific song subdirectory if it doesn't exist
+            Files.createDirectories(this.songStorageDirectory);
+            log.info("AudioDAO initialized. Song storage directory: {}", this.songStorageDirectory);
         } catch (IOException e) {
-            log.error("CRITICAL: Could not create audio storage directory: {}", STORAGE_DIRECTORY, e);
-            // ? Depending on the application's needs, you might want to throw a
-            // ? RuntimeException that prevents the application from starting correctly.
+            log.error("CRITICAL: Could not create audio storage directory: {}", this.songStorageDirectory, e);
+            // Throw a runtime exception as the DAO cannot function without its storage
             throw new RuntimeException("Could not initialize audio storage directory", e);
+        } catch (SecurityException e) {
+            log.error("CRITICAL: Security permissions prevent creating audio storage directory: {}",
+                    this.songStorageDirectory, e);
+            throw new RuntimeException("Security permissions prevent creating audio storage directory", e);
         }
     }
 
     /**
-     * Saves an audio file from an InputStream to the designated storage directory.
-     * Validates the file extension. Generates a unique filename
+     * Saves an audio file from an InputStream to the configured 'song' storage
+     * directory.
+     * Validates the file content type. Generates a unique filename
      * incorporating a sanitized version of the original filename.
      *
      * @param audioStream      The InputStream containing the audio data.
      * @param originalFileName The original filename provided by the client (used
-     *                         for extension and prefix).
-     * @return The relative path (e.g., "song/filename.mp3") of the saved audio file
-     *         within the Spolify directory.
+     *                         for prefix).
+     * @return The unique filename (e.g., "filename_uuid.mp3") of the saved audio
+     *         file within the 'song' directory.
      * @throws DAOException             If an I/O error occurs during file
-     *                                  operations (reading stream, creating temp
-     *                                  file, moving file).
-     * @throws IllegalArgumentException If the file extension is not allowed, the
-     *                                  originalFileName is invalid (e.g., null,
-     *                                  empty, no extension),
-     *                                  or if the file content is not a
-     *                                  valid/supported audio format.
+     *                                  operations.
+     * @throws IllegalArgumentException If the file content is not a valid/supported
+     *                                  audio format, or if the originalFileName is
+     *                                  invalid.
      */
     public String saveAudio(InputStream audioStream, String originalFileName)
             throws DAOException, IllegalArgumentException {
@@ -107,17 +120,16 @@ public class AudioDAO {
 
             // 3. Generate final filename using the determined extension
             String finalFilename = generateUniqueFilename(originalFileName, targetExtension);
-            Path finalPath = STORAGE_DIRECTORY.resolve(finalFilename);
+            Path finalPath = this.songStorageDirectory.resolve(finalFilename); // Use song storage path
             log.debug("Generated final path: {}", finalPath);
 
-            // 5. Move temporary file to permanent storage
+            // 4. Move temporary file to permanent storage
             Files.move(tempFile, finalPath, StandardCopyOption.REPLACE_EXISTING);
             log.info("Successfully saved audio to: {}", finalPath);
 
-            // 6. Return relative path
-            String relativePath = Paths.get(AUDIO_SUBFOLDER, finalFilename).toString();
-            log.debug("Returning relative path: {}", relativePath);
-            return relativePath;
+            // 5. Return the final filename (relative to the song storage directory)
+            log.debug("Returning final filename: {}", finalFilename);
+            return finalFilename;
 
         } catch (IOException e) {
             log.error("IOException occurred during audio save process for original file {}: {}", originalFileName,
@@ -252,90 +264,75 @@ public class AudioDAO {
     }
 
     /**
-     * Deletes an audio file from the storage directory based on its relative path.
+     * Deletes an audio file from the configured 'song' storage directory based on
+     * its filename.
      *
-     * @param relativePath The relative path of the file to delete (e.g.,
-     *                     "song/filename.mp3").
+     * @param filename The filename of the file to delete (e.g.,
+     *                 "filename_uuid.mp3").
+     *                 Must not contain path separators.
      * @return true if the file was successfully deleted, false otherwise (e.g.,
      *         file not found).
      * @throws DAOException             If an I/O error occurs during deletion
      *                                  (other than file not found).
-     * @throws IllegalArgumentException If the provided relativePath is null, blank,
-     *                                  or invalid (e.g., contains '..', refers
-     *                                  outside storage).
+     * @throws IllegalArgumentException If the provided filename is null, blank,
+     *                                  contains path separators ('/' or '\'), or
+     *                                  attempts path traversal ('..').
      */
-    public boolean deleteAudio(String relativePath) throws DAOException, IllegalArgumentException {
-        log.info("Attempting to delete audio file with relative path: {}", relativePath);
+    public boolean deleteAudio(String filename) throws DAOException, IllegalArgumentException {
+        log.info("Attempting to delete audio file with filename: {}", filename);
 
-        // 1. Initial checks
-        if (relativePath == null || relativePath.isBlank()) {
-            log.warn("Delete audio failed: Relative path was null or blank.");
-            throw new IllegalArgumentException("Relative path cannot be null or empty for deletion.");
+        // 1. Validate filename
+        if (filename == null || filename.isBlank()) {
+            log.warn("Delete audio failed: Filename was null or blank.");
+            throw new IllegalArgumentException("Filename cannot be null or empty for deletion.");
+        }
+        // Check for path separators or traversal attempts
+        if (filename.contains("/") || filename.contains("\\") || filename.contains("..")) {
+            log.warn("Delete audio failed: Filename '{}' contains invalid characters (path separators or '..').",
+                    filename);
+            throw new IllegalArgumentException(
+                    "Invalid filename: must not contain path separators ('/', '\\') or '..'.");
+        }
+        // Check for problematic names like "." or just an extension (though unlikely
+        // given generation logic)
+        if (filename.equals(".") || filename.startsWith(".")) {
+            log.warn("Delete audio failed: Filename '{}' is invalid.", filename);
+            throw new IllegalArgumentException("Invalid filename provided.");
         }
 
-        // Moved Check: Ensure path is not just the subfolder itself (BEFORE try block)
-        String subfolderWithSeparator = AUDIO_SUBFOLDER + "/"; // Use forward slash for canonical check
-        String subfolderWithBackslash = AUDIO_SUBFOLDER + "\\";
-        if (relativePath.equals(subfolderWithSeparator) || relativePath.equals(subfolderWithBackslash)) {
-            log.warn("Delete audio failed: Relative path '{}' refers only to the subfolder.", relativePath);
-            throw new IllegalArgumentException("Invalid relative path: cannot be just the subfolder name.");
-        }
-
-        // 2. Extract filename and perform basic validation
-        Path relativePathObj;
-        Path fileNamePath;
+        // 2. Construct potential path within the configured song storage directory
+        Path potentialPath;
         try {
-            // Basic check for '..' - prevent obvious attempts early
-            if (relativePath.contains("..")) {
-                log.warn("Delete audio failed: Relative path '{}' contains '..'.", relativePath);
-                throw new IllegalArgumentException("Invalid relative path: contains '..'.");
-            }
-
-            // Basic check for starting folder - prevent resolving outside structure early
-            if (!relativePath.startsWith(AUDIO_SUBFOLDER + "/") && !relativePath.startsWith(AUDIO_SUBFOLDER + "\\")) {
-                log.warn("Delete audio failed: Relative path '{}' does not start with the expected subfolder '{}'.",
-                        relativePath, AUDIO_SUBFOLDER);
-                throw new IllegalArgumentException(
-                        "Invalid relative path format: must start with " + AUDIO_SUBFOLDER + "/");
-            }
-
-            relativePathObj = Paths.get(relativePath);
-            fileNamePath = relativePathObj.getFileName(); // Extract filename part
-
-            // Check if filename part is valid (not null, empty, ., or ..)
-            if (fileNamePath == null || fileNamePath.toString().isEmpty() || fileNamePath.toString().equals(".")
-                    || fileNamePath.toString().equals("..")) {
-                log.warn("Delete audio failed: Invalid filename derived from relative path '{}'.", relativePath);
-                throw new IllegalArgumentException("Invalid relative path: does not contain a valid filename.");
-            }
-
+            // Resolve filename against the specific song storage directory
+            potentialPath = this.songStorageDirectory.resolve(filename).normalize();
+            log.debug("Constructed potential absolute path: {}", potentialPath);
         } catch (java.nio.file.InvalidPathException e) {
-            log.warn("Delete audio failed: Invalid characters or format in relative path '{}'.", relativePath, e);
-            throw new IllegalArgumentException("Invalid relative path format: " + e.getMessage(), e);
+            // Should be rare if filename validation above is robust, but catch just in case
+            log.warn("Delete audio failed: Invalid path generated from filename '{}'.", filename, e);
+            throw new IllegalArgumentException("Invalid filename resulting in invalid path: " + e.getMessage(), e);
         }
 
-        // 3. Construct potential path
-        Path potentialPath = STORAGE_DIRECTORY.resolve(fileNamePath.toString());
-        log.debug("Constructed potential absolute path: {}", potentialPath);
-
         try {
-            // 4. Validate with toRealPath()
-            // Get canonical paths to resolve symlinks and verify existence/containment
-            Path storageRealPath = STORAGE_DIRECTORY.toRealPath(); // Ensures storage dir itself is valid
+            // 3. Validate that the resolved path is still within the song storage directory
+            // Get canonical paths to resolve symlinks and verify containment
+            Path songStorageRealPath = this.songStorageDirectory.toRealPath(); // Ensures song storage dir itself is
+                                                                               // valid
             Path fileRealPath = potentialPath.toRealPath(); // Throws NoSuchFileException if doesn't exist
 
-            log.debug("Storage real path: {}", storageRealPath);
+            log.debug("Song storage real path: {}", songStorageRealPath);
             log.debug("File real path: {}", fileRealPath);
 
-            // Check if the resolved file path is actually inside the resolved storage path
-            if (!fileRealPath.startsWith(storageRealPath)) {
+            // Check if the resolved file path is actually inside the resolved song storage
+            // path
+            if (!fileRealPath.startsWith(songStorageRealPath)) {
                 log.warn(
-                        "Delete audio failed: Path '{}' resolves outside the designated storage directory '{}'.",
-                        fileRealPath, storageRealPath);
-                throw new IllegalArgumentException("Invalid relative path: resolves outside storage directory.");
+                        "Delete audio failed: Filename '{}' resolves to path '{}' which is outside the designated song storage directory '{}'.",
+                        filename, fileRealPath, songStorageRealPath);
+                // This indicates a potential security issue or logic error
+                throw new IllegalArgumentException("Invalid filename: resolves outside storage directory.");
             }
 
-            // 5. Delete the file
+            // 4. Delete the file
             log.debug("Attempting to delete validated file at: {}", fileRealPath);
             // Use deleteIfExists to match previous logic return value (true if deleted,
             // false if not found *at this stage*)
@@ -357,17 +354,17 @@ public class AudioDAO {
         } catch (IOException e) {
             // Includes other I/O errors from toRealPath or deleteIfExists
             log.error("IOException occurred during audio deletion validation or execution for relative path {}: {}",
-                    relativePath, e.getMessage(), e);
+                    filename, e.getMessage(), e);
             throw new DAOException("Failed to delete audio due to I/O error: " + e.getMessage(), e,
                     DAOErrorType.GENERIC_ERROR);
         } catch (SecurityException e) {
             // Security manager prevents access
-            log.error("SecurityException occurred during audio deletion for relative path {}: {}", relativePath,
+            log.error("SecurityException occurred during audio deletion for filename {}: {}", filename,
                     e.getMessage(), e);
             throw new DAOException("Failed to delete audio due to security restrictions: " + e.getMessage(), e,
                     DAOErrorType.GENERIC_ERROR);
         } catch (Exception e) { // Catch unexpected errors during validation/deletion
-            log.error("Unexpected error during audio deletion for relative path {}: {}", relativePath, e.getMessage(),
+            log.error("Unexpected error during audio deletion for filename {}: {}", filename, e.getMessage(),
                     e);
             throw new DAOException("An unexpected error occurred during audio deletion.", e,
                     DAOErrorType.GENERIC_ERROR);

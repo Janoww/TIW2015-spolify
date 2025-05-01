@@ -11,68 +11,40 @@ import java.io.IOException; // Added for Files.deleteIfExists
 import java.nio.file.Files; // Added for Files.deleteIfExists
 import java.nio.file.Path; // Added for Path
 import java.nio.file.Paths; // Added for Paths
-import java.util.ArrayList;
-import java.util.List;
+// Removed ArrayList and List imports as pathsToDelete is removed
+// import java.util.ArrayList;
+// import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
+// Removed AfterEach import as tearDown is removed
+// import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled; // Import Disabled for obsolete tests if we keep them
 import org.junit.jupiter.api.Test;
-// import org.junit.jupiter.api.io.TempDir; // Not using TempDir due to static path in DAO
+import org.junit.jupiter.api.io.TempDir; // Import TempDir for temporary test directories
 import it.polimi.tiw.projects.exceptions.DAOException;
 
 class AudioDAOTest {
 
     private AudioDAO audioDAO;
     private static final String SAMPLES_DIR = "/sample_audio/"; // Relative to resources root
-    private List<String> pathsToDelete; // Track paths created during tests for cleanup
+    private static final String AUDIO_SUBFOLDER = "song"; // Replicate DAO's internal subfolder name for path checks
+    // Removed pathsToDelete list
 
-    // Note: The static STORAGE_DIRECTORY in AudioDAO makes true isolated testing
-    // difficult. These tests will interact with the actual storage directory
-    // in the user's home. The @AfterEach cleanup attempts to mitigate this.
+    // Inject a temporary directory for each test method
+    @TempDir
+    Path tempDir;
+
+    // Note: Tests now run against a temporary directory provided by @TempDir,
+    // ensuring isolation and automatic cleanup.
 
     @BeforeEach
     void setUp() {
-        audioDAO = new AudioDAO();
-        pathsToDelete = new ArrayList<>();
+        // Instantiate DAO with the temporary directory path
+        audioDAO = new AudioDAO(tempDir);
+        // Removed pathsToDelete initialization
     }
 
-    @AfterEach
-    void tearDown() {
-        // Construct the base storage directory path similar to AudioDAO
-        String homeDir = System.getProperty("user.home");
-        // Use the constants defined in AudioDAO if they were accessible,
-        // otherwise replicate the logic carefully.
-        Path storageDir = Paths.get(homeDir, "Spolify", "song"); // Replicated logic
-
-        // Attempt to clean up any files created during the tests directly
-        for (String relativePath : pathsToDelete) {
-            try {
-                // Extract only the filename part from the relative path (e.g., "song/xyz.mp3"
-                // -> "xyz.mp3")
-                // This assumes relativePath always starts with "song/"
-                String filename = Paths.get(relativePath).getFileName().toString();
-                Path fullPath = storageDir.resolve(filename);
-
-                System.out.println("Attempting direct cleanup: Deleting " + fullPath);
-                boolean deleted = Files.deleteIfExists(fullPath);
-                if (!deleted) {
-                    // This is expected if the file was already deleted or never created properly
-                    System.out.println("Cleanup info: File not found or already deleted: " + fullPath);
-                } else {
-                    System.out.println("Cleanup success: Deleted " + fullPath);
-                }
-            } catch (IOException e) {
-                // Log I/O errors during direct deletion
-                System.err.println("Error during direct test cleanup deleting " + relativePath + ": " + e.getMessage());
-            } catch (Exception e) {
-                // Catch other potential errors like invalid path format
-                System.err.println(
-                        "Unexpected error during direct test cleanup for " + relativePath + ": " + e.getMessage());
-            }
-        }
-        pathsToDelete.clear();
-    }
+    // Removed tearDown method as @TempDir handles cleanup
 
     private InputStream getResourceStream(String resourceName) {
         InputStream stream = getClass().getResourceAsStream(SAMPLES_DIR + resourceName);
@@ -83,48 +55,52 @@ class AudioDAOTest {
     // --- saveAudio Tests (modified for cleanup tracking) ---
 
     @Test
-    void saveAudio_shouldReturnPathAndAllowCleanup_whenValidMp3Provided() throws DAOException {
+    void saveAudio_shouldReturnFilename_whenValidMp3Provided() throws DAOException {
         InputStream inputStream = getResourceStream("valid.mp3");
-        String relativePath = audioDAO.saveAudio(inputStream, "test_song.mp3");
+        String filename = audioDAO.saveAudio(inputStream, "test_song.mp3");
 
-        assertNotNull(relativePath, "Returned path should not be null for valid MP3");
-        assertFalse(relativePath.isBlank(), "Returned path should not be blank for valid MP3");
-        assertTrue(relativePath.startsWith("song/"), "Relative path should start with 'song/'");
+        assertNotNull(filename, "Returned filename should not be null for valid MP3");
+        assertFalse(filename.isBlank(), "Returned filename should not be blank for valid MP3");
+        assertFalse(filename.contains("/"), "Filename should not contain path separators");
+        assertFalse(filename.contains("\\"), "Filename should not contain path separators");
         // DAO now ensures the extension matches the *detected* type (e.g., audio/mpeg
         // -> .mp3)
-        assertTrue(relativePath.endsWith(".mp3"), "Relative path should end with '.mp3' based on detected type");
-
-        pathsToDelete.add(relativePath); // Track for cleanup
+        assertTrue(filename.endsWith(".mp3"), "Filename should end with '.mp3' based on detected type");
+        // Check if file exists in the temp directory
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
+        // Removed pathsToDelete tracking
     }
 
     @Test
-    void saveAudio_shouldReturnPathAndAllowCleanup_whenValidWavProvided() throws DAOException {
+    void saveAudio_shouldReturnFilename_whenValidWavProvided() throws DAOException {
         InputStream inputStream = getResourceStream("valid.wav");
-        String relativePath = audioDAO.saveAudio(inputStream, "test_song.wav");
+        String filename = audioDAO.saveAudio(inputStream, "test_song.wav");
 
-        assertNotNull(relativePath, "Returned path should not be null for valid WAV");
-        assertFalse(relativePath.isBlank(), "Returned path should not be blank for valid WAV");
-        assertTrue(relativePath.startsWith("song/"), "Relative path should start with 'song/'");
+        assertNotNull(filename, "Returned filename should not be null for valid WAV");
+        assertFalse(filename.isBlank(), "Returned filename should not be blank for valid WAV");
+        assertFalse(filename.contains("/"), "Filename should not contain path separators");
+        assertFalse(filename.contains("\\"), "Filename should not contain path separators");
         // DAO now ensures the extension matches the *detected* type (e.g., audio/wav,
         // audio/x-wav -> .wav)
-        assertTrue(relativePath.endsWith(".wav"), "Relative path should end with '.wav' based on detected type");
-
-        pathsToDelete.add(relativePath); // Track for cleanup
+        assertTrue(filename.endsWith(".wav"), "Filename should end with '.wav' based on detected type");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
+        // Removed pathsToDelete tracking
     }
 
     @Test
-    void saveAudio_shouldReturnPathAndAllowCleanup_whenValidOggProvided() throws DAOException {
+    void saveAudio_shouldReturnFilename_whenValidOggProvided() throws DAOException {
         InputStream inputStream = getResourceStream("valid.ogg");
-        String relativePath = audioDAO.saveAudio(inputStream, "test_song.ogg");
+        String filename = audioDAO.saveAudio(inputStream, "test_song.ogg");
 
-        assertNotNull(relativePath, "Returned path should not be null for valid OGG");
-        assertFalse(relativePath.isBlank(), "Returned path should not be blank for valid OGG");
-        assertTrue(relativePath.startsWith("song/"), "Relative path should start with 'song/'");
+        assertNotNull(filename, "Returned filename should not be null for valid OGG");
+        assertFalse(filename.isBlank(), "Returned filename should not be blank for valid OGG");
+        assertFalse(filename.contains("/"), "Filename should not contain path separators");
+        assertFalse(filename.contains("\\"), "Filename should not contain path separators");
         // DAO now ensures the extension matches the *detected* type (e.g., audio/ogg,
         // audio/vorbis -> .ogg)
-        assertTrue(relativePath.endsWith(".ogg"), "Relative path should end with '.ogg' based on detected type");
-
-        pathsToDelete.add(relativePath); // Track for cleanup
+        assertTrue(filename.endsWith(".ogg"), "Filename should end with '.ogg' based on detected type");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
+        // Removed pathsToDelete tracking
     }
 
     // --- saveAudio Validation Failure / Edge Case Tests (Updated) ---
@@ -138,15 +114,16 @@ class AudioDAOTest {
         // is correctly identified, saved, and given the proper extension (.mp3).
         InputStream inputStream = getResourceStream("valid.mp3"); // Use valid MP3 content
         String originalFilename = "valid_mp3_pretending_to_be.txt"; // Incorrect extension
-        String relativePath = audioDAO.saveAudio(inputStream, originalFilename);
+        String filename = audioDAO.saveAudio(inputStream, originalFilename);
 
-        assertNotNull(relativePath, "Path should not be null for valid content with wrong extension");
+        assertNotNull(filename, "Filename should not be null for valid content with wrong extension");
         // Tika should detect audio/mpeg, map it to .mp3 via ALLOWED_MIME_TYPES_MAP
-        assertTrue(relativePath.endsWith(".mp3"),
+        assertTrue(filename.endsWith(".mp3"),
                 "Should be saved with correct extension (.mp3) based on content, not original filename");
-        assertTrue(relativePath.startsWith("song/"), "Path should start with song/");
+        assertFalse(filename.contains("/"), "Filename should not contain path separators");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
 
-        pathsToDelete.add(relativePath); // Track for cleanup
+        // Removed pathsToDelete tracking
     }
 
     @Test
@@ -166,17 +143,18 @@ class AudioDAOTest {
         // proper .wav extension.
         InputStream inputStream = getResourceStream("valid.wav"); // Use valid WAV content
         String originalFilename = "valid_wav_pretending_to_be.mp3"; // Incorrect extension
-        String relativePath = audioDAO.saveAudio(inputStream, originalFilename);
+        String filename = audioDAO.saveAudio(inputStream, originalFilename);
 
-        assertNotNull(relativePath,
-                "Path should not be null when content type mismatches extension but is valid audio");
+        assertNotNull(filename,
+                "Filename should not be null when content type mismatches extension but is valid audio");
         // Tika should detect audio/wav (or x-wav), map it to .wav via
         // ALLOWED_MIME_TYPES_MAP
-        assertTrue(relativePath.endsWith(".wav"),
+        assertTrue(filename.endsWith(".wav"),
                 "Should be saved with correct extension (.wav) based on content, not original filename");
-        assertTrue(relativePath.startsWith("song/"), "Path should start with song/");
+        assertFalse(filename.contains("/"), "Filename should not contain path separators");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
 
-        pathsToDelete.add(relativePath); // Track for cleanup
+        // Removed pathsToDelete tracking
     }
 
     @Test
@@ -199,15 +177,16 @@ class AudioDAOTest {
     void saveAudio_shouldSaveSuccessfully_whenFilenameHasNoExtension() throws DAOException {
         // Test that saving works even without an original extension,
         // relying on Tika detection and the DAO assigning the correct one.
-        InputStream inputStream = getResourceStream("valid.mp3"); // Content doesn't matter here
-        String relativePath = audioDAO.saveAudio(inputStream, "testfile_no_extension");
+        InputStream inputStream = getResourceStream("valid.mp3"); // Content type matters here (mp3)
+        String filename = audioDAO.saveAudio(inputStream, "testfile_no_extension");
 
-        assertNotNull(relativePath, "Path should not be null even if original filename has no extension");
-        assertFalse(relativePath.isBlank(), "Path should not be blank");
-        assertTrue(relativePath.startsWith("song/"), "Path should start with song/");
-        assertTrue(relativePath.endsWith(".mp3"), "Should be saved with correct extension (.mp3) based on content");
+        assertNotNull(filename, "Filename should not be null even if original filename has no extension");
+        assertFalse(filename.isBlank(), "Filename should not be blank");
+        assertFalse(filename.contains("/"), "Filename should not contain path separators");
+        assertTrue(filename.endsWith(".mp3"), "Should be saved with correct extension (.mp3) based on content");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
 
-        pathsToDelete.add(relativePath); // Track for cleanup
+        // Removed pathsToDelete tracking
     }
 
     @Test
@@ -222,72 +201,72 @@ class AudioDAOTest {
     // --- deleteAudio Tests ---
 
     @Test
-    void deleteAudio_shouldDeleteExistingFileAndReturnTrue() throws DAOException {
+    void deleteAudio_shouldDeleteExistingFileAndReturnTrue() throws DAOException, IOException {
         // Arrange: Save a file first
         InputStream inputStream = getResourceStream("valid.mp3");
-        String relativePath = audioDAO.saveAudio(inputStream, "delete_test.mp3");
-        assertNotNull(relativePath);
-        // Don't add to pathsToDelete here, as this test *is* the deletion
+        String filename = audioDAO.saveAudio(inputStream, "delete_test.mp3");
+        // No need to assertNotNull, saveAudio throws if it fails badly
+        Path expectedPath = tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename);
+        assertTrue(Files.exists(expectedPath), "File should exist after saving");
 
-        // Act: Delete the file
-        boolean result = audioDAO.deleteAudio(relativePath);
+        // Act: Delete the file using the filename
+        boolean result = audioDAO.deleteAudio(filename);
 
         // Assert
         assertTrue(result, "deleteAudio should return true for an existing file");
-
-        // Optional: Verify file is actually gone (might be flaky depending on FS
-        // timing)
-        // Path expectedPath = Paths.get(System.getProperty("user.home"), "Spolify",
-        // relativePath);
-        // assertFalse(Files.exists(expectedPath), "File should not exist after
-        // deletion");
+        assertFalse(Files.exists(expectedPath), "File should not exist after deletion");
     }
 
     @Test
     void deleteAudio_shouldReturnFalse_whenFileDoesNotExist() throws DAOException {
-        // Arrange: A path that definitely doesn't exist
-        String nonExistentPath = "song/non_existent_file_" + System.currentTimeMillis() + ".mp3";
+        // Arrange: A filename that definitely doesn't exist in the temp dir
+        String nonExistentFilename = "non_existent_file_" + System.currentTimeMillis() + ".mp3";
 
         // Act
-        boolean result = audioDAO.deleteAudio(nonExistentPath);
+        boolean result = audioDAO.deleteAudio(nonExistentFilename);
 
         // Assert
-        assertFalse(result, "deleteAudio should return false for a non-existent file");
+        assertFalse(result, "deleteAudio should return false for a non-existent filename");
     }
 
     @Test
-    void deleteAudio_shouldThrowIllegalArgument_whenPathIsNull() {
+    void deleteAudio_shouldThrowIllegalArgument_whenFilenameIsNull() {
         assertThrows(IllegalArgumentException.class, () -> {
             audioDAO.deleteAudio(null);
-        }, "Should throw IllegalArgumentException for null path");
+        }, "Should throw IllegalArgumentException for null filename");
     }
 
     @Test
-    void deleteAudio_shouldThrowIllegalArgument_whenPathIsBlank() {
+    void deleteAudio_shouldThrowIllegalArgument_whenFilenameIsBlank() {
         assertThrows(IllegalArgumentException.class, () -> {
             audioDAO.deleteAudio("   ");
-        }, "Should throw IllegalArgumentException for blank path");
+        }, "Should throw IllegalArgumentException for blank filename");
     }
 
     @Test
-    void deleteAudio_shouldThrowIllegalArgument_whenPathIsInvalidFormat() {
-        // Path doesn't start with "song/"
+    void deleteAudio_shouldThrowIllegalArgument_whenFilenameIsInvalidFormat() {
+        // Filename contains forward slash
         assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.deleteAudio("invalid_folder/somefile.mp3");
-        }, "Should throw IllegalArgumentException for path not starting with 'song/'");
+            audioDAO.deleteAudio("invalid/name.mp3");
+        }, "Should throw IllegalArgumentException for filename containing '/'");
 
-        // Path is just the subfolder
+        // Filename contains backslash
         assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.deleteAudio("song/");
-        }, "Should throw IllegalArgumentException for path being just the subfolder");
+            audioDAO.deleteAudio("invalid\\name.mp3");
+        }, "Should throw IllegalArgumentException for filename containing '\\'");
+
+        // Filename is just "."
+        assertThrows(IllegalArgumentException.class, () -> {
+            audioDAO.deleteAudio(".");
+        }, "Should throw IllegalArgumentException for filename being '.'");
     }
 
     @Test
-    void deleteAudio_shouldThrowIllegalArgument_whenPathIsMalicious() {
-        // Attempt to go up directories (basic check in DAO should prevent this)
+    void deleteAudio_shouldThrowIllegalArgument_whenFilenameContainsTraversal() {
+        // Attempt to go up directories
         assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.deleteAudio("song/../../etc/passwd");
-        }, "Should throw IllegalArgumentException for potentially malicious path");
+            audioDAO.deleteAudio("../../../etc/passwd");
+        }, "Should throw IllegalArgumentException for filename containing '..'");
     }
 
 }
