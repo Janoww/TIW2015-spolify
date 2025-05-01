@@ -48,7 +48,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.17.0</version>
+
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/org.javassist/javassist -->
@@ -108,6 +108,20 @@
       <version>6.3.0</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-core</artifactId>
+      <version>3.1.0</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.tika/tika-parsers-standard-package -->
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-parsers-standard-package</artifactId>
+      <version>3.1.0</version>
+    </dependency>
+
     <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
     <dependency>
       <groupId>jakarta.servlet</groupId>
@@ -139,6 +153,55 @@
 
 
     <dependencies>
+
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>1.72</version>
+      </dependency>
+
+
+      <dependency>
+        <groupId>com.healthmarketscience.jackcess</groupId>
+        <artifactId>jackcess</artifactId>
+        <version>4.0.0</version>
+      </dependency>
+
+
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>1.2</version>
+      </dependency>
+
+
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.16.0</version>
+      </dependency>
+
+
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.16.1</version>
+      </dependency>
+
+
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.17.1</version>
+      </dependency>
+
+
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>2.24.2</version>
+      </dependency>
+
 
       <dependency>
         <groupId>org.slf4j</groupId>
