@@ -37,7 +37,7 @@ public class NewPlaylist extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
-		
+		User user = (User) req.getSession().getAttribute("user");
 		
 		//Check Parameters
 		
@@ -57,7 +57,7 @@ public class NewPlaylist extends HttpServlet {
 			    .map(Integer::parseInt)
 			    .collect(Collectors.toList());
 
-		User user = (User) req.getSession().getAttribute("user");
+		
 		
 		
 		Playlist playlist;
@@ -99,12 +99,12 @@ public class NewPlaylist extends HttpServlet {
 						}
 					}
 				}
-			} else {
-				//A playlist with that name already exist
-				req.setAttribute("errorNewPlaylistMsg", "A playlist named \"" + name + "\" already exysts");
-				req.getRequestDispatcher("/Home");
-				return;
-			}
+		} else {
+			//A playlist with that name already exist
+			req.setAttribute("errorNewPlaylistMsg", "A playlist named \"" + name + "\" already exysts");
+			req.getRequestDispatcher("/Home");
+			return;
+		}
 
 
 

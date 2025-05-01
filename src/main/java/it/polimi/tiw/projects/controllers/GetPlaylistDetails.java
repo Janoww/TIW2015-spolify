@@ -9,7 +9,6 @@ import java.util.UUID;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
 
-import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.Playlist;
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.beans.SongWithAlbum;
@@ -60,7 +59,7 @@ public class GetPlaylistDetails extends HttpServlet{
 		// Get and check params
 		Integer playlistId = null;
 		try {
-			playlistId = Integer.parseInt(req.getParameter("missionid"));
+			playlistId = Integer.parseInt(req.getParameter("playlistId"));
 		} catch (NumberFormatException | NullPointerException e) {
 			e.printStackTrace();
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Incorrect param values");
@@ -138,6 +137,7 @@ public class GetPlaylistDetails extends HttpServlet{
 		ctx.setVariable("page", page);
 		ctx.setVariable("totalPages", totPages);
 		ctx.setVariable("songs", unusedSongs);
+		ctx.setVariable("errorAddSongMsg", req.getParameter("errorAddSongMsg"));
 		
 		String path = "/WEB-INF/Playlist.html";
 		templateEngine.process(path, ctx, resp.getWriter());

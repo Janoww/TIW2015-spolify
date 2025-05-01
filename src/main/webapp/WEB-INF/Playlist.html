@@ -38,7 +38,7 @@
 	</table>
 
     <div th:if="${page > 0}">
-        <form method="get" th:action="@{/GetPlaylistDetails}">
+        <form method="get" action="/GetPlaylistDetails">
             <input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
             <input type="hidden" name="page" th:value="${page - 1}" />
             <button type="submit">PRECEDENTI</button>
@@ -47,14 +47,14 @@
 	
 	
 	<div th:if="${page < totPages}">
-        <form method="get" th:action="@{/GetPlaylistDetails}">
+        <form method="get" th:action="GetPlaylistDetails">
             <input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
             <input type="hidden" name="page" th:value="${page + 1}" />
             <button type="submit">SUCCESSIVI</button>
         </form>
     </div>
 
-	<form action="addSongToPL" metod=POST>
+	<form action="AddSongToPL" metod=POST>
 		<fieldset>
 			<legend>Add songs to the playlist:</legend>
 
@@ -88,6 +88,7 @@
 					<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0010" value="0010"
 							title="Bando"> <label for="song_0010">Bando</label> </div>
 				</div>
+				<input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
 				<p> <input type="submit" value="Add Playlist"> </p>
 			</div>
 			<div th:if="${songs.size() = 0"> To add to a playlist you need to upload a new songs</div>
