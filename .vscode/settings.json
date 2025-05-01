@@ -3,7 +3,8 @@
         "flac",
         "jdbc",
         "polimi",
-        "Spolify"
+        "Spolify",
+        "Tika"
     ],
     "sqltools.connections": [
         {
