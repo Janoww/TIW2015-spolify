@@ -69,7 +69,8 @@ public class AppContextListener implements ServletContextListener {
             logger.info("HikariCP DataSource closed.");
         }
 
-        // * Tomcat gives a warning for memory leak for a thread created by jdbc
+        // * Tomcat gives a warning for memory leak for a thread created by jdbc to
+        // * Resolve:
         // Deregister JDBC drivers loaded by this webapp's classloader
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         Enumeration<Driver> drivers = DriverManager.getDrivers();

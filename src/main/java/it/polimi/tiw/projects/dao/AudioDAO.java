@@ -5,8 +5,9 @@ import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
@@ -17,18 +18,14 @@ import org.slf4j.LoggerFactory;
 public class AudioDAO {
     private static final Logger log = LoggerFactory.getLogger(AudioDAO.class);
 
-    // Removed BASE_FOLDER_NAME constant as base path is now injected
-    private static final String AUDIO_SUBFOLDER = "song"; // Keep subfolder name internal
-    private final Path baseStorageDirectory; // Instance field for the base storage path (e.g., /path/to/Spolify)
-    private final Path songStorageDirectory; // Instance field for the specific song storage path (e.g.,
-                                             // /path/to/Spolify/song)
+    private static final String AUDIO_SUBFOLDER = "song";
+    private final Path songStorageDirectory;
 
     // Map of allowed MIME types (derived from Tika definitions) to their canonical
     // file extensions
     private static final Map<String, String> ALLOWED_MIME_TYPES_MAP = Map.ofEntries(
             // MP3 Types from Tika definition
-            Map.entry("audio/mpeg", ".mp3"),
-            Map.entry("audio/x-mpeg", ".mp3"), // Alias for audio/mpeg
+            Map.entry("audio/mpeg", ".mp3"), Map.entry("audio/x-mpeg", ".mp3"), // Alias for audio/mpeg
 
             // WAV Types from Tika definition
             Map.entry("audio/vnd.wave", ".wav"), // Primary WAV type
@@ -43,9 +40,8 @@ public class AudioDAO {
     private static final int MAX_FILENAME_PREFIX_LENGTH = 190;
 
     /**
-     * Constructs an AudioDAO with a specified base storage directory.
-     * The 'song' subdirectory within this base directory will be created if it
-     * doesn't exist.
+     * Constructs an AudioDAO with a specified base storage directory. The 'song'
+     * subdirectory within this base directory will be created if it doesn't exist.
      *
      * @param baseStorageDirectory The Path object representing the base directory
      *                             (e.g., where 'song' subfolder should reside).
@@ -53,9 +49,7 @@ public class AudioDAO {
      *                          the base directory.
      */
     public AudioDAO(Path baseStorageDirectory) {
-        this.baseStorageDirectory = baseStorageDirectory.normalize(); // Store normalized base path
-        this.songStorageDirectory = this.baseStorageDirectory.resolve(AUDIO_SUBFOLDER).normalize(); // Derive and store
-                                                                                                    // song path
+        this.songStorageDirectory = baseStorageDirectory.resolve(AUDIO_SUBFOLDER).normalize();
 
         try {
             // Create the specific song subdirectory if it doesn't exist
@@ -74,8 +68,7 @@ public class AudioDAO {
 
     /**
      * Saves an audio file from an InputStream to the configured 'song' storage
-     * directory.
-     * Validates the file content type. Generates a unique filename
+     * directory. Validates the file content type. Generates a unique filename
      * incorporating a sanitized version of the original filename.
      *
      * @param audioStream      The InputStream containing the audio data.
@@ -97,11 +90,6 @@ public class AudioDAO {
             throw new IllegalArgumentException("Original filename cannot be null or empty.");
         }
 
-        // Extension from original filename is no longer used for validation or primary
-        // type determination.
-        // It might be used as a fallback if needed, but the plan is to rely on MIME
-        // detection.
-
         Path tempFile = null;
         try {
             // 1. Create a temporary file (use a generic suffix initially)
@@ -113,14 +101,12 @@ public class AudioDAO {
 
             // 2. Validate content and get the correct extension based on MIME type
             log.debug("Validating audio file content and determining extension...");
-            String targetExtension = validateAndGetExtension(tempFile); // New validation method
+            String targetExtension = validateAndGetExtension(tempFile);
             log.debug("Audio content validated. Target extension: {}", targetExtension);
-            // ? Optional: Add further checks for file size if needed
-            // ? log.debug("Temp file size: {} bytes", Files.size(tempFile));
 
             // 3. Generate final filename using the determined extension
             String finalFilename = generateUniqueFilename(originalFileName, targetExtension);
-            Path finalPath = this.songStorageDirectory.resolve(finalFilename); // Use song storage path
+            Path finalPath = this.songStorageDirectory.resolve(finalFilename);
             log.debug("Generated final path: {}", finalPath);
 
             // 4. Move temporary file to permanent storage
@@ -139,12 +125,10 @@ public class AudioDAO {
             throw new DAOException("Failed to save audio due to I/O error: " + e.getMessage(), e,
                     DAOErrorType.GENERIC_ERROR);
         } catch (IllegalArgumentException e) {
-            // Log the validation exception before re-throwing (already logged specific
-            // cause)
             log.warn("IllegalArgumentException during audio save: {}", e.getMessage());
             // If it was thrown earlier (e.g., filename check), tempFile might be null.
             deleteTempFile(tempFile); // Attempt cleanup just in case
-            throw e; // Re-throw the original validation exception
+            throw e;
         }
     }
 
@@ -154,8 +138,7 @@ public class AudioDAO {
      *
      * @param audioFile Path to the temporary audio file to validate.
      * @return The canonical file extension (e.g., ".mp3", ".wav") corresponding to
-     *         the
-     *         detected and allowed MIME type.
+     *         the detected and allowed MIME type.
      * @throws IllegalArgumentException if the file is not detected as a supported
      *                                  audio format based on the
      *                                  ALLOWED_MIME_TYPES_MAP.
@@ -178,15 +161,12 @@ public class AudioDAO {
             }
 
             // Specific check: Is the detected MIME type in our allowed map?
-            String targetExtension = ALLOWED_MIME_TYPES_MAP.get(mimeType.toLowerCase()); // Use lowercase for lookup
-                                                                                         // consistency
-
+            String targetExtension = ALLOWED_MIME_TYPES_MAP.get(mimeType.toLowerCase());
             if (targetExtension == null) {
                 log.warn("Audio validation failed for {}: Detected audio MIME type '{}' is not supported.", audioFile,
                         mimeType);
-                throw new IllegalArgumentException(
-                        "The detected audio type (" + mimeType + ") is not supported. Allowed types map to extensions: "
-                                + ALLOWED_MIME_TYPES_MAP.values());
+                throw new IllegalArgumentException("The detected audio type (" + mimeType
+                        + ") is not supported. Allowed types map to extensions: " + ALLOWED_MIME_TYPES_MAP.values());
             }
 
             log.debug("Detected MIME type '{}' is supported and maps to extension '{}'.", mimeType, targetExtension);
@@ -194,9 +174,7 @@ public class AudioDAO {
 
         } catch (IOException e) {
             log.error("IOException during Tika audio validation for {}: {}", audioFile, e.getMessage(), e);
-            // No need to call deleteTempFile here, it's handled in the calling saveAudio's
-            // catch block
-            throw e; // Re-throw the IOException
+            throw e;
         } catch (Exception e) {
             // Catch any other unexpected errors during detection/validation
             log.error("Unexpected error during audio validation for {}: {}", audioFile, e.getMessage(), e);
@@ -221,13 +199,10 @@ public class AudioDAO {
         }
     }
 
-    // getFileExtension method is removed as base name extraction is now part of
-    // generateUniqueFilename
-
     /**
      * Generates a unique filename based on the original filename and a UUID, using
-     * the provided target extension.
-     * Sanitizes and truncates the original filename prefix.
+     * the provided target extension. Sanitizes and truncates the original filename
+     * prefix.
      *
      * @param originalFileName The original filename (used to derive the base name).
      * @param targetExtension  The validated file extension determined by MIME type
@@ -268,17 +243,14 @@ public class AudioDAO {
      * its filename.
      *
      * @param filename The filename of the file to delete (e.g.,
-     *                 "filename_uuid.mp3").
-     *                 Must not contain path separators.
-     * @return true if the file was successfully deleted, false otherwise (e.g.,
-     *         file not found).
-     * @throws DAOException             If an I/O error occurs during deletion
-     *                                  (other than file not found).
+     *                 "filename_uuid.mp3"). Must not contain path separators.
+     * @throws DAOException             If the file is not found after validation,
+     *                                  or if an I/O error occurs during deletion.
      * @throws IllegalArgumentException If the provided filename is null, blank,
      *                                  contains path separators ('/' or '\'), or
      *                                  attempts path traversal ('..').
      */
-    public boolean deleteAudio(String filename) throws DAOException, IllegalArgumentException {
+    public void deleteAudio(String filename) throws DAOException, IllegalArgumentException {
         log.info("Attempting to delete audio file with filename: {}", filename);
 
         // 1. Validate filename
@@ -306,7 +278,7 @@ public class AudioDAO {
             // Resolve filename against the specific song storage directory
             potentialPath = this.songStorageDirectory.resolve(filename).normalize();
             log.debug("Constructed potential absolute path: {}", potentialPath);
-        } catch (java.nio.file.InvalidPathException e) {
+        } catch (InvalidPathException e) {
             // Should be rare if filename validation above is robust, but catch just in case
             log.warn("Delete audio failed: Invalid path generated from filename '{}'.", filename, e);
             throw new IllegalArgumentException("Invalid filename resulting in invalid path: " + e.getMessage(), e);
@@ -314,10 +286,8 @@ public class AudioDAO {
 
         try {
             // 3. Validate that the resolved path is still within the song storage directory
-            // Get canonical paths to resolve symlinks and verify containment
-            Path songStorageRealPath = this.songStorageDirectory.toRealPath(); // Ensures song storage dir itself is
-                                                                               // valid
-            Path fileRealPath = potentialPath.toRealPath(); // Throws NoSuchFileException if doesn't exist
+            Path songStorageRealPath = this.songStorageDirectory.toRealPath();
+            Path fileRealPath = potentialPath.toRealPath();
 
             log.debug("Song storage real path: {}", songStorageRealPath);
             log.debug("File real path: {}", fileRealPath);
@@ -334,38 +304,37 @@ public class AudioDAO {
 
             // 4. Delete the file
             log.debug("Attempting to delete validated file at: {}", fileRealPath);
-            // Use deleteIfExists to match previous logic return value (true if deleted,
-            // false if not found *at this stage*)
-            boolean deleted = Files.deleteIfExists(fileRealPath);
+
+            boolean deleted = Files.deleteIfExists(fileRealPath); // Can throw IOException, SecurityException
             if (deleted) {
                 log.info("Successfully deleted audio file: {}", fileRealPath);
             } else {
-                // This case implies a race condition if toRealPath succeeded but deleteIfExists
-                // failed.
-                log.warn("Audio file not found for deletion after validation or already deleted: {}", fileRealPath);
+                // File existed during toRealPath but was gone by deleteIfExists, or
+                // deleteIfExists failed silently?
+                // Treat as not found for consistency.
+                log.warn("Audio file not found for deletion (deleteIfExists returned false): {}", fileRealPath);
+                throw new DAOException("Audio file not found for deletion: " + filename, DAOErrorType.NOT_FOUND);
             }
-            return deleted;
 
-        } catch (java.nio.file.NoSuchFileException e) {
-            // File doesn't exist at the potential path. This is expected for non-existent
-            // files.
-            log.warn("Audio file not found for deletion (NoSuchFileException): {}", potentialPath);
-            return false; // Consistent with deleteIfExists behavior
+        } catch (NoSuchFileException e) {
+            // Catch if toRealPath couldn't find the file initially
+            log.warn("Audio file not found for deletion (NoSuchFileException during path validation): {}",
+                    potentialPath);
+            throw new DAOException("Audio file not found for deletion: " + filename, DAOErrorType.NOT_FOUND);
         } catch (IOException e) {
-            // Includes other I/O errors from toRealPath or deleteIfExists
-            log.error("IOException occurred during audio deletion validation or execution for relative path {}: {}",
-                    filename, e.getMessage(), e);
+            // Catch other I/O errors (permissions, etc.) from toRealPath or deleteIfExists
+            log.error("IOException occurred during audio deletion for relative path {}: {}", filename, e.getMessage(),
+                    e);
             throw new DAOException("Failed to delete audio due to I/O error: " + e.getMessage(), e,
                     DAOErrorType.GENERIC_ERROR);
         } catch (SecurityException e) {
             // Security manager prevents access
-            log.error("SecurityException occurred during audio deletion for filename {}: {}", filename,
-                    e.getMessage(), e);
+            log.error("SecurityException occurred during audio deletion for filename {}: {}", filename, e.getMessage(),
+                    e);
             throw new DAOException("Failed to delete audio due to security restrictions: " + e.getMessage(), e,
                     DAOErrorType.GENERIC_ERROR);
         } catch (Exception e) { // Catch unexpected errors during validation/deletion
-            log.error("Unexpected error during audio deletion for filename {}: {}", filename, e.getMessage(),
-                    e);
+            log.error("Unexpected error during audio deletion for filename {}: {}", filename, e.getMessage(), e);
             throw new DAOException("An unexpected error occurred during audio deletion.", e,
                     DAOErrorType.GENERIC_ERROR);
         }
