@@ -92,8 +92,8 @@ public class GetPlaylistDetails extends HttpServlet{
 		}
 		
 		
-		// We need the list of songs
-		List<Song> allSongsOrdered = orderAllSongs(myPlaylist, songDAO, albumDAO);
+		// We need the list of songs in the playlist
+		List<Song> allPlaylistSongsOrdered = orderAllSongs(myPlaylist, songDAO, albumDAO);
 		
 		// We divide the playlist in pages of 5 songs
 		// We need to understand which page we need to render:
@@ -108,9 +108,9 @@ public class GetPlaylistDetails extends HttpServlet{
 	    	page = 0;
 	    }
 		
-	    int totalSongs = allSongsOrdered.size();
+	    int totPages = (allPlaylistSongsOrdered.size() + 4) / 5;
 	    
-	    List<Song> songsPage = allSongsOrdered.stream()
+	    List<Song> songsPage = allPlaylistSongsOrdered.stream()
 	            .skip(page*5)
 	            .limit(5)
 	            .toList();
@@ -126,13 +126,18 @@ public class GetPlaylistDetails extends HttpServlet{
 			return null;
 	    }).toList();
 	    
+	    // We need the list of not added songs for the form
+	    
+	    List<Song> unusedSongs = getUnusedSongs(myPlaylist, songDAO);
+	    
 
 		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
 
 		ctx.setVariable("playlist", myPlaylist);
 		ctx.setVariable("songWithAlbum", songWithAlbum);
 		ctx.setVariable("page", page);
-		ctx.setVariable("totalSongs", totalSongs);
+		ctx.setVariable("totalPages", totPages);
+		ctx.setVariable("songs", unusedSongs);
 		
 		String path = "/WEB-INF/Playlist.html";
 		templateEngine.process(path, ctx, resp.getWriter());
@@ -155,24 +160,14 @@ public class GetPlaylistDetails extends HttpServlet{
 		
 		List<Integer> songsIDs = playlist.getSongs();
 		//TODO
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+
 		return result;
 	}
 	
+	private static List<Song> getUnusedSongs(Playlist playlist, SongDAO songDao){
+		//TODO
+		return null;
+	}
 
 }
 

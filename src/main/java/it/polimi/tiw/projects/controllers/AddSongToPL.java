@@ -7,6 +7,8 @@ import it.polimi.tiw.projects.utils.ConnectionHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class AddSongToPL extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -20,10 +22,11 @@ public class AddSongToPL extends HttpServlet {
 	public void init() throws ServletException {
 		ServletContext context = getServletContext();
 		connection = ConnectionHandler.getConnection(context);
-
 	}
-
-	public void doPost() {
+	
+	@Override
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) {
+		
 
 	}
 
