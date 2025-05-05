@@ -2,14 +2,16 @@ package it.polimi.tiw.projects.beans;
 
 import java.util.UUID;
 
+import it.polimi.tiw.projects.utils.Genre;
+
 public class Song {
 
 	private int idSong;
 	private String title;
 	private int idAlbum;
 	private int year;
-	private String genre;
-	private String audioFile; // Path or URL to the audio file
+	private Genre genre;
+	private String audioFile;
 	private UUID idUser;
 
 	// Getters and Setters
@@ -46,11 +48,11 @@ public class Song {
 		this.year = year;
 	}
 
-	public String getGenre() {
+	public Genre getGenre() {
 		return genre;
 	}
 
-	public void setGenre(String genre) {
+	public void setGenre(Genre genre) {
 		this.genre = genre;
 	}
 

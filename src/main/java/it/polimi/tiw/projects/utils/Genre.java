@@ -1,6 +1,6 @@
 package it.polimi.tiw.projects.utils;
 
-public enum Genres {
+public enum Genre {
     AFRICAN("Music of Africa"), ALTERNATIVEROCK("Alternative rock"), AMBIENT("Ambient music"),
     AMERICANFOLK("American folk music"), ASIAN("Music of Asia"), BLUES("Blues"), CHRISTIAN("Christian music"),
     CLASSICAL("Classical music"), COMMERCIAL("Commercial"), COUNTRY("Country music"), DANCE("Dance music"),
@@ -17,7 +17,7 @@ public enum Genres {
 
     private final String description;
 
-    Genres(String description) {
+    Genre(String description) {
         this.description = description;
     }
 

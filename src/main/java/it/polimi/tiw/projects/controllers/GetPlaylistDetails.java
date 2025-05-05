@@ -25,11 +25,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-public class GetPlaylistDetails extends HttpServlet{
+public class GetPlaylistDetails extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection;
 	private TemplateEngine templateEngine;
-	
+
 	public GetPlaylistDetails() {
 		super();
 	}
@@ -41,21 +41,21 @@ public class GetPlaylistDetails extends HttpServlet{
 		templateEngine = TemplateHandler.initializeEngine(context);
 
 	}
-	
+
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		SongDAO songDAO = new SongDAO(connection);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
-		
+
 		// If the user is not logged in (not present in session) redirect to the login
 		String loginpath = getServletContext().getContextPath() + "/index.html";
 		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
 			resp.sendRedirect(loginpath);
 			return;
 		}
-		
+
 		// Get and check params
 		Integer playlistId = null;
 		try {
@@ -65,70 +65,68 @@ public class GetPlaylistDetails extends HttpServlet{
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Incorrect param values");
 			return;
 		}
-		
+
 		// If a playlist with that id exists for that user, find it
 		Playlist myPlaylist;
 		try {
 			myPlaylist = playlistDAO.findPlaylistById(playlistId, userId);
 		} catch (DAOException e) {
-			switch (e.getErrorType()){
-				case NOT_FOUND:{
+			switch (e.getErrorType()) {
+				case NOT_FOUND: {
 					req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
 					req.getRequestDispatcher("/Home");
 					return;
 				}
-				case ACCESS_DENIED:{
+				case ACCESS_DENIED: {
 					req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
 					req.getRequestDispatcher("/Home");
 					return;
 				}
-				default:{
+				default: {
 					e.printStackTrace();
 					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
 					return;
 				}
 			}
 		}
-		
-		
+
 		// We need the list of songs in the playlist
 		List<Song> allPlaylistSongsOrdered = orderAllSongs(myPlaylist, songDAO, albumDAO);
-		
+
 		// We divide the playlist in pages of 5 songs
 		// We need to understand which page we need to render:
-		
+
 		Integer page = 0;
-	    try {
-	    	page = Integer.parseInt(req.getParameter("page"));
-	        if (page < 0) {
-	        	page = 0;
-	        }
-	    } catch (NumberFormatException e) {
-	    	page = 0;
-	    }
-		
-	    int totPages = (allPlaylistSongsOrdered.size() + 4) / 5;
-	    
-	    List<Song> songsPage = allPlaylistSongsOrdered.stream()
-	            .skip(page*5)
-	            .limit(5)
-	            .toList();
-	    
-	    List<SongWithAlbum> songWithAlbum = null;
-	    
-	    songWithAlbum = songsPage.stream().map(s -> {
-	    	try {
+		try {
+			page = Integer.parseInt(req.getParameter("page"));
+			if (page < 0) {
+				page = 0;
+			}
+		} catch (NumberFormatException e) {
+			page = 0;
+		}
+
+		int totPages = (allPlaylistSongsOrdered.size() + 4) / 5;
+
+		List<Song> songsPage = allPlaylistSongsOrdered.stream()
+				.skip(page * 5)
+				.limit(5)
+				.toList();
+
+		List<SongWithAlbum> songWithAlbum = null;
+
+		songWithAlbum = songsPage.stream().map(s -> {
+			try {
 				return new SongWithAlbum(s, albumDAO.findAlbumById(s.getIdAlbum()));
 			} catch (DAOException e) {
 				e.printStackTrace();
 			}
 			return null;
-	    }).toList();
-	    
-	    // We need the list of not added songs for the form
-	    
-	    List<Song> unusedSongs = getUnusedSongs(myPlaylist, songDAO);
-	    
+		}).toList();
+
+		// We need the list of not added songs for the form
+
+		List<Song> unusedSongs = getUnusedSongs(myPlaylist, songDAO);
 
 		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
 
@@ -138,13 +136,12 @@ public class GetPlaylistDetails extends HttpServlet{
 		ctx.setVariable("totalPages", totPages);
 		ctx.setVariable("songs", unusedSongs);
 		ctx.setVariable("errorAddSongMsg", req.getParameter("errorAddSongMsg"));
-		
+
 		String path = "/WEB-INF/Playlist.html";
 		templateEngine.process(path, ctx, resp.getWriter());
-		
 
 	}
-	
+
 	@Override
 	public void destroy() {
 		try {
@@ -153,21 +150,20 @@ public class GetPlaylistDetails extends HttpServlet{
 			e.printStackTrace();
 		}
 	}
-	
-	private static List<Song> orderAllSongs(Playlist playlist, SongDAO songDao, AlbumDAO albumDao){
-		
+
+	private static List<Song> orderAllSongs(Playlist playlist, SongDAO songDao, AlbumDAO albumDao) {
+
 		List<Song> result = null;
-		
+
 		List<Integer> songsIDs = playlist.getSongs();
-		//TODO
+		// TODO
 
 		return result;
 	}
-	
-	private static List<Song> getUnusedSongs(Playlist playlist, SongDAO songDao){
-		//TODO
+
+	private static List<Song> getUnusedSongs(Playlist playlist, SongDAO songDao) {
+		// TODO
 		return null;
 	}
 
 }
-

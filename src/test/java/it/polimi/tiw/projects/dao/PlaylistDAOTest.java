@@ -7,6 +7,7 @@ import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
+import it.polimi.tiw.projects.utils.Genre;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -49,7 +50,7 @@ public class PlaylistDAOTest {
     private static final String TEST_PLAYLIST_NAME_DUPLICATE = "JUnit Test Playlist Duplicate";
     private static final String TEST_SONG_TITLE = "JUnit Test Song";
     private static final int TEST_SONG_YEAR = 2025;
-    private static final String TEST_SONG_GENRE = "Test";
+    private static final Genre TEST_SONG_GENRE = Genre.POP;
     private static final String TEST_SONG_FILE = "/audio/test.mp3";
     private static final String TEST_ALBUM_NAME = "JUnit Test Album";
     private static final String TEST_ALBUM_ARTIST = "JUnit Artist";

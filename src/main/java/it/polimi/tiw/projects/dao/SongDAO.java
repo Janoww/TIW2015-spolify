@@ -2,6 +2,8 @@ package it.polimi.tiw.projects.dao;
 
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import it.polimi.tiw.projects.utils.Genre;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +35,7 @@ public class SongDAO {
 	 *                      or another database access error occurs
 	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
-	public Song createSong(String title, int idAlbum, int year, String genre, String audioFile, UUID idUser)
+	public Song createSong(String title, int idAlbum, int year, Genre genre, String audioFile, UUID idUser)
 			throws DAOException {
 		logger.debug("Attempting to create song: title={}, idAlbum={}, year={}, genre={}, audioFile={}, userId={}",
 				title, idAlbum, year, genre, audioFile, idUser);
@@ -44,7 +46,7 @@ public class SongDAO {
 			pStatement.setString(1, title);
 			pStatement.setInt(2, idAlbum);
 			pStatement.setInt(3, year);
-			pStatement.setString(4, genre);
+			pStatement.setString(4, genre.name());
 			pStatement.setString(5, audioFile);
 			pStatement.setString(6, idUser.toString());
 			int affectedRows = pStatement.executeUpdate();
@@ -120,7 +122,7 @@ public class SongDAO {
 					song.setTitle(result.getString("title"));
 					song.setIdAlbum(result.getInt("idAlbum"));
 					song.setYear(result.getInt("year"));
-					song.setGenre(result.getString("genre"));
+					song.setGenre(Enum.valueOf(Genre.class, result.getString("genre")));
 					song.setAudioFile(result.getString("audioFile"));
 					song.setIdUser(UUID.fromString(result.getString("idUser")));
 					songs.add(song);
@@ -153,7 +155,7 @@ public class SongDAO {
 				song.setTitle(result.getString("title"));
 				song.setIdAlbum(result.getInt("idAlbum"));
 				song.setYear(result.getInt("year"));
-				song.setGenre(result.getString("genre"));
+				song.setGenre(Enum.valueOf(Genre.class, result.getString("genre")));
 				song.setAudioFile(result.getString("audioFile"));
 				song.setIdUser(UUID.fromString(result.getString("idUser")));
 				songs.add(song);
@@ -252,7 +254,7 @@ public class SongDAO {
 					song.setTitle(result.getString("title"));
 					song.setIdAlbum(result.getInt("idAlbum"));
 					song.setYear(result.getInt("year"));
-					song.setGenre(result.getString("genre"));
+					song.setGenre(Enum.valueOf(Genre.class, result.getString("genre")));
 					song.setAudioFile(result.getString("audioFile"));
 					song.setIdUser(UUID.fromString(result.getString("idUser")));
 					songs.add(song);

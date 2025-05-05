@@ -16,7 +16,7 @@ import it.polimi.tiw.projects.dao.PlaylistDAO;
 import it.polimi.tiw.projects.dao.SongDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
-import it.polimi.tiw.projects.utils.Genres;
+import it.polimi.tiw.projects.utils.Genre;
 import it.polimi.tiw.projects.utils.TemplateHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -48,7 +48,7 @@ public class GoToHome extends HttpServlet {
 
 		List<Integer> playlistIDs = null;
 		List<Song> songList = null;
-		List<Genres> genresList = Arrays.asList(Genres.values());
+		List<Genre> genresList = Arrays.asList(Genre.values());
 
 		try {
 			playlistIDs = playlistDAO.findPlaylistIdsByUser(userId);
@@ -74,11 +74,11 @@ public class GoToHome extends HttpServlet {
 		ctx.setVariable("playlists", playslists);
 		ctx.setVariable("songs", songList);
 		ctx.setVariable("genres", genresList);
-		
+
 		ctx.setVariable("errorNewPlaylistMsg", req.getAttribute("errorNewPlaylistMsg"));
 		ctx.setVariable("errorNewSongMsg", req.getAttribute("errorNewSongMsg"));
 		ctx.setVariable("errorOpeningPlaylist", req.getAttribute("errorOpeningPlaylist"));
-		
+
 		String path = "/WEB-INF/Home.html";
 		templateEngine.process(path, ctx, resp.getWriter());
 	}

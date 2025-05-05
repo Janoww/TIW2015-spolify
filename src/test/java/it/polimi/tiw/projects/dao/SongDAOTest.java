@@ -4,6 +4,7 @@ import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import it.polimi.tiw.projects.utils.Genre;
 
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
@@ -35,7 +36,7 @@ class SongDAOTest {
 	private static final String TEST_SONG_TITLE_1 = "JUnit Test Song 1 - " + System.currentTimeMillis();
 	private static final String TEST_SONG_TITLE_2 = "JUnit Test Song 2 - " + System.currentTimeMillis();
 	private static final int TEST_SONG_YEAR = 2025;
-	private static final String TEST_GENRE = "TestGenre";
+	private static final Genre TEST_GENRE = Genre.POP;
 	private static final String TEST_AUDIO_FILE_1 = "/audio/junit_test1.mp3";
 	private static final String TEST_AUDIO_FILE_2 = "/audio/junit_test2.mp3";
 	private static final String TEST_AUDIO_FILE_3 = "/audio/junit_test3.mp3";
@@ -551,7 +552,8 @@ class SongDAOTest {
 					song.setTitle(result.getString("title"));
 					song.setIdAlbum(result.getInt("idAlbum"));
 					song.setYear(result.getInt("year"));
-					song.setGenre(result.getString("genre"));
+					// Convert the string from DB to Genre enum
+					song.setGenre(Enum.valueOf(Genre.class, result.getString("genre")));
 					song.setAudioFile(result.getString("audioFile"));
 					song.setIdUser(UUID.fromString(result.getString("idUser")));
 					return song;
