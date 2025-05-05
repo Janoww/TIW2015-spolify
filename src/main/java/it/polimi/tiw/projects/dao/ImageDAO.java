@@ -5,9 +5,6 @@ import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -17,7 +14,6 @@ import java.util.UUID;
 import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-// Removed unused imports: BufferedImage, ImageIO, Paths
 
 public class ImageDAO {
     private static final Logger log = LoggerFactory.getLogger(ImageDAO.class);
