@@ -5,6 +5,8 @@ import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
 
 import org.junit.jupiter.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.List;
@@ -15,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AlbumDAOTest {
+
+	private static final Logger logger = LoggerFactory.getLogger(AlbumDAOTest.class);
 
 	private static Connection connection;
 	private static AlbumDAO albumDAO;
@@ -59,7 +63,7 @@ class AlbumDAOTest {
 			connection.setAutoCommit(false); // Manage transactions manually
 			albumDAO = new AlbumDAO(connection);
 			userDAO = new UserDAO(connection);
-			System.out.println("Database connection established for AlbumDAOTest.");
+			logger.info("Database connection established for AlbumDAOTest.");
 
 			// Initial cleanup of potential leftover test data (order matters: albums first)
 			cleanupTestAlbums();
@@ -72,16 +76,16 @@ class AlbumDAOTest {
 			User testUser = userDAO.checkCredentials(TEST_USERNAME, TEST_PASSWORD);
 			assertNotNull(testUser, "Test user could not be created or found.");
 			testUserId = testUser.getIdUser();
-			System.out.println("Test user created with ID: " + testUserId);
+			logger.info("Test user created with ID: {}", testUserId);
 
 		} catch (ClassNotFoundException e) {
-			System.err.println("MySQL JDBC Driver not found: " + e.getMessage());
+			logger.error("MySQL JDBC Driver not found", e);
 			throw new SQLException("MySQL JDBC Driver not found.", e);
 		} catch (SQLException e) {
-			System.err.println("Failed to connect to the database '" + DB_URL + "': " + e.getMessage());
+			logger.error("Failed to connect to the database '{}'", DB_URL, e);
 			throw e;
 		} catch (DAOException e) { // Catch DAOException from user creation
-			System.err.println("DAOException during test user setup: " + e.getMessage());
+			logger.error("DAOException during test user setup", e);
 			if (connection != null)
 				connection.rollback(); // Rollback if user creation failed
 			throw new SQLException("Failed to setup test user", e); // Rethrow as SQLException for @BeforeAll
@@ -97,11 +101,11 @@ class AlbumDAOTest {
 				cleanupTestUser();
 				connection.commit(); // Commit final cleanup
 			} catch (SQLException e) {
-				System.err.println("Error during final cleanup: " + e.getMessage());
+				logger.error("Error during final cleanup", e);
 				connection.rollback(); // Attempt rollback on cleanup error
 			} finally {
 				connection.close();
-				System.out.println("Database connection closed for AlbumDAOTest.");
+				logger.info("Database connection closed for AlbumDAOTest.");
 			}
 		}
 	}
@@ -149,7 +153,7 @@ class AlbumDAOTest {
 				// For simplicity, we'll assume testUserId is usually available for cleanup.
 				// A safer approach might be to skip user-specific cleanup if testUserId is
 				// null.
-				System.err.println("WARN: testUserId is null during cleanupTestAlbums. Cleanup might be incomplete.");
+				logger.warn("testUserId is null during cleanupTestAlbums. Cleanup might be incomplete.");
 				// Re-prepare statement without user condition if necessary, or just return
 				return; // Skip cleanup if user ID is missing
 			}
@@ -190,12 +194,10 @@ class AlbumDAOTest {
 			pStatement.executeUpdate();
 		} catch (SQLException e) {
 			if (!e.getSQLState().startsWith("23")) { // 23* are integrity constraint violations
-				System.err
-						.println("Warning: Error deleting album ID " + albumId + " during cleanup: " + e.getMessage());
+				logger.warn("Error deleting album ID {} during cleanup: {}", albumId, e.getMessage(), e);
 				// Optionally rethrow if it's not an FK issue: throw e;
 			} else {
-				System.out.println(
-						"Info: Could not delete album ID " + albumId + " due to likely FK constraint (songs exist?).");
+				logger.info("Could not delete album ID {} due to likely FK constraint (songs exist?).", albumId);
 			}
 		}
 	}

@@ -6,6 +6,8 @@ import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
 
 import org.junit.jupiter.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.List;
@@ -16,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SongDAOTest {
+
+	private static final Logger logger = LoggerFactory.getLogger(SongDAOTest.class);
 
 	private static Connection connection;
 	private static SongDAO songDAO;
@@ -69,7 +73,7 @@ class SongDAOTest {
 			songDAO = new SongDAO(connection);
 			userDAO = new UserDAO(connection); // Initialize UserDAO for test user setup
 			albumDAO = new AlbumDAO(connection); // Initialize AlbumDAO
-			System.out.println("Database connection established for SongDAOTest.");
+			logger.info("Database connection established for SongDAOTest.");
 
 			// Initial cleanup of potential leftover test data (order matters)
 			cleanupTestSongs();
@@ -83,7 +87,7 @@ class SongDAOTest {
 			User testUser1 = userDAO.checkCredentials(TEST_USERNAME, TEST_PASSWORD);
 			assertNotNull(testUser1, "Test user 1 could not be created or found.");
 			testUserId = testUser1.getIdUser();
-			System.out.println("Test user 1 created with ID: " + testUserId);
+			logger.info("Test user 1 created with ID: {}", testUserId);
 
 			// Create the second test user for authorization tests
 			userDAO.createUser(TEST_USERNAME_2, TEST_PASSWORD_2, TEST_NAME_2, TEST_SURNAME_2);
@@ -91,7 +95,7 @@ class SongDAOTest {
 			User testUser2 = userDAO.checkCredentials(TEST_USERNAME_2, TEST_PASSWORD_2);
 			assertNotNull(testUser2, "Test user 2 could not be created or found.");
 			testUserId2 = testUser2.getIdUser();
-			System.out.println("Test user 2 created with ID: " + testUserId2);
+			logger.info("Test user 2 created with ID: {}", testUserId2);
 
 			// Create the test album required for creating songs (pass null for image)
 			Album testAlbum = albumDAO.createAlbum(TEST_ALBUM_TITLE, TEST_ALBUM_YEAR, TEST_ALBUM_ARTIST, null,
@@ -100,16 +104,16 @@ class SongDAOTest {
 			assertNotNull(testAlbum, "Test album could not be created.");
 			testAlbumId = testAlbum.getIdAlbum();
 			assertNotNull(testAlbumId, "Test album ID is null after creation.");
-			System.out.println("Test album created with ID: " + testAlbumId);
+			logger.info("Test album created with ID: {}", testAlbumId);
 
 		} catch (ClassNotFoundException e) {
-			System.err.println("MySQL JDBC Driver not found: " + e.getMessage());
+			logger.error("MySQL JDBC Driver not found", e);
 			throw new SQLException("MySQL JDBC Driver not found.", e);
 		} catch (SQLException e) {
-			System.err.println("Failed to connect to the database '" + DB_URL + "': " + e.getMessage());
+			logger.error("Failed to connect to the database '{}'", DB_URL, e);
 			throw e;
 		} catch (DAOException e) {
-			System.err.println("DAOException during test user setup: " + e.getMessage());
+			logger.error("DAOException during test user setup", e);
 			if (connection != null)
 				connection.rollback(); // Rollback if user creation failed
 			throw e;
@@ -126,11 +130,11 @@ class SongDAOTest {
 				cleanupTestUsers(); // Clean up both users
 				connection.commit(); // Commit final cleanup
 			} catch (SQLException | NullPointerException e) { // Catch potential NPE if setup failed badly
-				System.err.println("Error during final cleanup: " + e.getMessage());
+				logger.error("Error during final cleanup", e);
 				connection.rollback(); // Attempt rollback on cleanup error
 			} finally {
 				connection.close();
-				System.out.println("Database connection closed for SongDAOTest.");
+				logger.info("Database connection closed for SongDAOTest.");
 			}
 		}
 	}
@@ -182,7 +186,7 @@ class SongDAOTest {
 																													// UUID
 			pStatement.executeUpdate();
 		} catch (NullPointerException e) {
-			System.err.println("NPE during song cleanup, likely testUserId not set: " + e.getMessage());
+			logger.warn("NPE during song cleanup, likely testUserId not set", e); // Use WARN for potential issues
 			// Continue cleanup if possible
 		}
 	}
@@ -224,7 +228,7 @@ class SongDAOTest {
 																												// 1
 			pStatement.executeUpdate();
 		} catch (NullPointerException e) {
-			System.err.println("NPE during album cleanup, likely testUserId not set: " + e.getMessage());
+			logger.warn("NPE during album cleanup, likely testUserId not set", e); // Use WARN for potential issues
 			// Continue cleanup if possible
 		}
 		testAlbumId = null; // Reset after deletion attempts

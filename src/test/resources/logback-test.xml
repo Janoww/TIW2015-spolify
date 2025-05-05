@@ -1,0 +1,18 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- Format: Time [Level] LoggerName - Message -> Exception (short) -->
+            <pattern>%d{HH:mm:ss.SSS} [%-5level] %logger{36} - %msg%n%ex{short}</pattern>
+            <!-- %ex{short}: Prints the first line of the stack trace. -->
+        </encoder>
+    </appender>
+
+    <root level="INFO"> <!-- Log INFO level and above -->
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <!-- Optional: Quieten noisy libraries during tests -->
+    <!-- <logger name="com.zaxxer.hikari" level="WARN"/> -->
+
+</configuration>

@@ -18,10 +18,14 @@ import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PlaylistDAOTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(PlaylistDAOTest.class);
 
     private static Connection connection;
     private static PlaylistDAO playlistDAO;
@@ -101,7 +105,7 @@ public class PlaylistDAOTest {
         if (connection != null && !connection.isClosed()) {
             connection.commit(); // Commit final cleanup
             connection.close();
-            System.out.println("Database connection closed.");
+            logger.info("Database connection closed.");
         }
     }
 

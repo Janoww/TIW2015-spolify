@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
@@ -24,6 +26,8 @@ import it.polimi.tiw.projects.exceptions.DAOException;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserDAOTest {
+
+	private static final Logger logger = LoggerFactory.getLogger(UserDAOTest.class);
 
 	private static Connection connection;
 	private static UserDAO userDAO;
@@ -49,14 +53,13 @@ public class UserDAOTest {
 			// Disable auto-commit to manage transactions manually for tests
 			connection.setAutoCommit(false);
 			userDAO = new UserDAO(connection);
-			System.out.println("Database connection established for tests (DB: " + DB_URL + ").");
+			logger.info("Database connection established for tests (DB: {}).", DB_URL);
 
 		} catch (ClassNotFoundException e) { // Added catch block for ClassNotFoundException
-			System.err.println("MySQL JDBC Driver not found: " + e.getMessage());
+			logger.error("MySQL JDBC Driver not found", e);
 			throw new SQLException("MySQL JDBC Driver not found.", e);
 		} catch (SQLException e) {
-			System.err.println("Failed to connect to the database '" + DB_URL + "': " + e.getMessage());
-			e.printStackTrace();
+			logger.error("Failed to connect to the database '{}'", DB_URL, e);
 			// If connection fails, tests cannot run.
 			throw e;
 		}
@@ -72,7 +75,7 @@ public class UserDAOTest {
 		if (connection != null && !connection.isClosed()) {
 			connection.commit(); // Commit final cleanup
 			connection.close();
-			System.out.println("Database connection closed.");
+			logger.info("Database connection closed.");
 		}
 	}
 
@@ -103,7 +106,7 @@ public class UserDAOTest {
 		try (PreparedStatement pStatement = connection.prepareStatement(deleteSQL)) {
 			pStatement.setString(1, TEST_USERNAME);
 			pStatement.executeUpdate();
-			// System.out.println("Cleanup executed for user: " + TEST_USERNAME);
+			logger.trace("Cleanup executed for user: {}", TEST_USERNAME);
 		}
 	}
 
