@@ -55,18 +55,18 @@ public class SignUp extends HttpServlet {
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
 
-			case NAME_ALREADY_EXISTS: { // If a user with that name already exists:
-				WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
+				case NAME_ALREADY_EXISTS: { // If a user with that name already exists:
+					WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
 
-				ctx.setVariable("errorSignUpMsg", "Username already taken");
-				String path = "/index.html";
-				templateEngine.process(path, ctx, resp.getWriter());
-			}
-				break;
+					ctx.setVariable("errorSignUpMsg", "Username already taken");
+					String path = "/index.html";
+					templateEngine.process(path, ctx, resp.getWriter());
+				}
+					break;
 
-			default: { // If another exception occurs
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to sign up");
-			}
+				default: { // If another exception occurs
+					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to sign up");
+				}
 
 			}
 			return;

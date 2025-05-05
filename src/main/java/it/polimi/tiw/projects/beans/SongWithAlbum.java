@@ -3,8 +3,8 @@ package it.polimi.tiw.projects.beans;
 public class SongWithAlbum {
 	private Song song;
 	private Album album;
-	
-	public SongWithAlbum(Song song, Album album){
+
+	public SongWithAlbum(Song song, Album album) {
 		this.song = song;
 		this.album = album;
 	}
@@ -12,7 +12,6 @@ public class SongWithAlbum {
 	public Song getSong() {
 		return song;
 	}
-
 
 	public Album getAlbum() {
 		return album;
@@ -25,6 +24,5 @@ public class SongWithAlbum {
 	public void setAlbum(Album album) {
 		this.album = album;
 	}
-	
-}
 
+}
