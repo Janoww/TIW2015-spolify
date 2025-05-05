@@ -79,7 +79,7 @@ public class NewPlaylist extends HttpServlet {
 			} catch (DAOException e) {
 				switch (e.getErrorType()) {
 					case NOT_FOUND: {
-						req.setAttribute("errorNewPlaylistMsg", "One of the song you selected was not faound");
+						req.setAttribute("errorNewPlaylistMsg", "One of the song you selected was not found");
 						req.getRequestDispatcher("/Home");
 						return;
 					}
@@ -97,7 +97,7 @@ public class NewPlaylist extends HttpServlet {
 			}
 		} else {
 			// A playlist with that name already exist
-			req.setAttribute("errorNewPlaylistMsg", "A playlist named \"" + name + "\" already exysts");
+			req.setAttribute("errorNewPlaylistMsg", "A playlist named \"" + name + "\" already exists");
 			req.getRequestDispatcher("/Home");
 			return;
 		}

@@ -36,7 +36,7 @@ public class UserDAOTest {
 	private static final String DB_PASS = "TIW2025";
 
 	// Test user details - use unique names to avoid conflicts
-	private static final String TEST_USERNAME = "testuser_junit";
+	private static final String TEST_USERNAME = "testUser_junit";
 	private static final String TEST_PASSWORD = "password123";
 	private static final String TEST_NAME = "JUnit";
 	private static final String TEST_SURNAME = "Tester";
@@ -175,7 +175,7 @@ public class UserDAOTest {
 	public void testCheckCredentials_InvalidUsername() {
 		// Ensure no user with TEST_USERNAME exists (handled by BeforeEach/AfterEach)
 		DAOException exception = assertThrows(DAOException.class, () -> {
-			userDAO.checkCredentials("nonexistentuser" + System.currentTimeMillis(), TEST_PASSWORD);
+			userDAO.checkCredentials("nonExistentUser" + System.currentTimeMillis(), TEST_PASSWORD);
 		}, "Checking credentials for non-existent user should throw DAOException.");
 
 		assertEquals("Invalid credentials", exception.getMessage());
@@ -191,7 +191,7 @@ public class UserDAOTest {
 
 		// Check with wrong password
 		DAOException exception = assertThrows(DAOException.class, () -> {
-			userDAO.checkCredentials(TEST_USERNAME, "wrongpassword" + System.currentTimeMillis());
+			userDAO.checkCredentials(TEST_USERNAME, "wrongPassword" + System.currentTimeMillis());
 		}, "Checking credentials with wrong password should throw DAOException.");
 
 		assertEquals("Invalid credentials", exception.getMessage());

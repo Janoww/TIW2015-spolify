@@ -60,7 +60,7 @@ public class GoToHome extends HttpServlet {
 		}
 
 		// Get the list of all playlists
-		List<Playlist> playslists = playlistIDs.stream().map(id -> {
+		List<Playlist> playlists = playlistIDs.stream().map(id -> {
 			try {
 				return playlistDAO.findPlaylistById(id, userId);
 			} catch (DAOException e) {
@@ -71,7 +71,7 @@ public class GoToHome extends HttpServlet {
 
 		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
 
-		ctx.setVariable("playlists", playslists);
+		ctx.setVariable("playlists", playlists);
 		ctx.setVariable("songs", songList);
 		ctx.setVariable("genres", genresList);
 

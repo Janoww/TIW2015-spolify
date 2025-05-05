@@ -104,10 +104,10 @@ public class AppContextListener implements ServletContextListener {
             Driver driver = drivers.nextElement();
             if (driver.getClass().getClassLoader() == cl) {
                 try {
-                    logger.info("Deregistering JDBC driver: {}", driver);
+                    logger.info("Unregistering JDBC driver: {}", driver);
                     DriverManager.deregisterDriver(driver);
                 } catch (SQLException ex) {
-                    logger.error("Error deregistering JDBC driver: {}", driver, ex);
+                    logger.error("Error unregistering JDBC driver: {}", driver, ex);
                 }
             } else {
                 logger.debug("Skipping deregistration for driver not loaded by webapp: {}", driver);

@@ -50,9 +50,9 @@ public class GetPlaylistDetails extends HttpServlet {
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 
 		// If the user is not logged in (not present in session) redirect to the login
-		String loginpath = getServletContext().getContextPath() + "/index.html";
+		String loginPath = getServletContext().getContextPath() + "/index.html";
 		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
-			resp.sendRedirect(loginpath);
+			resp.sendRedirect(loginPath);
 			return;
 		}
 
