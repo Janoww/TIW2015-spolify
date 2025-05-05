@@ -8,12 +8,17 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 
+import it.polimi.tiw.projects.dao.AudioDAO;
+import it.polimi.tiw.projects.dao.ImageDAO;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
 
-import com.mysql.cj.jdbc.AbandonedConnectionCleanupThread; // Import needed
+import com.mysql.cj.jdbc.AbandonedConnectionCleanupThread;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -56,8 +61,29 @@ public class AppContextListener implements ServletContextListener {
             logger.info("HikariCP DataSource initialized and added to ServletContext.");
         } catch (Exception e) {
             logger.error("!!! FAILED TO INITIALIZE HIKARI DATASOURCE !!!", e);
-            // Optionally rethrow or handle context failure more gracefully
             throw new RuntimeException("Failed to initialize database connection pool", e);
+        }
+
+        // Create singleton ImageDAO and AudioDAO
+        String homeDirectory = System.getProperty("user.home"); // Get user's home directory
+        if (homeDirectory == null) {
+            logger.error("!!! FAILED TO GET USER HOME DIRECTORY (user.home property) !!!");
+            throw new RuntimeException("Could not determine user home directory for storage setup.");
+        }
+        Path storageBasePath = Paths.get(homeDirectory, "Spolify");
+        logger.info("Base storage path for DAOs set to: {}", storageBasePath);
+
+        try {
+            ImageDAO imageDAO = new ImageDAO(storageBasePath);
+            AudioDAO audioDAO = new AudioDAO(storageBasePath);
+
+            context.setAttribute("imageDAO", imageDAO);
+            context.setAttribute("audioDAO", audioDAO);
+
+            logger.info("ImageDAO and AudioDAO singletons created and added to ServletContext.");
+        } catch (RuntimeException e) {
+            logger.error("!!! FAILED TO INITIALIZE ImageDAO or AudioDAO !!!", e);
+            throw new RuntimeException("Failed to initialize file storage DAOs", e);
         }
     }
 
