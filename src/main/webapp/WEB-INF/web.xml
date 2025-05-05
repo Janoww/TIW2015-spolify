@@ -21,7 +21,7 @@
     <param-value>com.mysql.cj.jdbc.Driver</param-value>
   </context-param>
 
-  <!-- Listener for initializing the connection pool -->
+  <!-- Listener for initializing the connection pool, ImageDAO and AudioDAO -->
   <listener>
     <listener-class>it.polimi.tiw.projects.listeners.AppContextListener</listener-class>
   </listener>
@@ -71,23 +71,23 @@
     <servlet-name>NewPlaylist</servlet-name>
     <url-pattern>/NewPlaylist</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
-  	<servlet-name>GetPlaylistDetails</servlet-name>
-  	<servlet-class>it.polimi.tiw.project.controllers.GetMissionDetails</servlet-class>
+    <servlet-name>GetPlaylistDetails</servlet-name>
+    <servlet-class>it.polimi.tiw.project.controllers.GetMissionDetails</servlet-class>
   </servlet>
   <servlet-mapping>
-  	<servlet-name>GetPlaylistDetails</servlet-name>
-  	<url-pattern>/GetPlaylistDetails</url-pattern>
+    <servlet-name>GetPlaylistDetails</servlet-name>
+    <url-pattern>/GetPlaylistDetails</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
-  	<servlet-name>AddSongToPL</servlet-name>
-  	<servlet-class>it.polimi.tiw.project.controllers.AddSongToPL</servlet-class>
+    <servlet-name>AddSongToPL</servlet-name>
+    <servlet-class>it.polimi.tiw.project.controllers.AddSongToPL</servlet-class>
   </servlet>
   <servlet-mapping>
-  	<servlet-name>AddSongToPL</servlet-name>
-  	<url-pattern>/AddSongToPL</url-pattern>
+    <servlet-name>AddSongToPL</servlet-name>
+    <url-pattern>/AddSongToPL</url-pattern>
   </servlet-mapping>
 
 

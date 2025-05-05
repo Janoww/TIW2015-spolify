@@ -47,7 +47,7 @@
 				</div>
 				<p> <input type="submit" value="Add Playlist"> </p>
 			</div>
-			<div th:if="${songs.size() = 0"> To create a playlist you need to upload a song</div>
+			<div th:if="${songs.size() == 0}"> To create a playlist you need to upload a song</div>
 			<p th:text=" ${errorNewPlaylistMsg}"></p>
 		</fieldset>
 
