@@ -1,11 +1,14 @@
 {
     "cSpell.words": [
         "flac",
+        "hikari",
         "jdbc",
+        "logback",
         "polimi",
         "Spolify",
         "Tika",
-        "vorbis"
+        "vorbis",
+        "zaxxer"
     ],
     "sqltools.connections": [
         {
