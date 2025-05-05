@@ -197,4 +197,75 @@ public class SongDAO {
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
 	}
+
+	/**
+	 * Finds songs by a list of their IDs, ensuring they belong to a specific user.
+	 * Returns only the songs that match both the ID list and the user ID.
+	 *
+	 * @param songIds The list of song IDs to retrieve.
+	 * @param userId  The UUID of the user who must own the songs.
+	 * @return A list of {@link Song} objects matching the criteria. Returns an
+	 *         empty list if songIds is null or empty, or if no matching songs are
+	 *         found for this user.
+	 * @throws DAOException if a database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
+	 */
+	public List<Song> findSongsByIdsAndUser(List<Integer> songIds, UUID userId) throws DAOException {
+		logger.debug("Attempting to find songs by IDs: {} for user ID: {}", songIds, userId);
+
+		if (songIds == null || songIds.isEmpty()) {
+			logger.debug("Input song ID list is null or empty. Returning empty list.");
+			return new ArrayList<>(); // Return empty list if no IDs provided
+		}
+
+		List<Song> songs = new ArrayList<>();
+		// Dynamically build the IN clause for the prepared statement
+		// Using StringBuilder for efficiency, especially with potentially long lists of
+		// IDs.
+		StringBuilder queryBuilder = new StringBuilder(
+				"SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?) AND idSong IN (");
+		for (int i = 0; i < songIds.size(); i++) {
+			queryBuilder.append("?");
+			if (i < songIds.size() - 1) {
+				queryBuilder.append(", "); // Add comma separator between placeholders
+			}
+		}
+		queryBuilder.append(")"); // Close the IN clause parenthesis
+
+		String query = queryBuilder.toString();
+		logger.trace("Executing query: {}", query); // Log the dynamically built query for debugging
+
+		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
+			// Set the user ID parameter (index 1)
+			pStatement.setString(1, userId.toString());
+
+			// Set the song ID parameters (starting from index 2)
+			for (int i = 0; i < songIds.size(); i++) {
+				// Parameter index is i + 2 because the first parameter (index 1) is the userId
+				pStatement.setInt(i + 2, songIds.get(i));
+			}
+
+			try (ResultSet result = pStatement.executeQuery()) {
+				while (result.next()) {
+					Song song = new Song();
+					song.setIdSong(result.getInt("idSong"));
+					song.setTitle(result.getString("title"));
+					song.setIdAlbum(result.getInt("idAlbum"));
+					song.setYear(result.getInt("year"));
+					song.setGenre(result.getString("genre"));
+					song.setAudioFile(result.getString("audioFile"));
+					song.setIdUser(UUID.fromString(result.getString("idUser")));
+					songs.add(song);
+				}
+				logger.debug("Found {} songs matching IDs {} for user ID: {}", songs.size(), songIds, userId);
+			}
+		} catch (SQLException | IllegalArgumentException e) { // Catch potential UUID parsing errors too
+			logger.error("Error finding songs by IDs {} for user ID {}: {}", songIds, userId, e.getMessage(), e);
+			// Wrap the exception in a DAOException for consistent error handling upstream
+			throw new DAOException("Error finding songs by IDs and user: " + e.getMessage(), e,
+					DAOException.DAOErrorType.GENERIC_ERROR);
+		}
+		// Return the list of found songs (may be empty if none matched)
+		return songs;
+	}
 }
