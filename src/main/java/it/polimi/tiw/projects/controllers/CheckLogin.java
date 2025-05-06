@@ -9,18 +9,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.*;
 
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.UserDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
-import it.polimi.tiw.projects.utils.TemplateHandler;
 
 public class CheckLogin extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
-	private TemplateEngine templateEngine;
 
 	public CheckLogin() {
 		super();
@@ -30,7 +26,6 @@ public class CheckLogin extends HttpServlet {
 	public void init() throws ServletException {
 		ServletContext context = getServletContext();
 		connection = ConnectionHandler.getConnection(context);
-		templateEngine = TemplateHandler.initializeEngine(context);
 	}
 
 	@Override
@@ -52,18 +47,19 @@ public class CheckLogin extends HttpServlet {
 			user = userDAO.checkCredentials(username, password);
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-				case INVALID_CREDENTIALS: { // No user found with that username/password combination
-					WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
+			case INVALID_CREDENTIALS: { // No user found with that username/password combination
 
-					ctx.setVariable("errorLogInMsg", "No user found with that username/password combination");
-					String path = "/index.html";
-					templateEngine.process(path, ctx, resp.getWriter());
-					return;
-				}
-				default: { // If another exception occurs
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to log in");
-					return;
-				}
+				// TODO: Send JSON error response
+				resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+				resp.setContentType("application/json");
+				resp.setCharacterEncoding("UTF-8");
+				resp.getWriter().write("{\"error\": \"Invalid username or password\"}");
+				return;
+			}
+			default: { // If another exception occurs
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to log in");
+				return;
+			}
 
 			}
 		}

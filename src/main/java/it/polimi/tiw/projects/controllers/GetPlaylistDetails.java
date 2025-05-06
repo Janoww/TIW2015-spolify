@@ -6,9 +6,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
-
 import it.polimi.tiw.projects.beans.Playlist;
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.beans.SongWithAlbum;
@@ -18,7 +15,6 @@ import it.polimi.tiw.projects.dao.PlaylistDAO;
 import it.polimi.tiw.projects.dao.SongDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
-import it.polimi.tiw.projects.utils.TemplateHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -28,7 +24,6 @@ import jakarta.servlet.http.HttpServletResponse;
 public class GetPlaylistDetails extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection;
-	private TemplateEngine templateEngine;
 
 	public GetPlaylistDetails() {
 		super();
@@ -38,7 +33,6 @@ public class GetPlaylistDetails extends HttpServlet {
 	public void init() throws ServletException {
 		ServletContext context = getServletContext();
 		connection = ConnectionHandler.getConnection(context);
-		templateEngine = TemplateHandler.initializeEngine(context);
 
 	}
 
@@ -72,21 +66,21 @@ public class GetPlaylistDetails extends HttpServlet {
 			myPlaylist = playlistDAO.findPlaylistById(playlistId, userId);
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-				case NOT_FOUND: {
-					req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
-					req.getRequestDispatcher("/Home");
-					return;
-				}
-				case ACCESS_DENIED: {
-					req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
-					req.getRequestDispatcher("/Home");
-					return;
-				}
-				default: {
-					e.printStackTrace();
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
-					return;
-				}
+			case NOT_FOUND: {
+				req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
+				req.getRequestDispatcher("/Home");
+				return;
+			}
+			case ACCESS_DENIED: {
+				req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
+				req.getRequestDispatcher("/Home");
+				return;
+			}
+			default: {
+				e.printStackTrace();
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
+				return;
+			}
 			}
 		}
 
@@ -108,10 +102,7 @@ public class GetPlaylistDetails extends HttpServlet {
 
 		int totPages = (allPlaylistSongsOrdered.size() + 4) / 5;
 
-		List<Song> songsPage = allPlaylistSongsOrdered.stream()
-				.skip(page * 5)
-				.limit(5)
-				.toList();
+		List<Song> songsPage = allPlaylistSongsOrdered.stream().skip(page * 5).limit(5).toList();
 
 		List<SongWithAlbum> songWithAlbum = null;
 
@@ -128,17 +119,19 @@ public class GetPlaylistDetails extends HttpServlet {
 
 		List<Song> unusedSongs = getUnusedSongs(myPlaylist, songDAO);
 
-		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
-
-		ctx.setVariable("playlist", myPlaylist);
-		ctx.setVariable("songWithAlbum", songWithAlbum);
-		ctx.setVariable("page", page);
-		ctx.setVariable("totalPages", totPages);
-		ctx.setVariable("songs", unusedSongs);
-		ctx.setVariable("errorAddSongMsg", req.getParameter("errorAddSongMsg"));
-
-		String path = "/WEB-INF/Playlist.html";
-		templateEngine.process(path, ctx, resp.getWriter());
+		// TODO: Send JSON response
+		resp.setContentType("application/json");
+		resp.setCharacterEncoding("UTF-8");
+		// For now, just send a placeholder or the playlist details
+		// Example: resp.getWriter().write("{\"message\": \"Playlist details will be
+		// here\"}");
+		// A more complete example would involve serializing myPlaylist, songWithAlbum,
+		// etc. to JSON.
+		// For example, using Jackson:
+		// ObjectMapper mapper = new ObjectMapper();
+		// String jsonResponse = mapper.writeValueAsString(myPlaylist); // Or a custom
+		// DTO
+		// resp.getWriter().write(jsonResponse);
 
 	}
 

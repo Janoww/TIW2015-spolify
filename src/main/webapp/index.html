@@ -1,41 +1,21 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 
 <head>
 	<meta charset="UTF-8">
-	<title>Login page</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Spolify - JavaScript App</title>
+	<link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
-	<h1>Log in to Spolify</h1>
+	<div id="app">
+		<!-- Your JavaScript application will render content here -->
+		<h1>Welcome to Spolify (JS Version)</h1>
+		<p>Loading...</p>
+	</div>
 
-	<form action="CheckLogin" method="POST">
-		<fieldset>
-			<p> <label for="username">Username: </label> <input type="text" name="lUsername" id="lUsername" required>
-			</p>
-			<p> <label for="pwd">Password: </label><input type="password" name="lPwd" id="lPwd" required> </p>
-			<input type="submit" value="Continue">
-			<p th:text=" ${errorLogInMsg}"></p>
-		</fieldset>
-	</form>
-
-	<h1>Don't have an account?</h1>
-	<form action="SignUp" method="POST">
-		<fieldset>
-			<p> <label for="name">Name: </label><input type="text" name="sName" id="sName" required> </p>
-			<p> <label for="surname">Surname: </label><input type="text" name="sSurname" id="sSurname" required> </p>
-			<p> <label for="username">Username: </label><input type="text" name="sUsername" id="sUsername" required>
-			</p>
-			<p> <label for="pwd">Password: </label><input type="password" name="sPwd" id="sPwd" required> </p>
-			<input type="submit" value="Sign Up">
-			<p th:text=" ${errorSignUpMsg}"></p>
-		</fieldset>
-
-	</form>
-
-
-
-
+	<script src="js/app.js"></script>
 </body>
 
 </html>

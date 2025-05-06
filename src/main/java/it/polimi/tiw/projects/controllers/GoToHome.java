@@ -7,8 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
 import it.polimi.tiw.projects.beans.Playlist;
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.beans.User;
@@ -17,7 +15,6 @@ import it.polimi.tiw.projects.dao.SongDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import it.polimi.tiw.projects.utils.Genre;
-import it.polimi.tiw.projects.utils.TemplateHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -27,7 +24,6 @@ import jakarta.servlet.http.HttpServletResponse;
 public class GoToHome extends HttpServlet {
 	static final long serialVersionUID = 1L;
 	private Connection connection;
-	private TemplateEngine templateEngine;
 
 	public GoToHome() {
 		super();
@@ -37,7 +33,6 @@ public class GoToHome extends HttpServlet {
 	public void init() throws ServletException {
 		ServletContext context = getServletContext();
 		connection = ConnectionHandler.getConnection(context);
-		templateEngine = TemplateHandler.initializeEngine(context);
 	}
 
 	@Override
@@ -69,18 +64,18 @@ public class GoToHome extends HttpServlet {
 			}
 		}).toList();
 
-		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
-
-		ctx.setVariable("playlists", playlists);
-		ctx.setVariable("songs", songList);
-		ctx.setVariable("genres", genresList);
-
-		ctx.setVariable("errorNewPlaylistMsg", req.getAttribute("errorNewPlaylistMsg"));
-		ctx.setVariable("errorNewSongMsg", req.getAttribute("errorNewSongMsg"));
-		ctx.setVariable("errorOpeningPlaylist", req.getAttribute("errorOpeningPlaylist"));
-
-		String path = "/WEB-INF/Home.html";
-		templateEngine.process(path, ctx, resp.getWriter());
+		// TODO: Send JSON response with playlists, songs, genres
+		resp.setContentType("application/json");
+		resp.setCharacterEncoding("UTF-8");
+		// Example: Serialize playlists, songList, genresList into a JSON object
+		// ObjectMapper mapper = new ObjectMapper();
+		// Map<String, Object> data = new HashMap<>();
+		// data.put("playlists", playlists);
+		// data.put("songs", songList);
+		// data.put("genres", genresList);
+		// String jsonResponse = mapper.writeValueAsString(data);
+		// resp.getWriter().write(jsonResponse);
+		resp.getWriter().write("{\"message\": \"Home data will be here\"}"); // Placeholder
 	}
 
 	@Override

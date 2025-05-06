@@ -3,13 +3,10 @@ package it.polimi.tiw.projects.controllers;
 import java.io.IOException;
 import java.sql.*;
 
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.UserDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
-import it.polimi.tiw.projects.utils.TemplateHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -19,7 +16,6 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SignUp extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection;
-	private TemplateEngine templateEngine;
 
 	public SignUp() {
 		super();
@@ -29,7 +25,6 @@ public class SignUp extends HttpServlet {
 	public void init() throws ServletException {
 		ServletContext context = getServletContext();
 		connection = ConnectionHandler.getConnection(context);
-		templateEngine = TemplateHandler.initializeEngine(context);
 
 	}
 
@@ -55,18 +50,19 @@ public class SignUp extends HttpServlet {
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
 
-				case NAME_ALREADY_EXISTS: { // If a user with that name already exists:
-					WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
+			case NAME_ALREADY_EXISTS: { // If a user with that name already exists:
 
-					ctx.setVariable("errorSignUpMsg", "Username already taken");
-					String path = "/index.html";
-					templateEngine.process(path, ctx, resp.getWriter());
-				}
-					break;
+				// TODO: Send JSON error response
+				resp.setStatus(HttpServletResponse.SC_CONFLICT); // 409 Conflict
+				resp.setContentType("application/json");
+				resp.setCharacterEncoding("UTF-8");
+				resp.getWriter().write("{\"error\": \"Username already taken\"}");
+			}
+				break;
 
-				default: { // If another exception occurs
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to sign up");
-				}
+			default: { // If another exception occurs
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to sign up");
+			}
 
 			}
 			return;
