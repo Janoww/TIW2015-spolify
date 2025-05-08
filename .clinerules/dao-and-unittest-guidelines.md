@@ -1,7 +1,9 @@
 ## Brief overview
+
 These guidelines are derived from the existing DAO and unit test implementations in the project. They aim to ensure consistency and robustness in data access and testing.
 
 ## DAO Design Principles
+
 - **Connection Management:**
   - DAOs should receive a `java.sql.Connection` object via constructor injection.
   - Example: `public AlbumDAO(Connection connection) { this.connection = connection; }`
@@ -35,7 +37,9 @@ These guidelines are derived from the existing DAO and unit test implementations
   - Example: `PlaylistDAO.createPlaylist()`
 
 ## Unit Testing (JUnit 5)
+
 - **Test Structure:**
+
   - Use `@TestInstance(TestInstance.Lifecycle.PER_CLASS)` and `@TestMethodOrder(MethodOrderer.OrderAnnotation.class)`.
   - Manage database connection in `@BeforeAll` (create) and `@AfterAll` (close).
   - Set `connection.setAutoCommit(false);` in `@BeforeAll`.
@@ -54,7 +58,9 @@ These guidelines are derived from the existing DAO and unit test implementations
 - **Logging in Tests:**
   - Use SLF4J for logging within test classes for better traceability of test execution.
 - **Example Test Flow (Conceptual):**
+
   ```java
+
   @Test
   @Order(1)
   void testCreateEntity_Success() throws DAOException, SQLException {
@@ -74,6 +80,7 @@ These guidelines are derived from the existing DAO and unit test implementations
   ```
 
 ## General Coding Style
+
 - **Clarity and Readability:** Write clear, well-commented code.
 - **Constants:** Define constants for recurring string literals or magic numbers (e.g., `DB_URL`, `TEST_USERNAME`).
 - **Exception Messages:** Provide informative messages in exceptions.
