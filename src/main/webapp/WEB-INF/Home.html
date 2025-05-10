@@ -126,7 +126,7 @@
 			</tbody>
 		</table>
 	</div>
-	<div th:if="${playlists.size() = 0 ">You don't have any playlist, create one</div>
+	<div th:if="${playlists.size() == 0}">You don't have any playlist, create one</div>
 	<pt th:text="${errorOpeningPlaylist}"></pt>
 
 

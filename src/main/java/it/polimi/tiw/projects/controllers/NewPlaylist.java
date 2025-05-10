@@ -35,7 +35,7 @@ public class NewPlaylist extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		User user = (User) req.getSession().getAttribute("user");
 
@@ -45,7 +45,7 @@ public class NewPlaylist extends HttpServlet {
 
 		if (checkResult != null) {
 			req.setAttribute("errorNewPlaylistMsg", checkResult);
-			req.getRequestDispatcher("/Home");
+			req.getRequestDispatcher("/Home").forward(req, resp);
 			return;
 		}
 
@@ -80,12 +80,12 @@ public class NewPlaylist extends HttpServlet {
 				switch (e.getErrorType()) {
 					case NOT_FOUND: {
 						req.setAttribute("errorNewPlaylistMsg", "One of the song you selected was not found");
-						req.getRequestDispatcher("/Home");
+						req.getRequestDispatcher("/Home").forward(req, resp);
 						return;
 					}
 					case DUPLICATE_ENTRY: {
 						req.setAttribute("errorNewPlaylistMsg", "You selected two times the same song");
-						req.getRequestDispatcher("/Home");
+						req.getRequestDispatcher("/Home").forward(req, resp);
 						return;
 					}
 					default: {
@@ -98,7 +98,7 @@ public class NewPlaylist extends HttpServlet {
 		} else {
 			// A playlist with that name already exist
 			req.setAttribute("errorNewPlaylistMsg", "A playlist named \"" + name + "\" already exists");
-			req.getRequestDispatcher("/Home");
+			req.getRequestDispatcher("/Home").forward(req, resp);
 			return;
 		}
 

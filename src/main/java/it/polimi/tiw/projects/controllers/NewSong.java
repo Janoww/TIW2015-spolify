@@ -2,25 +2,37 @@ package it.polimi.tiw.projects.controllers;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.AlbumDAO;
+import it.polimi.tiw.projects.dao.AudioDAO;
+import it.polimi.tiw.projects.dao.ImageDAO;
+import it.polimi.tiw.projects.dao.PlaylistDAO;
 import it.polimi.tiw.projects.dao.SongDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import it.polimi.tiw.projects.utils.Genre;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
+
+//FIXME: if you remove the annotation obviously it don't work use it to test the handling of null parameters
+@MultipartConfig 
 public class NewSong extends HttpServlet {
+	private static final Logger logger = LoggerFactory.getLogger(NewSong.class);
 	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
 
@@ -36,18 +48,24 @@ public class NewSong extends HttpServlet {
 
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+		logger.debug("processing the Post request");
 		SongDAO songDAO = new SongDAO(connection);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 
 		// Check Parameters
+		 
 
 		String checkResult = areParametersOk(req);
+	
 
 		if (checkResult != null) {
 			req.setAttribute("errorNewSongMsg", checkResult);
-			req.getRequestDispatcher("/Home");
+			logger.debug("ParametersNotOk: " + checkResult);
+			req.getRequestDispatcher("/Home").forward(req, resp);
 			return;
 		}
+		
+		logger.debug("Parameters are ok");
 
 		// Retrieve parameters
 		String title = req.getParameter("sTitle").strip();
@@ -59,16 +77,20 @@ public class NewSong extends HttpServlet {
 			genre = Genre.valueOf((req.getParameter("sGenre").strip()));
 		} catch (IllegalArgumentException | NullPointerException e) {
 			req.setAttribute("errorNewSongMsg", "You must choose a genre from the predefined ones");
-			req.getRequestDispatcher("/Home");
+			req.getRequestDispatcher("/Home").forward(req, resp);
 			return;
 		}
 		Part imagePart = req.getPart("sIcon");
 		Part audioPart = req.getPart("sFile");
+		
 
 		InputStream imageStream = imagePart.getInputStream();
 		InputStream audioStream = audioPart.getInputStream();
+		
+		logger.debug("Retrieved Parameters");
 
 		User user = (User) req.getSession().getAttribute("user");
+	
 
 		if (user != null) {
 			// Find the list of all the albums
@@ -89,7 +111,7 @@ public class NewSong extends HttpServlet {
 				req.setAttribute("errorNewSongMsg", "An album named " + album.getName() + " already exists, "
 						+ "it is from " + year + " by: " + album.getArtist());
 
-				req.getRequestDispatcher("/Home");
+				req.getRequestDispatcher("/Home").forward(req, resp);
 				return;
 			}
 
@@ -99,14 +121,43 @@ public class NewSong extends HttpServlet {
 						.anyMatch(s -> s.getTitle().equals(title))) {
 					req.setAttribute("errorNewSongMsg", "The song titled \"" + title + "\" of the album \""
 							+ album.getName() + "\" have already been uploaded");
+					req.getRequestDispatcher("/Home").forward(req, resp);
+					return;
 				}
 			} catch (DAOException e) {
 				e.printStackTrace();
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+				return;
 			}
 
-			// TODO To implement saving the image
+
 			String imageUrl = null;
+			
+			if(album == null) {
+				// If an album already exists the image will not be updated
+				
+		        String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
+
+				ImageDAO imageDAO = (ImageDAO) getServletContext().getAttribute("imageDAO");
+				
+				String imageFileRename;
+				try {
+					imageFileRename = imageDAO.saveImage(imageStream, imageFileName);
+				} catch (IllegalArgumentException e) {
+					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "IllegalArgumentException during image save");
+					e.printStackTrace();
+					return;
+				} catch (DAOException e) {
+					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to save image due to I/O error");
+					e.printStackTrace();
+					return;
+				}
+				
+				// TODO To get the image url knowing the filerename
+				
+			}
+
+
 
 			// Create a new album if it doesn't exist
 			if (album == null) {
@@ -115,18 +166,42 @@ public class NewSong extends HttpServlet {
 				} catch (DAOException e) {
 					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
 					e.printStackTrace();
+					return;
 				}
 			}
 			int idAlbum = album.getIdAlbum();
 
-			// TODO To implement saving the audio
+			
+			//Saving the audio file
+			
 			String audioUrl = null;
+			
+			AudioDAO audioDAO = (AudioDAO) getServletContext().getAttribute("audioDAO");
+			
+			String audioFileName = Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
+			
+			String audioFileRename;
+			try {
+				audioFileRename = audioDAO.saveAudio(audioStream, audioFileName);
+			} catch (IllegalArgumentException e) {
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "IllegalArgumentException during image save");
+				e.printStackTrace();
+				return;
+			} catch (DAOException e) {
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to save image due to I/O error");
+				e.printStackTrace();
+				return;
+			}
+			
+			// TODO To get the audio url knowing the filerename
+			
 
 			try {
 				songDAO.createSong(title, idAlbum, year, genre, audioUrl, user.getIdUser());
 			} catch (DAOException e) {
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
 				e.printStackTrace();
+				return;
 			}
 
 		} else {
@@ -157,7 +232,7 @@ public class NewSong extends HttpServlet {
 		try {
 			String title = req.getParameter("sTitle");
 			if (title == null || (title = title.strip()).isEmpty()) {
-				return "You have to choose a title";
+				return "You have to choose a title: ";
 			}
 
 			String albumName = req.getParameter("sAlbum");
@@ -213,7 +288,8 @@ public class NewSong extends HttpServlet {
 		} catch (IOException | ServletException e) {
 			return "Error while processing form data";
 		}
-
+		
+		
 		return null; // all good
 	}
 }

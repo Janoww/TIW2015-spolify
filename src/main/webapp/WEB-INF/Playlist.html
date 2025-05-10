@@ -17,8 +17,11 @@
 		<tr>
 			<td th:each="swa : ${songWithAlbum}">
 				<div>
-                    <img th:src="@{${swa.album.image}}" alt="Album Image" width="100"/>
+                    <img th:src="${swa.album.image}" alt="Album Image" width="100"/>
                     <p th:text="${swa.song.title}">We No Speak Americano</p>
+                    <audio controls>
+  						<source th:src="${swa.soong.audioFile}" type="audio/mpeg">
+  					</audio>
                 </div>
 			</td>
 			<td>

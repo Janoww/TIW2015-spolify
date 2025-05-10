@@ -33,7 +33,7 @@ public class AddSongToPL extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		User user = (User) req.getSession().getAttribute("user");
 
@@ -42,7 +42,7 @@ public class AddSongToPL extends HttpServlet {
 
 		if (checkResult != null) {
 			req.setAttribute("errorAddSongMsg", checkResult);
-			req.getRequestDispatcher("/GetPlaylistDetails");
+			req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
 			return;
 		}
 
@@ -61,17 +61,17 @@ public class AddSongToPL extends HttpServlet {
 			switch (e.getErrorType()) {
 				case NOT_FOUND: {
 					req.setAttribute("errorAddSongMsg", e.getMessage());
-					req.getRequestDispatcher("/GetPlaylistDetails");
+					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
 					return;
 				}
 				case ACCESS_DENIED: {
 					req.setAttribute("errorAddSongMsg", "The playlist was not fount");
-					req.getRequestDispatcher("/GetPlaylistDetails");
+					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
 					return;
 				}
 				case DUPLICATE_ENTRY: {
 					req.setAttribute("errorAddSongMsg", e.getMessage());
-					req.getRequestDispatcher("/GetPlaylistDetails");
+					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
 					return;
 				}
 				default: {
