@@ -4,8 +4,15 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import it.polimi.tiw.projects.beans.Playlist;
 import it.polimi.tiw.projects.beans.Song;
@@ -23,6 +30,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class GoToHome extends HttpServlet {
 	static final long serialVersionUID = 1L;
+	private static final Logger logger = LoggerFactory.getLogger(GoToHome.class);
 	private Connection connection;
 
 	public GoToHome() {
@@ -33,57 +41,87 @@ public class GoToHome extends HttpServlet {
 	public void init() throws ServletException {
 		ServletContext context = getServletContext();
 		connection = ConnectionHandler.getConnection(context);
+		logger.info("GoToHome servlet initialized.");
 	}
 
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		logger.debug("Received GET request for home page data.");
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		SongDAO songDAO = new SongDAO(connection);
-		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
+		User user = (User) req.getSession().getAttribute("user");
 
-		List<Integer> playlistIDs = null;
-		List<Song> songList = null;
+		if (user == null || req.getSession().isNew()) {
+			logger.warn("User not authenticated or session is new. Denying access.");
+			resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			resp.setContentType("application/json");
+			resp.setCharacterEncoding("UTF-8");
+			ObjectMapper mapper = new ObjectMapper();
+			Map<String, String> errorResponse = new HashMap<>();
+			errorResponse.put("error", "User not authenticated");
+			resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+			return;
+		}
+		UUID userId = user.getIdUser();
+		logger.debug("User {} (ID: {}) authenticated. Fetching home page data.", user.getUsername(), userId);
+
+		List<Integer> playlistIDs;
+		List<Song> songList;
 		List<Genre> genresList = Arrays.asList(Genre.values());
+		logger.debug("Available genres: {}", genresList);
 
 		try {
 			playlistIDs = playlistDAO.findPlaylistIdsByUser(userId);
+			logger.debug("Found {} playlist IDs for user ID: {}", playlistIDs.size(), userId);
 			songList = songDAO.findSongsByUser(userId);
+			logger.debug("Found {} songs for user ID: {}", songList.size(), userId);
 		} catch (DAOException e) {
-			e.printStackTrace();
-			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+			logger.error("DAOException while fetching initial data for user ID: {}. ErrorType: {}", userId,
+					e.getErrorType(), e);
+			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			resp.setContentType("application/json");
+			resp.setCharacterEncoding("UTF-8");
+			ObjectMapper mapper = new ObjectMapper();
+			Map<String, String> errorResponse = new HashMap<>();
+			errorResponse.put("error", "Error fetching data from database");
+			resp.getWriter().write(mapper.writeValueAsString(errorResponse));
 			return;
 		}
 
-		// Get the list of all playlists
 		List<Playlist> playlists = playlistIDs.stream().map(id -> {
 			try {
+				logger.trace("Fetching playlist details for ID: {} by user ID: {}", id, userId);
 				return playlistDAO.findPlaylistById(id, userId);
 			} catch (DAOException e) {
-				e.printStackTrace();
-				return null;
+				logger.error("DAOException while fetching playlist details for ID: {} by user ID: {}. ErrorType: {}",
+						id, userId, e.getErrorType(), e);
+				return null; // Allow other playlists to be fetched
 			}
-		}).toList();
+		}).filter(p -> p != null) // Filter out playlists that failed to load
+				.collect(java.util.stream.Collectors.toList());
+		logger.debug("Successfully fetched details for {} playlists for user ID: {}", playlists.size(), userId);
 
-		// TODO: Send JSON response with playlists, songs, genres
+		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.setContentType("application/json");
 		resp.setCharacterEncoding("UTF-8");
-		// Example: Serialize playlists, songList, genresList into a JSON object
-		// ObjectMapper mapper = new ObjectMapper();
-		// Map<String, Object> data = new HashMap<>();
-		// data.put("playlists", playlists);
-		// data.put("songs", songList);
-		// data.put("genres", genresList);
-		// String jsonResponse = mapper.writeValueAsString(data);
-		// resp.getWriter().write(jsonResponse);
-		resp.getWriter().write("{\"message\": \"Home data will be here\"}"); // Placeholder
+
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Object> responseData = new HashMap<>();
+		responseData.put("playlists", playlists);
+		responseData.put("songs", songList);
+		responseData.put("genres", genresList);
+
+		resp.getWriter().write(mapper.writeValueAsString(responseData));
+		logger.debug("Successfully sent OK response with home page data for user ID: {}", userId);
 	}
 
 	@Override
 	public void destroy() {
 		try {
 			ConnectionHandler.closeConnection(connection);
+			logger.info("GoToHome servlet destroyed. Connection closed.");
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error("Failed to close database connection on servlet destroy.", e);
 		}
 	}
 }
