@@ -48,8 +48,7 @@ public class AddSongToPL extends HttpServlet {
 
 		// Retrieve Parameters
 
-		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect"))
-				.map(Integer::parseInt)
+		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect")).map(Integer::parseInt)
 				.collect(Collectors.toList());
 		Integer playlistId = Integer.parseInt(req.getParameter("playlistID"));
 
@@ -59,26 +58,26 @@ public class AddSongToPL extends HttpServlet {
 			}
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-				case NOT_FOUND: {
-					req.setAttribute("errorAddSongMsg", e.getMessage());
-					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
-					return;
-				}
-				case ACCESS_DENIED: {
-					req.setAttribute("errorAddSongMsg", "The playlist was not fount");
-					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
-					return;
-				}
-				case DUPLICATE_ENTRY: {
-					req.setAttribute("errorAddSongMsg", e.getMessage());
-					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
-					return;
-				}
-				default: {
-					e.printStackTrace();
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
-					return;
-				}
+			case NOT_FOUND: {
+				req.setAttribute("errorAddSongMsg", e.getMessage());
+				req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
+				return;
+			}
+			case ACCESS_DENIED: {
+				req.setAttribute("errorAddSongMsg", "The playlist was not fount");
+				req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
+				return;
+			}
+			case DUPLICATE_ENTRY: {
+				req.setAttribute("errorAddSongMsg", e.getMessage());
+				req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
+				return;
+			}
+			default: {
+				e.printStackTrace();
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+				return;
+			}
 			}
 		}
 

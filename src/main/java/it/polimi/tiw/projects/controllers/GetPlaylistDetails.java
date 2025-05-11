@@ -77,21 +77,21 @@ public class GetPlaylistDetails extends HttpServlet {
 			myPlaylist = playlistDAO.findPlaylistById(playlistId, userId);
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-				case NOT_FOUND: {
-					req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
-					req.getRequestDispatcher("/Home").forward(req, resp);
-					return;
-				}
-				case ACCESS_DENIED: {
-					req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
-					req.getRequestDispatcher("/Home").forward(req, resp);
-					return;
-				}
-				default: {
-					e.printStackTrace();
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
-					return;
-				}
+			case NOT_FOUND: {
+				req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
+				req.getRequestDispatcher("/Home").forward(req, resp);
+				return;
+			}
+			case ACCESS_DENIED: {
+				req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
+				req.getRequestDispatcher("/Home").forward(req, resp);
+				return;
+			}
+			default: {
+				e.printStackTrace();
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
+				return;
+			}
 			}
 		}
 
@@ -120,10 +120,7 @@ public class GetPlaylistDetails extends HttpServlet {
 
 		int totPages = (songWithAlbumOrdered.size() + 4) / 5;
 
-		List<SongWithAlbum> songWithAlbumDisplayed = songWithAlbumOrdered.stream()
-				.skip(page * 5)
-				.limit(5)
-				.toList();
+		List<SongWithAlbum> songWithAlbumDisplayed = songWithAlbumOrdered.stream().skip(page * 5).limit(5).toList();
 
 		// We need the list of not added songs for the form
 
@@ -159,50 +156,49 @@ public class GetPlaylistDetails extends HttpServlet {
 		}
 	}
 
-	private static List<SongWithAlbum> orderAllSongs(Playlist playlist, SongDAO songDao, AlbumDAO albumDao, UUID userId) throws DAOException {
+	private static List<SongWithAlbum> orderAllSongs(Playlist playlist, SongDAO songDao, AlbumDAO albumDao, UUID userId)
+			throws DAOException {
 
 		List<Integer> songsIDs = playlist.getSongs();
 		List<Song> songs = songDao.findSongsByIdsAndUser(songsIDs, userId);
 
-	    // Pre-load albums
-	    Map<Integer, Album> albumMap = new HashMap<>();
-	    for (Song song : songs) {
-	        int albumId = song.getIdAlbum();
-	        if (!albumMap.containsKey(albumId)) {
-	            albumMap.put(albumId, albumDao.findAlbumById(albumId));
-	        }
-	    }
-	    
+		// Pre-load albums
+		Map<Integer, Album> albumMap = new HashMap<>();
+		for (Song song : songs) {
+			int albumId = song.getIdAlbum();
+			if (!albumMap.containsKey(albumId)) {
+				albumMap.put(albumId, albumDao.findAlbumById(albumId));
+			}
+		}
 
-	    List<SongWithAlbum> result = new ArrayList<>();
-	    for (Song s : songs) {
-	        result.add(new SongWithAlbum(s, albumMap.get(s.getIdAlbum())));
-	    }
-	    
-		//need to order result
+		List<SongWithAlbum> result = new ArrayList<>();
+		for (Song s : songs) {
+			result.add(new SongWithAlbum(s, albumMap.get(s.getIdAlbum())));
+		}
 
-	    result.sort(Comparator
-	        .comparing((SongWithAlbum swa) -> swa.getAlbum().getArtist().toLowerCase())
-	        .thenComparing((SongWithAlbum swa) -> swa.getAlbum().getYear()));
+		// need to order result
 
-	    return result;
-	
+		result.sort(Comparator.comparing((SongWithAlbum swa) -> swa.getAlbum().getArtist().toLowerCase())
+				.thenComparing((SongWithAlbum swa) -> swa.getAlbum().getYear()));
+
+		return result;
+
 	}
 
 	private static List<Song> getUnusedSongs(Playlist playlist, SongDAO songDao, UUID userId) throws DAOException {
-		
+
 		List<Song> result = songDao.findSongsByUser(userId);
-		
+
 		List<Integer> alreadyPresentSongsIDs = playlist.getSongs();
-		
+
 		for (Song song : result) {
 			if (alreadyPresentSongsIDs.contains(song.getIdSong())) {
 				result.remove(song);
 			}
 		}
-		
+
 		return result;
-		
+
 	}
 
 }

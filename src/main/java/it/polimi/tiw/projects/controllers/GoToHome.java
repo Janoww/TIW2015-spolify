@@ -66,7 +66,7 @@ public class GoToHome extends HttpServlet {
 
 		// Get the list of all playlists
 		List<Playlist> playlists = null;
-		if(playlistIDs != null || !playlistIDs.isEmpty()) {
+		if (playlistIDs != null || !playlistIDs.isEmpty()) {
 			playlists = playlistIDs.stream().map(id -> {
 				try {
 					return playlistDAO.findPlaylistById(id, userId);
@@ -82,19 +82,16 @@ public class GoToHome extends HttpServlet {
 		ctx.setVariable("playlists", playlists);
 		ctx.setVariable("songs", songList);
 		ctx.setVariable("genres", genresList);
-		
 
 		ctx.setVariable("errorNewPlaylistMsg", req.getAttribute("errorNewPlaylistMsg"));
 		ctx.setVariable("errorNewSongMsg", req.getAttribute("errorNewSongMsg"));
 		ctx.setVariable("errorOpeningPlaylist", req.getAttribute("errorOpeningPlaylist"));
 
-
 		String path = "/WEB-INF/Home.html";
 		templateEngine.process(path, ctx, resp.getWriter());
-		
 
 	}
-	
+
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		User user = (User) req.getSession().getAttribute("user");

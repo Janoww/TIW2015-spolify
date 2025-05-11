@@ -53,8 +53,7 @@ public class NewPlaylist extends HttpServlet {
 
 		String name = req.getParameter("pName").strip();
 
-		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect"))
-				.map(Integer::parseInt)
+		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect")).map(Integer::parseInt)
 				.collect(Collectors.toList());
 
 		Playlist playlist;
@@ -78,21 +77,21 @@ public class NewPlaylist extends HttpServlet {
 				return;
 			} catch (DAOException e) {
 				switch (e.getErrorType()) {
-					case NOT_FOUND: {
-						req.setAttribute("errorNewPlaylistMsg", "One of the song you selected was not found");
-						req.getRequestDispatcher("/Home").forward(req, resp);
-						return;
-					}
-					case DUPLICATE_ENTRY: {
-						req.setAttribute("errorNewPlaylistMsg", "You selected two times the same song");
-						req.getRequestDispatcher("/Home").forward(req, resp);
-						return;
-					}
-					default: {
-						e.printStackTrace();
-						resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
-						return;
-					}
+				case NOT_FOUND: {
+					req.setAttribute("errorNewPlaylistMsg", "One of the song you selected was not found");
+					req.getRequestDispatcher("/Home").forward(req, resp);
+					return;
+				}
+				case DUPLICATE_ENTRY: {
+					req.setAttribute("errorNewPlaylistMsg", "You selected two times the same song");
+					req.getRequestDispatcher("/Home").forward(req, resp);
+					return;
+				}
+				default: {
+					e.printStackTrace();
+					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+					return;
+				}
 				}
 			}
 		} else {

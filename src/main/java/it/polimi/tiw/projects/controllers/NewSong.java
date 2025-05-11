@@ -28,9 +28,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
-
 //FIXME: if you remove the annotation obviously it don't work use it to test the handling of null parameters
-@MultipartConfig 
+@MultipartConfig
 public class NewSong extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(NewSong.class);
 	private static final long serialVersionUID = 1L;
@@ -53,10 +52,8 @@ public class NewSong extends HttpServlet {
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 
 		// Check Parameters
-		 
 
 		String checkResult = areParametersOk(req);
-	
 
 		if (checkResult != null) {
 			req.setAttribute("errorNewSongMsg", checkResult);
@@ -64,7 +61,7 @@ public class NewSong extends HttpServlet {
 			req.getRequestDispatcher("/Home").forward(req, resp);
 			return;
 		}
-		
+
 		logger.debug("Parameters are ok");
 
 		// Retrieve parameters
@@ -82,15 +79,13 @@ public class NewSong extends HttpServlet {
 		}
 		Part imagePart = req.getPart("sIcon");
 		Part audioPart = req.getPart("sFile");
-		
 
 		InputStream imageStream = imagePart.getInputStream();
 		InputStream audioStream = audioPart.getInputStream();
-		
+
 		logger.debug("Retrieved Parameters");
 
 		User user = (User) req.getSession().getAttribute("user");
-	
 
 		if (user != null) {
 			// Find the list of all the albums
@@ -130,34 +125,33 @@ public class NewSong extends HttpServlet {
 				return;
 			}
 
-
 			String imageUrl = null;
-			
-			if(album == null) {
+
+			if (album == null) {
 				// If an album already exists the image will not be updated
-				
-		        String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
+
+				String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
 
 				ImageDAO imageDAO = (ImageDAO) getServletContext().getAttribute("imageDAO");
-				
+
 				String imageFileRename;
 				try {
 					imageFileRename = imageDAO.saveImage(imageStream, imageFileName);
 				} catch (IllegalArgumentException e) {
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "IllegalArgumentException during image save");
+					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"IllegalArgumentException during image save");
 					e.printStackTrace();
 					return;
 				} catch (DAOException e) {
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to save image due to I/O error");
+					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Failed to save image due to I/O error");
 					e.printStackTrace();
 					return;
 				}
-				
+
 				// TODO To get the image url knowing the filerename
-				
+
 			}
-
-
 
 			// Create a new album if it doesn't exist
 			if (album == null) {
@@ -171,20 +165,20 @@ public class NewSong extends HttpServlet {
 			}
 			int idAlbum = album.getIdAlbum();
 
-			
-			//Saving the audio file
-			
+			// Saving the audio file
+
 			String audioUrl = null;
-			
+
 			AudioDAO audioDAO = (AudioDAO) getServletContext().getAttribute("audioDAO");
-			
+
 			String audioFileName = Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
-			
+
 			String audioFileRename;
 			try {
 				audioFileRename = audioDAO.saveAudio(audioStream, audioFileName);
 			} catch (IllegalArgumentException e) {
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "IllegalArgumentException during image save");
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+						"IllegalArgumentException during image save");
 				e.printStackTrace();
 				return;
 			} catch (DAOException e) {
@@ -192,9 +186,8 @@ public class NewSong extends HttpServlet {
 				e.printStackTrace();
 				return;
 			}
-			
+
 			// TODO To get the audio url knowing the filerename
-			
 
 			try {
 				songDAO.createSong(title, idAlbum, year, genre, audioUrl, user.getIdUser());
@@ -288,8 +281,7 @@ public class NewSong extends HttpServlet {
 		} catch (IOException | ServletException e) {
 			return "Error while processing form data";
 		}
-		
-		
+
 		return null; // all good
 	}
 }
