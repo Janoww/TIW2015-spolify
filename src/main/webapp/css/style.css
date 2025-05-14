@@ -2,14 +2,14 @@ body {
     font-family: sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: #D4BEE4;
+    color: #9B7EBD;
 }
 
 #app {
     max-width: 800px;
     margin: auto;
-    background-color: #fff;
+    background-color: #EEEEEE;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -17,10 +17,14 @@ body {
 
 /* Styles for the title and icon */
 h1 {
-    color: #5D3FD3;
+    color: #3B1E54;
     text-align: left;
     margin-bottom: 20px;
     font-size: 40px;
+}
+
+a:link {
+    color: #3B1E54;
 }
 
 .title-container {
@@ -46,8 +50,8 @@ h1 {
 
 /* Styles for the form */
 .styled-button {
-    background-color: #5D3FD3;
-    color: white;
+    background-color: #9B7EBD;
+    color: #EEEEEE;
     font-size: 20px;
     padding: 10px 15px;
     border: none;
@@ -74,7 +78,10 @@ h1 {
 .form-field input {
     border-radius: 12px;
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid #D4BEE4;
     margin-top: 5px;
     margin-bottom: 5px;
+    color: #9B7EBD;
+    background-color: #EEEEEE;
+    font-size: 20px;
 }

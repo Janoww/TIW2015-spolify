@@ -4,7 +4,7 @@ export function renderLoginView(appContainer) {
         <div class="container">
             <div class="title-container">
                 <img src="images/SpolifyIcon.jpeg" alt="App Icon" class="form-icon">
-                <h1>Login</h1>
+                <h1>LOGIN</h1>
             </div>
             <form id="loginForm">
                 <div class="form-field">
@@ -29,7 +29,7 @@ export function renderSignupView(appContainer) {
         <div class="container">
             <div class="title-container">
                 <img src="images/SpolifyIcon.jpeg" alt="App Icon" class="form-icon">
-                <h1>Sign Up</h1>
+                <h1>SIGN UP</h1>
             </div>
             <form id="signupForm">
                 <div class="form-field">
