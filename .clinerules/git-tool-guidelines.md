@@ -1,7 +1,9 @@
 ## Brief overview
+
 These guidelines provide rules for using Git-related MCP tools within this project to ensure correct and efficient version control practices.
 
 ## Git Tool Usage
+
 - **Full Path Requirement:**
   - When using Git tools provided by an MCP server, always provide the full path to the project repository as an argument (e.g., `/home/biscotti/GitProjects/TIW2015-spolify`).
 - **Staging Files (`git_add`):**

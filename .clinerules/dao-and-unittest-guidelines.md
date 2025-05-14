@@ -43,6 +43,7 @@ These guidelines are derived from the existing DAO and unit test implementations
   - Use `@TestInstance(TestInstance.Lifecycle.PER_CLASS)` and `@TestMethodOrder(MethodOrderer.OrderAnnotation.class)`.
   - Manage database connection in `@BeforeAll` (create) and `@AfterAll` (close).
   - Set `connection.setAutoCommit(false);` in `@BeforeAll`.
+
 - **Data Management:**
   - Create necessary test data (users, parent entities) in `@BeforeAll` or `@BeforeEach`.
   - Implement thorough cleanup methods in `@AfterAll` and/or `@AfterEach` to remove test data. Ensure cleanup order respects foreign key constraints.
