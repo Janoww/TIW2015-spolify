@@ -16,5 +16,42 @@ body {
 }
 
 h1 {
-    color: #5D3FD3; /* A purplish color, adjust as needed */
+    color: #5D3FD3;
+    text-align: left;
+    margin-bottom: 20px;
+    font-size: 40px;
+}
+
+.styled-button {
+    background-color: #5D3FD3;
+    color: white;
+    font-size: 20px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+.form-field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.form-field label {
+    width: 100px;
+    margin-right: 10px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.form-field input {
+    border-radius: 12px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }

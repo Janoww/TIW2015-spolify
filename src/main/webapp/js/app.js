@@ -1,3 +1,6 @@
+import { initLoginPage } from "./handlers/loginHandler.js";
+
+
 console.log("Spolify JS App Loaded!");
 
 // Example: Clear the "Loading..." message
@@ -5,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const appContainer = document.getElementById('app');
     if (appContainer) {
         // You'll replace this with actual app rendering logic
-        appContainer.innerHTML = '<h1>Spolify (JS Version)</h1><div id="content"></div>';
+        initLoginPage(appContainer);
     }
     // Example API call (you'll build this out)
     // fetch('/api/some-data')
