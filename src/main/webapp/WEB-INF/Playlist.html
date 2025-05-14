@@ -9,53 +9,53 @@
 
 <body>
 	<h1 th:text="${playlist.name}">Hit-Estive-2015</h1>
-	
+
 
 
 	<table>
 		<tbody th:remove="all-but-first">
-		<tr>
-			<td th:each="swa : ${songWithAlbum}">
-				<div>
-                    <img th:src="${swa.album.image}" alt="Album Image" width="100"/>
-                    <p th:text="${swa.song.title}">We No Speak Americano</p>
-                    <audio controls>
-  						<source th:src="${swa.soong.audioFile}" type="audio/mpeg">
-  					</audio>
-                </div>
-			</td>
-			<td>
-				<p>Oye Baby</p><img src="" alt="IDK">
-			</td>
-			<td>
-				<p>Hey Hey</p><img src="" alt="IDK">
-			</td>
-			<td>
-				<p>Waka Waka</p><img src="" alt="IDK">
-			</td>
-			<td>
-				<p>Alejandro</p><img src="" alt="IDK">
-			</td>
-		</tr>
+			<tr>
+				<td th:each="swa : ${songWithAlbum}">
+					<div>
+						<img th:src="${swa.album.image}" alt="Album Image" width="100" />
+						<p th:text="${swa.song.title}">We No Speak Americano</p>
+						<audio controls>
+							<source th:src="${swa.soong.audioFile}" type="audio/mpeg">
+						</audio>
+					</div>
+				</td>
+				<td>
+					<p>Oye Baby</p><img src="" alt="IDK">
+				</td>
+				<td>
+					<p>Hey Hey</p><img src="" alt="IDK">
+				</td>
+				<td>
+					<p>Waka Waka</p><img src="" alt="IDK">
+				</td>
+				<td>
+					<p>Alejandro</p><img src="" alt="IDK">
+				</td>
+			</tr>
 		</tbody>
 	</table>
 
-    <div th:if="${page > 0}">
-        <form method="get" action="/GetPlaylistDetails">
-            <input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
-            <input type="hidden" name="page" th:value="${page - 1}" />
-            <button type="submit">PRECEDENTI</button>
-        </form>
-    </div>
-	
-	
+	<div th:if="${page > 0}">
+		<form method="get" action="/GetPlaylistDetails">
+			<input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
+			<input type="hidden" name="page" th:value="${page - 1}" />
+			<button type="submit">PRECEDENTI</button>
+		</form>
+	</div>
+
+
 	<div th:if="${page < totPages}">
-        <form method="get" th:action="GetPlaylistDetails">
-            <input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
-            <input type="hidden" name="page" th:value="${page + 1}" />
-            <button type="submit">SUCCESSIVI</button>
-        </form>
-    </div>
+		<form method="get" th:action="GetPlaylistDetails">
+			<input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
+			<input type="hidden" name="page" th:value="${page + 1}" />
+			<button type="submit">SUCCESSIVI</button>
+		</form>
+	</div>
 
 	<form action="AddSongToPL" metod=POST>
 		<fieldset>
@@ -65,15 +65,16 @@
 				<p>Choose the songs:</p>
 				<div id="songsSelectCheckboxes" style="height: 150px; overflow-y: auto; border: 1px solid #ccc;">
 					<div th:each="song : ${songs}">
-						<input type="checkbox" name="songsSelect" th:id="'song_' + ${song.idSong}" th:value="${song.idSong}"
-							th:title="${song.title}">
+						<input type="checkbox" name="songsSelect" th:id="'song_' + ${song.idSong}"
+							th:value="${song.idSong}" th:title="${song.title}">
 						<label th:for="'song_' + ${song.idSong}" th:text="${song.title}">Default Song</label>
 					</div>
 					<!-- Static options for preview -->
 					<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0001" value="0001"
 							title="See You Again"> <label for="song_0001">See You Again</label> </div>
 					<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0002" value="0002"
-							title="Never Gonna Give You UP"> <label for="song_0002">Never Gonna Give You UP</label> </div>
+							title="Never Gonna Give You UP"> <label for="song_0002">Never Gonna Give You UP</label>
+					</div>
 					<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0003" value="0003"
 							title="All Star"> <label for="song_0003">All Star</label> </div>
 					<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0004" value="0004"
