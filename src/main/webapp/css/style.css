@@ -19,8 +19,7 @@ body {
 h1 {
     color: #3B1E54;
     text-align: left;
-    margin-bottom: 20px;
-    font-size: 40px;
+    font-size: 80px;
 }
 
 a:link {
@@ -31,11 +30,11 @@ a:link {
     display: flex;
     align-items: left;
     justify-content: left;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .form-icon {
-    width: 50px;
+    width: 90px;
     height: auto;
     margin-right: 10px;
 }
