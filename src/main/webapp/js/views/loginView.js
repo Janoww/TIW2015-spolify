@@ -2,7 +2,10 @@
 export function renderLoginView(appContainer) {
     appContainer.innerHTML = `
         <div class="container">
-            <h1>Login</h1>
+            <div class="title-container">
+                <img src="images/SpolifyIcon.jpeg" alt="App Icon" class="form-icon">
+                <h1>Login</h1>
+            </div>
             <form id="loginForm">
                 <div class="form-field">
                     <label for="username">Username:</label>
@@ -24,7 +27,10 @@ export function renderLoginView(appContainer) {
 export function renderSignupView(appContainer) {
     appContainer.innerHTML = `
         <div class="container">
-            <h1>Sign Up</h1>
+            <div class="title-container">
+                <img src="images/SpolifyIcon.jpeg" alt="App Icon" class="form-icon">
+                <h1>Sign Up</h1>
+            </div>
             <form id="signupForm">
                 <div class="form-field">
                     <label for="signupUsername">Username:</label>
