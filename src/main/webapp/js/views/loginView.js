@@ -1,58 +1,116 @@
+// Helper function to create a form field (div, label, input)
+function createFormField(labelText, inputType, inputId, inputName, required = true) {
+    const fieldDiv = document.createElement('div');
+    fieldDiv.className = 'form-field';
+
+    const label = document.createElement('label');
+    label.setAttribute('for', inputId);
+    label.textContent = labelText;
+
+    const input = document.createElement('input');
+    input.type = inputType;
+    input.id = inputId;
+    input.name = inputName;
+    if (required) {
+        input.required = true;
+    }
+
+    fieldDiv.appendChild(label);
+    fieldDiv.appendChild(input);
+    return fieldDiv;
+}
+
+// Helper function to create a title container
+function createTitleContainer(titleText) {
+    const titleContainerDiv = document.createElement('div');
+    titleContainerDiv.className = 'title-container';
+
+    const img = document.createElement('img');
+    img.src = 'images/SpolifyIcon.png';
+    img.alt = 'App Icon';
+    img.className = 'form-icon';
+
+    const h1 = document.createElement('h1');
+    h1.textContent = titleText;
+
+    titleContainerDiv.appendChild(img);
+    titleContainerDiv.appendChild(h1);
+    return titleContainerDiv;
+}
 
 export function renderLoginView(appContainer) {
-    appContainer.innerHTML = `
-        <div class="container">
-            <div class="title-container">
-                <img src="images/SpolifyIcon.png" alt="App Icon" class="form-icon">
-                <h1>LOGIN</h1>
-            </div>
-            <form id="loginForm">
-                <div class="form-field">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                <div class="form-field">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                <div class="form-field">
-                    <button type="submit" id="loginButton" class="styled-button">Login</button>
-                </div>
-            </form>
-            <p>Don't have an account? <a href="#" id="signupLink">Sign up</a></p>
-        </div>
-    `;
+    appContainer.innerHTML = '';
+
+    const containerDiv = document.createElement('div');
+    containerDiv.className = 'container';
+
+    containerDiv.appendChild(createTitleContainer('LOGIN'));
+
+    const loginForm = document.createElement('form');
+    loginForm.id = 'loginForm';
+
+    loginForm.appendChild(createFormField('Username:', 'text', 'username', 'username'));
+    loginForm.appendChild(createFormField('Password:', 'password', 'password', 'password'));
+
+    const buttonFieldDiv = document.createElement('div');
+    buttonFieldDiv.className = 'form-field';
+    const loginButton = document.createElement('button');
+    loginButton.type = 'submit';
+    loginButton.id = 'loginButton';
+    loginButton.className = 'styled-button';
+    loginButton.textContent = 'Login';
+    buttonFieldDiv.appendChild(loginButton);
+    loginForm.appendChild(buttonFieldDiv);
+
+    containerDiv.appendChild(loginForm);
+
+    const pElement = document.createElement('p');
+    pElement.textContent = "Don't have an account? ";
+    const signupLink = document.createElement('a');
+    signupLink.href = '#';
+    signupLink.id = 'signupLink';
+    signupLink.textContent = 'Sign up';
+    pElement.appendChild(signupLink);
+    containerDiv.appendChild(pElement);
+
+    appContainer.appendChild(containerDiv);
 }
 
 export function renderSignupView(appContainer) {
-    appContainer.innerHTML = `
-        <div class="container">
-            <div class="title-container">
-                <img src="images/SpolifyIcon.png" alt="App Icon" class="form-icon">
-                <h1>SIGN UP</h1>
-            </div>
-            <form id="signupForm">
-                <div class="form-field">
-                    <label for="signupUsername">Username:</label>
-                    <input type="text" id="signupUsername" name="username" required>
-                </div>
-                <div class="form-field">
-                    <label for="name">Name:</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
-                <div class="form-field">
-                    <label for="surname">Surname:</label>
-                    <input type="text" id="surname" name="surname" required>
-                </div>
-                <div class="form-field">
-                    <label for="signupPassword">Password:</label>
-                    <input type="password" id="signupPassword" name="password" required>
-                </div>
-                <div class="form-field">
-                    <button type="submit" class="styled-button">Sign Up</button>
-                </div>
-            </form>
-            <p>Already have an account? <a href="#" id="loginLink">Login</a></p>
-        </div>
-    `;
+    appContainer.innerHTML = '';
+
+    const containerDiv = document.createElement('div');
+    containerDiv.className = 'container';
+
+    containerDiv.appendChild(createTitleContainer('SIGN UP'));
+
+    const signupForm = document.createElement('form');
+    signupForm.id = 'signupForm';
+
+    signupForm.appendChild(createFormField('Username:', 'text', 'signupUsername', 'username'));
+    signupForm.appendChild(createFormField('Name:', 'text', 'name', 'name'));
+    signupForm.appendChild(createFormField('Surname:', 'text', 'surname', 'surname'));
+    signupForm.appendChild(createFormField('Password:', 'password', 'signupPassword', 'password'));
+
+    const buttonFieldDiv = document.createElement('div');
+    buttonFieldDiv.className = 'form-field';
+    const signupButton = document.createElement('button');
+    signupButton.type = 'submit';
+    signupButton.className = 'styled-button';
+    signupButton.textContent = 'Sign Up';
+    buttonFieldDiv.appendChild(signupButton);
+    signupForm.appendChild(buttonFieldDiv);
+
+    containerDiv.appendChild(signupForm);
+
+    const pElement = document.createElement('p');
+    pElement.textContent = 'Already have an account? ';
+    const loginLink = document.createElement('a');
+    loginLink.href = '#';
+    loginLink.id = 'loginLink';
+    loginLink.textContent = 'Login';
+    pElement.appendChild(loginLink);
+    containerDiv.appendChild(pElement);
+
+    appContainer.appendChild(containerDiv);
 }

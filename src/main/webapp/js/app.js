@@ -7,8 +7,7 @@ console.log("Spolify JS App Loaded!");
 document.addEventListener('DOMContentLoaded', () => {
     const appContainer = document.getElementById('app');
     if (appContainer) {
-        // You'll replace this with actual app rendering logic
-        initLoginPage(appContainer);
+        setTimeout(initLoginPage, 1000, appContainer);
     }
     // Example API call (you'll build this out)
     // fetch('/api/some-data')
