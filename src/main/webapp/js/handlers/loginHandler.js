@@ -48,8 +48,40 @@ function displayLogin(appContainer) {
                 const username = event.target.username.value;
                 const password = event.target.password.value;
 
-                console.log("Login attempt: ", { username, password });
-                // TODO: Make the login logic to api.
+                try {
+                    const response = await fetch('api/v1/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        console.log('Login successful:', data);
+                        alert('Login successful! Welcome ' + data.name);
+                        // TODO: Redirect to the main application page or dashboard
+                        window.location.href = 'index.html';
+                    } else {
+                        console.error('Login failed:', data.error || response.statusText);
+                        const generalErrorElement = document.getElementById('login-general-error');
+                        if (generalErrorElement) {
+                            generalErrorElement.textContent = data.error || `Login failed: ${response.statusText}`;
+                        } else {
+                            alert(`Login failed: ${data.error || response.statusText}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error during login:', error);
+                    const generalErrorElement = document.getElementById('login-general-error');
+                    if (generalErrorElement) {
+                        generalErrorElement.textContent = 'An unexpected error occurred. Please try again.';
+                    } else {
+                        alert('An unexpected error occurred during login. Please try again.');
+                    }
+                }
             } else {
                 console.log('Login form has errors.');
             }
@@ -68,20 +100,51 @@ function displaySignup(appContainer) {
     renderSignupView(appContainer);
 
     const signupForm = document.getElementById("signupForm");
-    const loginLink = document.getElementById("loginLink"); // Link on signup page to go back to login
+    const loginLink = document.getElementById("loginLink");
 
     if (signupForm) {
         signupForm.addEventListener("submit", async (event) => {
             event.preventDefault();
             const fieldIds = ['signupUsername', 'name', 'surname', 'signupPassword'];
             if (validateForm('signupForm', fieldIds)) {
-                const username = event.target.username.value;
+                const username = event.target.signupUsername.value;
                 const name = event.target.name.value;
                 const surname = event.target.surname.value;
-                const password = event.target.password.value;
+                const password = event.target.signupPassword.value;
 
-                console.log("Signup attempt: ", { username, name, surname, password });
-                // TODO: Make the signup logic to api.
+                try {
+                    const response = await fetch('api/v1/users', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, name, surname, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.status === 201) {
+                        console.log('Signup successful:', data);
+                        alert('Signup successful! User: ' + data.username + '. Please log in.');
+                        displayLogin(appContainer);
+                    } else {
+                        console.error('Signup failed:', data.error || response.statusText);
+                        const generalErrorElement = document.getElementById('signup-general-error');
+                        if (generalErrorElement) {
+                            generalErrorElement.textContent = data.error || `Signup failed: ${response.statusText}`;
+                        } else {
+                            alert(`Signup failed: ${data.error || response.statusText}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error during signup:', error);
+                    const generalErrorElement = document.getElementById('signup-general-error');
+                    if (generalErrorElement) {
+                        generalErrorElement.textContent = 'An unexpected error occurred. Please try again.';
+                    } else {
+                        alert('An unexpected error occurred during signup. Please try again.');
+                    }
+                }
             } else {
                 console.log('Signup form has errors.');
             }
@@ -97,5 +160,5 @@ function displaySignup(appContainer) {
 }
 
 export function initLoginPage(appContainer) {
-    displayLogin(appContainer); // Start by displaying the login page
+    displayLogin(appContainer);
 }

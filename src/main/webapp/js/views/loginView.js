@@ -51,6 +51,11 @@ export function renderLoginView(appContainer) {
 
     containerDiv.appendChild(createTitleContainer('LOGIN'));
 
+    const loginGeneralErrorDiv = document.createElement('div');
+    loginGeneralErrorDiv.id = 'login-general-error';
+    loginGeneralErrorDiv.className = 'error-message general-error-message';
+    containerDiv.appendChild(loginGeneralErrorDiv);
+
     const loginForm = document.createElement('form');
     loginForm.id = 'loginForm';
     loginForm.noValidate = true;
@@ -89,6 +94,11 @@ export function renderSignupView(appContainer) {
     containerDiv.className = 'container';
 
     containerDiv.appendChild(createTitleContainer('SIGN UP'));
+
+    const signupGeneralErrorDiv = document.createElement('div');
+    signupGeneralErrorDiv.id = 'signup-general-error';
+    signupGeneralErrorDiv.className = 'error-message general-error-message';
+    containerDiv.appendChild(signupGeneralErrorDiv);
 
     const signupForm = document.createElement('form');
     signupForm.id = 'signupForm';
