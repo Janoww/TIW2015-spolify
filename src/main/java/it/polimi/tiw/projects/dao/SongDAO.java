@@ -78,24 +78,18 @@ public class SongDAO {
 				}
 			}
 		} catch (SQLException e) {
-			logger.error("SQL error creating song title={}, userId={}: {}", title, idUser, e.getMessage(), e);
-			logger.error("SQL Error Code: {}, SQLState: {}", e.getErrorCode(), e.getSQLState()); // Log details
-
 			// Check for foreign key constraint violation on idAlbum (MySQL error code 1452)
-			if (e.getErrorCode() == 1452) {
-				// If MySQL error code 1452 occurs during Song INSERT, it's almost certainly
-				// due to the Album foreign key (fk_Song_2) failing because the idAlbum doesn't
-				// exist.
-				logger.debug("Detected FK violation (Error Code 1452) for Album ID {}. Throwing NOT_FOUND.", idAlbum);
+			if (e.getErrorCode() == 1452) { // NOT_FOUND
+				logger.warn(
+						"Failed to create song title='{}', userId={}: Album ID {} not found. Details: SQLState={}, Message={}",
+						title, idUser, idAlbum, e.getSQLState(), e.getMessage());
 				throw new DAOException("Album with ID " + idAlbum + " not found.", e,
 						DAOException.DAOErrorType.NOT_FOUND);
-			} else {
-				// Handle other SQL errors (e.g., connection issues, syntax errors, other
-				// constraints if added later)
-				logger.warn("Unhandled SQL error during song creation (Code: {}). Throwing GENERIC_ERROR.",
-						e.getErrorCode());
+			} else { // GENERIC_ERROR
+				logger.error("SQL error creating song title={}, userId={}: SQLState={}, ErrorCode={}, Message={}",
+						title, idUser, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
 				throw new DAOException("Error creating song: " + e.getMessage(), e,
-						DAOException.DAOErrorType.GENERIC_ERROR); // Default to generic for other SQL errors
+						DAOException.DAOErrorType.GENERIC_ERROR);
 			}
 		}
 		return newSong;
@@ -129,9 +123,13 @@ public class SongDAO {
 				}
 				logger.debug("Found {} songs for user ID: {}", songs.size(), userId);
 			}
-		} catch (SQLException | IllegalArgumentException e) { // Catch UUID parsing errors too
-			logger.error("Error finding songs for user ID {}: {}", userId, e.getMessage(), e);
+		} catch (SQLException e) { // GENERIC_ERROR (unexpected)
+			logger.error("SQL error finding songs for user ID {}: {}", userId, e.getMessage(), e);
 			throw new DAOException("Error finding songs by user: " + e.getMessage(), e,
+					DAOException.DAOErrorType.GENERIC_ERROR);
+		} catch (IllegalArgumentException e) { // GENERIC_ERROR
+			logger.error("Error parsing data (e.g., Genre, UUID) for songs for user ID {}: {}", userId, e.getMessage());
+			throw new DAOException("Error parsing song data: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
 		return songs;
@@ -161,9 +159,13 @@ public class SongDAO {
 				songs.add(song);
 			}
 			logger.debug("Found {} songs in total.", songs.size());
-		} catch (SQLException | IllegalArgumentException e) { // Catch UUID parsing errors too
-			logger.error("Error finding all songs: {}", e.getMessage(), e);
+		} catch (SQLException e) { // GENERIC_ERROR (unexpected)
+			logger.error("SQL error finding all songs: {}", e.getMessage(), e);
 			throw new DAOException("Error finding all songs: " + e.getMessage(), e,
+					DAOException.DAOErrorType.GENERIC_ERROR);
+		} catch (IllegalArgumentException e) { // GENERIC_ERROR
+			logger.error("Error parsing data (e.g., Genre, UUID) when finding all songs: {}", e.getMessage());
+			throw new DAOException("Error parsing song data: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
 		return songs;
@@ -261,10 +263,14 @@ public class SongDAO {
 				}
 				logger.debug("Found {} songs matching IDs {} for user ID: {}", songs.size(), songIds, userId);
 			}
-		} catch (SQLException | IllegalArgumentException e) { // Catch potential UUID parsing errors too
-			logger.error("Error finding songs by IDs {} for user ID {}: {}", songIds, userId, e.getMessage(), e);
-			// Wrap the exception in a DAOException for consistent error handling upstream
+		} catch (SQLException e) { // GENERIC_ERROR (unexpected)
+			logger.error("SQL error finding songs by IDs {} for user ID {}: {}", songIds, userId, e.getMessage(), e);
 			throw new DAOException("Error finding songs by IDs and user: " + e.getMessage(), e,
+					DAOException.DAOErrorType.GENERIC_ERROR);
+		} catch (IllegalArgumentException e) { // GENERIC_ERROR
+			logger.error("Error parsing data (e.g., Genre, UUID) for songs by IDs {} for user ID {}: {}", songIds,
+					userId, e.getMessage());
+			throw new DAOException("Error parsing song data: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
 		// Return the list of found songs (may be empty if none matched)

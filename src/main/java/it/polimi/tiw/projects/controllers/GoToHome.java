@@ -24,10 +24,12 @@ import it.polimi.tiw.projects.utils.ConnectionHandler;
 import it.polimi.tiw.projects.utils.Genre;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@WebServlet("/Home")
 public class GoToHome extends HttpServlet {
 	static final long serialVersionUID = 1L;
 	private static final Logger logger = LoggerFactory.getLogger(GoToHome.class);

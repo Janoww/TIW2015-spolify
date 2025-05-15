@@ -16,10 +16,12 @@ import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@WebServlet("/SignUp")
 public class SignUp extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = LoggerFactory.getLogger(SignUp.class);
@@ -67,8 +69,6 @@ public class SignUp extends HttpServlet {
 			userDAO.createUser(username, password, name, surname);
 			logger.info("Successfully created user with username: {}", username);
 		} catch (DAOException e) {
-			logger.warn("DAOException during user creation for username: {}. ErrorType: {}", username, e.getErrorType(),
-					e);
 			switch (e.getErrorType()) {
 
 			case NAME_ALREADY_EXISTS: {

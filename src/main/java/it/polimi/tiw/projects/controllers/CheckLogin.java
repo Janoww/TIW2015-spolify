@@ -2,6 +2,7 @@ package it.polimi.tiw.projects.controllers;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,6 +22,7 @@ import it.polimi.tiw.projects.dao.UserDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 
+@WebServlet("/Login")
 public class CheckLogin extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = LoggerFactory.getLogger(CheckLogin.class);
@@ -65,10 +67,9 @@ public class CheckLogin extends HttpServlet {
 			user = userDAO.checkCredentials(username, password);
 			logger.info("User {} successfully authenticated.", username);
 		} catch (DAOException e) {
-			logger.warn("DAOException during login for username: {}. ErrorType: {}", username, e.getErrorType(), e);
 			switch (e.getErrorType()) {
 			case INVALID_CREDENTIALS: { // No user found with that username/password combination
-				logger.warn("Invalid credentials for username: {}", username);
+				logger.warn("Invalid credentials for username: {}. Details: {}", username, e.getMessage());
 				resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				resp.setContentType("application/json");
 				resp.setCharacterEncoding("UTF-8");

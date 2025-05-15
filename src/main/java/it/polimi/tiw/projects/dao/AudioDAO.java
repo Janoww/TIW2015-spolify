@@ -177,7 +177,9 @@ public class AudioDAO {
             throw e;
         } catch (Exception e) {
             // Catch any other unexpected errors during detection/validation
-            log.error("Unexpected error during audio validation for {}: {}", audioFile, e.getMessage(), e);
+            log.error(
+                    "Unexpected error during audio validation for {}: {}. This is being wrapped as IllegalArgumentException.",
+                    audioFile, e.getMessage(), e);
             throw new IllegalArgumentException("An unexpected error occurred during audio file validation.", e);
         }
     }

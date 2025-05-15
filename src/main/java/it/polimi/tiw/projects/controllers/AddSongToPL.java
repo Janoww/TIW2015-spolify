@@ -21,10 +21,12 @@ import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@WebServlet("/AddSongToPL")
 public class AddSongToPL extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = LoggerFactory.getLogger(AddSongToPL.class);
@@ -90,9 +92,6 @@ public class AddSongToPL extends HttpServlet {
 		} catch (DAOException e) {
 			String errorMessage = "Error adding song(s) to playlist";
 			int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-			logger.error(
-					"DAOException while adding song(s) to playlist. PlaylistID: {}, UserID: {}, SongIDs: {}. ErrorType: {}",
-					playlistId, user.getIdUser(), songIDs, e.getErrorType(), e);
 
 			switch (e.getErrorType()) {
 			case NOT_FOUND:

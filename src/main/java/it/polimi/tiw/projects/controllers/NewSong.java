@@ -23,12 +23,15 @@ import it.polimi.tiw.projects.utils.ConnectionHandler;
 import it.polimi.tiw.projects.utils.Genre;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
-// Potentially: import jakarta.servlet.annotation.MultipartConfig;
 
+@WebServlet("/NewSong")
+@MultipartConfig
 public class NewSong extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = LoggerFactory.getLogger(NewSong.class);
@@ -88,8 +91,8 @@ public class NewSong extends HttpServlet {
 			genre = Genre.valueOf(req.getParameter("sGenre").strip());
 			logger.debug("Parsed genre: {}", genre);
 		} catch (IllegalArgumentException | NullPointerException e) {
-			logger.warn("Invalid genre value received: '{}'. User ID: {}", req.getParameter("sGenre"), user.getIdUser(),
-					e);
+			logger.warn("Invalid genre value received: '{}' for user ID: {}. Details: {}", req.getParameter("sGenre"),
+					user.getIdUser(), e.getMessage());
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			resp.setContentType("application/json");
 			resp.setCharacterEncoding("UTF-8");

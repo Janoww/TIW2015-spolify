@@ -76,14 +76,14 @@ public class AlbumDAO {
 				}
 			}
 		} catch (SQLException e) {
-			logger.error("SQL error during album creation for name={}, userId={}: SQLState={}, Message={}", name,
-					idUser, e.getSQLState(), e.getMessage(), e);
-			// Check for unique constraint violation (MySQL error code 1062, SQLState
-			// '23000') - Handles the composite unique key (name, idUser)
 			if ("23000".equals(e.getSQLState())) {
+				logger.warn("Attempt to create album with existing name for user: name={}, userId={}. Details: {}",
+						name, idUser, e.getMessage());
 				throw new DAOException("Album name '" + name + "' already exists for this user.", e,
 						DAOException.DAOErrorType.NAME_ALREADY_EXISTS);
-			} else {
+			} else { // GENERIC_ERROR
+				logger.error("SQL error during album creation for name={}, userId={}: SQLState={}, Message={}", name,
+						idUser, e.getSQLState(), e.getMessage(), e);
 				throw new DAOException("Error creating album: " + e.getMessage(), e,
 						DAOException.DAOErrorType.GENERIC_ERROR);
 			}
@@ -123,9 +123,13 @@ public class AlbumDAO {
 							DAOException.DAOErrorType.NOT_FOUND);
 				}
 			}
-		} catch (SQLException | IllegalArgumentException e) { // Catch UUID parsing errors too
+		} catch (SQLException e) {
 			logger.error("SQL error finding album by ID {}: {}", idAlbum, e.getMessage(), e);
 			throw new DAOException("Error finding album by ID: " + e.getMessage(), e,
+					DAOException.DAOErrorType.GENERIC_ERROR);
+		} catch (IllegalArgumentException e) { // Catch UUID parsing errors too
+			logger.warn("Invalid argument (e.g., UUID format) finding album by ID {}: {}", idAlbum, e.getMessage());
+			throw new DAOException("Error finding album by ID due to invalid argument: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
 		// If we reach here, album must have been found and populated
@@ -296,13 +300,15 @@ public class AlbumDAO {
 			logger.info("Album ID {} updated successfully by user {}", idAlbum, userId);
 			// No return value needed, success is indicated by lack of exception
 		} catch (SQLException e) {
-			logger.error("SQL error updating album ID {} for user {}: SQLState={}, Message={}", idAlbum, userId,
-					e.getSQLState(), e.getMessage(), e);
-			// Check for unique constraint violation (name, idUser)
 			if ("23000".equals(e.getSQLState()) && name != null) {
+				logger.warn(
+						"Attempt to update album ID {} with existing name for user {}: name={}, userId={}. Details: {}",
+						idAlbum, userId, name, userId, e.getMessage());
 				throw new DAOException("Album name '" + name + "' already exists for this user.", e,
 						DAOException.DAOErrorType.NAME_ALREADY_EXISTS);
-			} else {
+			} else { // GENERIC_ERROR
+				logger.error("SQL error updating album ID {} for user {}: SQLState={}, Message={}", idAlbum, userId,
+						e.getSQLState(), e.getMessage(), e);
 				throw new DAOException("Error updating album: " + e.getMessage(), e,
 						DAOException.DAOErrorType.GENERIC_ERROR);
 			}

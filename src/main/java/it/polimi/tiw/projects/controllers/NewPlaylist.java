@@ -23,10 +23,12 @@ import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@WebServlet("/NewPlaylist")
 public class NewPlaylist extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = LoggerFactory.getLogger(NewPlaylist.class);
@@ -141,25 +143,35 @@ public class NewPlaylist extends HttpServlet {
 		} catch (DAOException e) {
 			String errorMessage = "Error creating playlist";
 			int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-			logger.error("DAOException during playlist creation for name '{}', user ID: {}. ErrorType: {}", name,
-					user.getIdUser(), e.getErrorType(), e);
 			switch (e.getErrorType()) {
 			case NOT_FOUND:
 				errorMessage = "One of the selected songs was not found";
 				statusCode = HttpServletResponse.SC_BAD_REQUEST;
-				logger.warn("Song not found during playlist creation: {}", e.getMessage());
+				logger.warn("Song not found during playlist creation for name '{}', user ID: {}. Details: {}", name,
+						user.getIdUser(), e.getMessage());
 				break;
 			case DUPLICATE_ENTRY:
 				errorMessage = "Duplicate song entry for the new playlist";
 				statusCode = HttpServletResponse.SC_BAD_REQUEST;
-				logger.warn("Duplicate song entry during playlist creation: {}", e.getMessage());
+				logger.warn("Duplicate song entry during playlist creation for name '{}', user ID: {}. Details: {}",
+						name, user.getIdUser(), e.getMessage());
 				break;
-			case GENERIC_ERROR:
-				errorMessage = e.getMessage();
-				logger.error("Generic DAO error during playlist creation: {}", e.getMessage());
+			case NAME_ALREADY_EXISTS:
+				errorMessage = "A playlist named '" + name + "' already exists";
+				statusCode = HttpServletResponse.SC_CONFLICT;
+				logger.warn(
+						"Playlist name already exists (caught during createPlaylist) for name '{}', user ID: {}. Details: {}",
+						name, user.getIdUser(), e.getMessage());
 				break;
 			default:
-				logger.error("Unhandled DAOException type: {}. Details: {}", e.getErrorType(), e.getMessage(), e);
+				logger.error(
+						"DAOException during playlist creation for name '{}', user ID: {}. ErrorType: {}. Details: {}",
+						name, user.getIdUser(), e.getErrorType(), e.getMessage(), e);
+				// errorMessage and statusCode remain as defaults (Internal Server Error)
+				if (e.getErrorType() == DAOException.DAOErrorType.GENERIC_ERROR && e.getMessage() != null
+						&& !e.getMessage().equals(errorMessage)) {
+					errorMessage = e.getMessage(); // Use more specific message if available for GENERIC_ERROR
+				}
 				break;
 			}
 			resp.setStatus(statusCode);

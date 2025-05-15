@@ -27,10 +27,12 @@ import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@WebServlet("/GetPlaylistDetails")
 public class GetPlaylistDetails extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = LoggerFactory.getLogger(GetPlaylistDetails.class);
@@ -79,7 +81,8 @@ public class GetPlaylistDetails extends HttpServlet {
 			playlistId = Integer.parseInt(playlistIdParam.strip());
 			logger.debug("Requested playlist ID: {} by user ID: {}", playlistId, userId);
 		} catch (NumberFormatException | NullPointerException e) {
-			logger.warn("Invalid or missing playlistId parameter: '{}'. User ID: {}", playlistIdParam, userId, e);
+			logger.warn("Invalid or missing playlistId parameter: '{}' for user ID: {}. Details: {}", playlistIdParam,
+					userId, e.getMessage());
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			resp.setContentType("application/json");
 			resp.setCharacterEncoding("UTF-8");
@@ -115,8 +118,8 @@ public class GetPlaylistDetails extends HttpServlet {
 		} catch (DAOException e) {
 			String errorMessage = "Error accessing playlist";
 			int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-			logger.error("DAOException while fetching playlist ID: {} for user ID: {}. ErrorType: {}", playlistId,
-					userId, e.getErrorType(), e);
+			// Specific logging for expected/unexpected errors is handled in the switch
+			// cases.
 			switch (e.getErrorType()) {
 			case NOT_FOUND:
 			case ACCESS_DENIED:

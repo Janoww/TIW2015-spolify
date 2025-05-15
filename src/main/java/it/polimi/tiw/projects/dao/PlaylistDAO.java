@@ -169,31 +169,37 @@ public class PlaylistDAO {
 			}
 
 			// Handle specific constraint violations with DAOException
-			logger.error(
-					"SQL error during playlist creation transaction for name={}, userId={}: SQLState={}, Message={}",
-					name, idUser, e.getSQLState(), e.getMessage(), e);
 			if ("23000".equals(e.getSQLState())) { // Integrity constraint violation
 				if (e.getMessage().contains("unique_playlist_per_user")) {
+					logger.warn("Playlist creation failed for name={}, userId={}: Name already exists. Details: {}",
+							name, idUser, e.getMessage());
 					throw new DAOException("Playlist name '" + name + "' already exists for this user.", e,
 							DAOErrorType.NAME_ALREADY_EXISTS);
 				} else if (e.getMessage().contains("unique_playlist_and_song")) {
-					// This specific FK error should not happen anymore due to the pre-check,
-					// but handle duplicate PK constraint if songs are added non-uniquely in the
-					// list
+					logger.warn(
+							"Playlist creation failed for name={}, userId={}: Duplicate song ID in input. Details: {}",
+							name, idUser, e.getMessage());
 					throw new DAOException("Duplicate song ID found in the input list for the playlist.", e,
 							DAOErrorType.DUPLICATE_ENTRY);
 				} else if (e.getMessage().contains("fk_playlist-content_1")) {
-					// This FK error should theoretically not happen due to the pre-check. Log if it
-					// does.
 					logger.error(
-							"Unexpected FK violation for playlist_content despite pre-check. PlaylistID={}, SQLState={}",
-							newPlaylistId, e.getSQLState());
+							"Unexpected FK violation for playlist_content despite pre-check. PlaylistID={}, SQLState={}, Message={}",
+							newPlaylistId, e.getSQLState(), e.getMessage(), e);
 					throw new DAOException("Unexpected error associating songs with playlist.", e,
 							DAOErrorType.CONSTRAINT_VIOLATION);
+				} else { // Other 23000 errors
+					logger.error(
+							"SQL integrity constraint violation during playlist creation for name={}, userId={}: SQLState={}, Message={}",
+							name, idUser, e.getSQLState(), e.getMessage(), e);
+					throw new DAOException("Database integrity constraint violation during playlist creation.", e,
+							DAOErrorType.CONSTRAINT_VIOLATION);
 				}
+			} else { // Other SQL exceptions (not 23000)
+				logger.error(
+						"SQL error during playlist creation transaction for name={}, userId={}: SQLState={}, Message={}",
+						name, idUser, e.getSQLState(), e.getMessage(), e);
+				throw new DAOException("Database error during playlist creation.", e, DAOErrorType.GENERIC_ERROR);
 			}
-			// Wrap other SQL exceptions
-			throw new DAOException("Database error during playlist creation.", e, DAOErrorType.GENERIC_ERROR);
 
 		} finally {
 			if (connection != null) {
@@ -332,7 +338,7 @@ public class PlaylistDAO {
 			}
 		} catch (IllegalArgumentException e) {
 			// Catch potential UUID parsing errors
-			logger.error("Error parsing UUID from database for playlist ID {}: {}", playlistId, e.getMessage(), e);
+			logger.error("Error parsing UUID from database for playlist ID {}: {}", playlistId, e.getMessage());
 			throw new DAOException("Error parsing UUID from database.", e, DAOErrorType.GENERIC_ERROR);
 		}
 		return playlist;
@@ -489,32 +495,27 @@ public class PlaylistDAO {
 			logger.info("Song ID {} added successfully to playlist ID {} by user {}", songId, playlistId, userId);
 			// Success, no return value needed
 		} catch (SQLException e) {
-			// Handle potential constraint violations (duplicate song in playlist)
 			if ("23000".equals(e.getSQLState())) { // Integrity constraint violation
-				// Check for primary key violation (duplicate entry)
-				// The exact message might vary, check for common indicators.
-				if (e.getMessage().toLowerCase().contains("duplicate entry") && e.getMessage().contains("PRIMARY")) {
-					logger.warn("Attempt to add duplicate song ID {} to playlist ID {} (PK violation)", songId,
-							playlistId);
+				if (e.getMessage().toLowerCase().contains("duplicate entry") && e.getMessage().contains("PRIMARY")) { // DUPLICATE_ENTRY
+					logger.warn("Attempt to add duplicate song ID {} to playlist ID {} (PK violation). Details: {}",
+							songId, playlistId, e.getMessage());
 					throw new DAOException("Song ID " + songId + " is already in playlist ID " + playlistId, e,
 							DAOErrorType.DUPLICATE_ENTRY);
-				} else if (e.getMessage().contains("fk_playlist-content_1")) {
-					// This should have been caught by the song existence check, but handle as
-					// fallback
-					logger.warn("Attempt to add non-existent song ID {} to playlist ID {} (FK violation)", songId,
-							playlistId);
+				} else if (e.getMessage().contains("fk_playlist-content_1")) { // NOT_FOUND (song doesn't exist)
+					logger.warn("Attempt to add non-existent song ID {} to playlist ID {} (FK violation). Details: {}",
+							songId, playlistId, e.getMessage());
 					throw new DAOException("Song ID " + songId + " does not exist (FK check).", e,
 							DAOErrorType.NOT_FOUND);
-				} else {
-					// Other constraint violations
-					logger.error("SQL constraint violation adding song {} to playlist {}: {}", songId, playlistId,
-							e.getMessage(), e);
+				} else { // Other CONSTRAINT_VIOLATION
+					logger.error(
+							"SQL integrity constraint violation adding song {} to playlist {}: SQLState={}, Message={}",
+							songId, playlistId, e.getSQLState(), e.getMessage(), e);
 					throw new DAOException("Database constraint violation adding song to playlist.", e,
 							DAOErrorType.CONSTRAINT_VIOLATION);
 				}
-			} else {
-				// Other SQL errors
-				logger.error("SQL error adding song {} to playlist {}: {}", songId, playlistId, e.getMessage(), e);
+			} else { // Other SQL errors (GENERIC_ERROR - unexpected)
+				logger.error("SQL error adding song {} to playlist {}: SQLState={}, Message={}", songId, playlistId,
+						e.getSQLState(), e.getMessage(), e);
 				throw new DAOException("Database error adding song to playlist.", e, DAOErrorType.GENERIC_ERROR);
 			}
 		}

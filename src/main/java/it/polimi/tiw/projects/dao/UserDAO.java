@@ -73,17 +73,16 @@ public class UserDAO {
 				}
 			}
 		} catch (SQLException e) {
-			logger.error("SQL error during user creation for username {}: SQLState={}, Message={}", username,
-					e.getSQLState(), e.getMessage(), e);
-			// Check for unique constraint violation on username (MySQL error code 1062,
-			// SQLState '23000')
-			// This is a secondary check in case the initial SELECT misses a concurrent
-			// insert
-			if ("23000".equals(e.getSQLState())) {
-				// Logged above, re-throwing specific exception
+			// Check for unique constraint violation on username (SQLState '23000')
+			if ("23000".equals(e.getSQLState())) { // NAME_ALREADY_EXISTS
+				logger.warn(
+						"User creation failed for username {}: Username already exists (caught during INSERT). Details: SQLState={}, Message={}",
+						username, e.getSQLState(), e.getMessage());
 				throw new DAOException("Username '" + username + "' already exists.", e,
 						DAOException.DAOErrorType.NAME_ALREADY_EXISTS);
-			} else {
+			} else { // GENERIC_ERROR
+				logger.error("SQL error during user creation for username {}: SQLState={}, Message={}", username,
+						e.getSQLState(), e.getMessage(), e);
 				throw new DAOException("Error creating user: " + e.getMessage(), e,
 						DAOException.DAOErrorType.GENERIC_ERROR);
 			}
@@ -123,9 +122,13 @@ public class UserDAO {
 					throw new DAOException("Invalid credentials", DAOException.DAOErrorType.INVALID_CREDENTIALS);
 				}
 			}
-		} catch (SQLException | IllegalArgumentException e) { // Catch UUID parsing errors too
-			logger.error("Error checking credentials for username {}: {}", username, e.getMessage(), e);
+		} catch (SQLException e) { // GENERIC_ERROR
+			logger.error("SQL error checking credentials for username {}: {}", username, e.getMessage(), e);
 			throw new DAOException("Error checking credentials: " + e.getMessage(), e,
+					DAOException.DAOErrorType.GENERIC_ERROR);
+		} catch (IllegalArgumentException e) { // GENERIC_ERROR (expected for bad UUID data)
+			logger.error("Error parsing UUID for user {} during credential check: {}", username, e.getMessage());
+			throw new DAOException("Error processing user data during credential check: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
 	}
