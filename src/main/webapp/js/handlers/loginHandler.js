@@ -1,4 +1,5 @@
 import { renderLoginView, renderSignupView } from "../views/loginView.js";
+import { renderHomeView } from "../views/homeView.js";
 
 // Helper function to validate a single form field
 function validateField(inputElement, errorElementId) {
@@ -61,9 +62,8 @@ function displayLogin(appContainer) {
 
                     if (response.ok) {
                         console.log('Login successful:', data);
-                        alert('Login successful! Welcome ' + data.name);
-                        // TODO: Redirect to the main application page or dashboard
-                        window.location.href = 'index.html';
+                        sessionStorage.setItem('currentUser', JSON.stringify(data));
+                        renderHomeView(appContainer);
                     } else {
                         console.error('Login failed:', data.error || response.statusText);
                         const generalErrorElement = document.getElementById('login-general-error');
@@ -161,4 +161,32 @@ function displaySignup(appContainer) {
 
 export function initLoginPage(appContainer) {
     displayLogin(appContainer);
+}
+
+export async function logoutUser(appContainer) {
+    console.log("Attempting to logout user...");
+    try {
+        const response = await fetch('api/v1/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log('Logout successful:', data.message);
+        } else {
+            console.warn('Logout request failed on server:', data.error || response.statusText);
+            // Even if server logout fails for some reason, proceed to clear client-side session
+        }
+    } catch (error) {
+        console.error('Error during logout fetch:', error);
+        // Proceed to clear client-side session even if network error
+    } finally {
+        sessionStorage.removeItem('currentUser');
+        console.log('Client-side user session cleared.');
+        initLoginPage(appContainer); // Redirect to login page
+    }
 }

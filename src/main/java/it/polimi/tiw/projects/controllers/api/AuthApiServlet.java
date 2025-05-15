@@ -44,6 +44,25 @@ public class AuthApiServlet extends HttpServlet {
     }
 
     @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String pathInfo = req.getPathInfo();
+        logger.debug("Received GET request to /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
+
+        if ("/me".equals(pathInfo)) {
+            handleCheckSession(req, resp);
+        } else {
+            logger.warn("Invalid path for GET request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Endpoint not found.");
+            resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+        }
+    }
+
+    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
         logger.debug("Received POST request to /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
@@ -136,6 +155,44 @@ public class AuthApiServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         resp.getWriter().write(mapper.writeValueAsString(userResponse));
         logger.debug("Successfully sent OK response with user details for user: {}", user.getUsername());
+    }
+
+    private void handleCheckSession(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        logger.debug("Handling check session request (/me).");
+        HttpSession session = req.getSession(false); // false == do not create new session if one does not exist
+        ObjectMapper mapper = new ObjectMapper();
+
+        if (session != null) {
+            User user = (User) session.getAttribute("user");
+            if (user != null) {
+                logger.info("Active session found for user: {}", user.getUsername());
+                Map<String, String> userResponse = new HashMap<>();
+                userResponse.put("username", user.getUsername());
+                userResponse.put("name", user.getName());
+                userResponse.put("surname", user.getSurname());
+
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                resp.getWriter().write(mapper.writeValueAsString(userResponse));
+                logger.debug("Successfully sent OK response with user details for active session: {}",
+                        user.getUsername());
+                return;
+            } else {
+                logger.info("Session exists but no user attribute found.");
+            }
+        } else {
+            logger.info("No active session found for /me request.");
+        }
+
+        // If we reach here, no active user session was found
+        resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "No active session or user not authenticated.");
+        resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+        logger.debug("Sent UNAUTHORIZED response for /me request.");
     }
 
     private void handleLogout(HttpServletRequest req, HttpServletResponse resp) throws IOException {
