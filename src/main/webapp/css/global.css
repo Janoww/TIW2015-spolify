@@ -1,0 +1,37 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #D4BEE4;
+    color: #9B7EBD;
+}
+
+#app {
+    max-width: 800px;
+    margin: auto;
+    background-color: #EEEEEE;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+p {
+    color:#9B7EBD;
+    text-align: left;
+    font-size: 30px;
+}
+
+/* Styles for the title and icon */
+h1 {
+    color: #9B7EBD;
+    text-align: left;
+    font-size: 80px;
+}
+
+a:link {
+    color: #3B1E54;
+}
+
+.container {
+    text-align: center;
+}
