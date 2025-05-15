@@ -31,3 +31,8 @@ Based on the project history, common types include:
 
 - If more detail is needed, provide a longer description in the commit body, after a blank line following the subject.
 - Explain _what_ and _why_ vs. _how_.
+
+## Commit Scope and Granularity
+
+- **Atomic Commits:** Each commit should represent a single logical change.
+- **Smaller Commits:** If a set of changes is large or multifaceted, divide it into multiple smaller, focused commits. This improves clarity, makes code reviews easier, and helps in pinpointing issues if a rollback is needed.
