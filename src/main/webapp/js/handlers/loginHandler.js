@@ -1,5 +1,39 @@
 import { renderLoginView, renderSignupView } from "../views/loginView.js";
 
+// Helper function to validate a single form field
+function validateField(inputElement, errorElementId) {
+    const errorElement = document.getElementById(errorElementId);
+    if (!inputElement) { // Defensive check
+        console.error(`Input element not found for ${errorElementId}`);
+        return false;
+    }
+    if (inputElement.required && !inputElement.value.trim()) {
+        errorElement.textContent = `${inputElement.labels[0].textContent.replace(':', '')} is required.`;
+        inputElement.classList.add('input-error');
+        return false;
+    }
+    errorElement.textContent = '';
+    inputElement.classList.remove('input-error');
+    return true;
+}
+
+// Helper function to validate the entire form
+function validateForm(formId, fieldIds) {
+    let isValid = true;
+    fieldIds.forEach(fieldId => {
+        const inputElement = document.getElementById(fieldId);
+        if (inputElement) {
+            if (!validateField(inputElement, `${fieldId}-error`)) {
+                isValid = false;
+            }
+        } else {
+            console.warn(`validateForm: Element with ID ${fieldId} not found in form ${formId}`);
+        }
+    });
+    return isValid;
+}
+
+
 function displayLogin(appContainer) {
     renderLoginView(appContainer);
 
@@ -9,11 +43,16 @@ function displayLogin(appContainer) {
     if (loginForm) {
         loginForm.addEventListener("submit", async (event) => {
             event.preventDefault();
-            const username = event.target.username.value;
-            const password = event.target.password.value;
+            const fieldIds = ['username', 'password'];
+            if (validateForm('loginForm', fieldIds)) {
+                const username = event.target.username.value;
+                const password = event.target.password.value;
 
-            console.log("Login attempt: ", { username, password });
-            // TODO: Make the login logic to api.
+                console.log("Login attempt: ", { username, password });
+                // TODO: Make the login logic to api.
+            } else {
+                console.log('Login form has errors.');
+            }
         });
     }
 
@@ -34,13 +73,18 @@ function displaySignup(appContainer) {
     if (signupForm) {
         signupForm.addEventListener("submit", async (event) => {
             event.preventDefault();
-            const username = event.target.username.value;
-            const name = event.target.name.value;
-            const surname = event.target.surname.value;
-            const password = event.target.password.value;
+            const fieldIds = ['signupUsername', 'name', 'surname', 'signupPassword'];
+            if (validateForm('signupForm', fieldIds)) {
+                const username = event.target.username.value;
+                const name = event.target.name.value;
+                const surname = event.target.surname.value;
+                const password = event.target.password.value;
 
-            console.log("Signup attempt: ", { username, name, surname, password });
-            // TODO: Make the signup logic to api.
+                console.log("Signup attempt: ", { username, name, surname, password });
+                // TODO: Make the signup logic to api.
+            } else {
+                console.log('Signup form has errors.');
+            }
         });
     }
 

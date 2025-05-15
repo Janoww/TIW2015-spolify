@@ -52,3 +52,18 @@
     background-color: #EEEEEE;
     font-size: 20px;
 }
+
+.form-field .error-message {
+    color: #3B1E54;
+    font-size: 20px;
+    margin-left: 10px;
+    display: block;
+    min-height: 1em;
+    flex-grow: 1;
+    font-weight: bold;
+}
+
+.form-field input.input-error {
+    border-color: #3B1E54;
+    background-color: #D4BEE4;
+}

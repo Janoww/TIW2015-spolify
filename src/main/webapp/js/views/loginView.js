@@ -17,6 +17,11 @@ function createFormField(labelText, inputType, inputId, inputName, required = tr
 
     fieldDiv.appendChild(label);
     fieldDiv.appendChild(input);
+    const errorSpan = document.createElement('span');
+    errorSpan.className = 'error-message';
+    errorSpan.id = `${inputId}-error`;
+    fieldDiv.appendChild(errorSpan);
+
     return fieldDiv;
 }
 
@@ -48,6 +53,7 @@ export function renderLoginView(appContainer) {
 
     const loginForm = document.createElement('form');
     loginForm.id = 'loginForm';
+    loginForm.noValidate = true;
 
     loginForm.appendChild(createFormField('Username:', 'text', 'username', 'username'));
     loginForm.appendChild(createFormField('Password:', 'password', 'password', 'password'));
@@ -86,6 +92,7 @@ export function renderSignupView(appContainer) {
 
     const signupForm = document.createElement('form');
     signupForm.id = 'signupForm';
+    signupForm.noValidate = true; // Disable native browser validation
 
     signupForm.appendChild(createFormField('Username:', 'text', 'signupUsername', 'username'));
     signupForm.appendChild(createFormField('Name:', 'text', 'name', 'name'));
