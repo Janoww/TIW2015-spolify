@@ -40,7 +40,8 @@ public class CheckLogin extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
 		logger.debug("Received POST request for user login.");
 		UserDAO userDAO = new UserDAO(connection);
 		User user = null;
@@ -68,29 +69,31 @@ public class CheckLogin extends HttpServlet {
 			logger.info("User {} successfully authenticated.", username);
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-			case INVALID_CREDENTIALS: { // No user found with that username/password combination
-				logger.warn("Invalid credentials for username: {}. Details: {}", username, e.getMessage());
-				resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				resp.setContentType("application/json");
-				resp.setCharacterEncoding("UTF-8");
-				ObjectMapper mapper = new ObjectMapper();
-				Map<String, String> errorResponse = new HashMap<>();
-				errorResponse.put("error", "Invalid username or password");
-				resp.getWriter().write(mapper.writeValueAsString(errorResponse));
-				return;
-			}
-			default: { // If another exception occurs
-				logger.error("Unhandled DAOException for username: {}. ErrorType: {}. Details: {}", username,
-						e.getErrorType(), e.getMessage(), e);
-				resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				resp.setContentType("application/json");
-				resp.setCharacterEncoding("UTF-8");
-				ObjectMapper mapper = new ObjectMapper();
-				Map<String, String> errorResponse = new HashMap<>();
-				errorResponse.put("error", "Not possible to log in");
-				resp.getWriter().write(mapper.writeValueAsString(errorResponse));
-				return;
-			}
+				case INVALID_CREDENTIALS: { // No user found with that username/password combination
+					logger.warn("Invalid credentials for username: {}. Details: {}", username,
+							e.getMessage());
+					resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					resp.setContentType("application/json");
+					resp.setCharacterEncoding("UTF-8");
+					ObjectMapper mapper = new ObjectMapper();
+					Map<String, String> errorResponse = new HashMap<>();
+					errorResponse.put("error", "Invalid username or password");
+					resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+					return;
+				}
+				default: { // If another exception occurs
+					logger.error(
+							"Unhandled DAOException for username: {}. ErrorType: {}. Details: {}",
+							username, e.getErrorType(), e.getMessage(), e);
+					resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					resp.setContentType("application/json");
+					resp.setCharacterEncoding("UTF-8");
+					ObjectMapper mapper = new ObjectMapper();
+					Map<String, String> errorResponse = new HashMap<>();
+					errorResponse.put("error", "Not possible to log in");
+					resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+					return;
+				}
 
 			}
 		}
@@ -105,7 +108,8 @@ public class CheckLogin extends HttpServlet {
 		resp.setCharacterEncoding("UTF-8");
 		ObjectMapper mapper = new ObjectMapper();
 		resp.getWriter().write(mapper.writeValueAsString(user));
-		logger.debug("Successfully sent OK response with user details for user: {}", user.getUsername());
+		logger.debug("Successfully sent OK response with user details for user: {}",
+				user.getUsername());
 	}
 
 	@Override

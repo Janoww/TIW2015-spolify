@@ -11,13 +11,14 @@ public class ResponseUtils {
 
     /**
      * Sends a JSON error response.
-     * 
-     * @param resp         The HttpServletResponse object.
-     * @param statusCode   The HTTP status code.
+     *
+     * @param resp The HttpServletResponse object.
+     * @param statusCode The HTTP status code.
      * @param errorMessage The error message.
      * @throws IOException If an input or output exception occurs
      */
-    public static void sendError(HttpServletResponse resp, int statusCode, String errorMessage) throws IOException {
+    public static void sendError(HttpServletResponse resp, int statusCode, String errorMessage)
+            throws IOException {
         resp.setStatus(statusCode);
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
@@ -28,13 +29,14 @@ public class ResponseUtils {
 
     /**
      * Sends a JSON success response.
-     * 
-     * @param resp       The HttpServletResponse object.
+     *
+     * @param resp The HttpServletResponse object.
      * @param statusCode The HTTP status code.
-     * @param data       The data to be sent as JSON.
+     * @param data The data to be sent as JSON.
      * @throws IOException If an input or output exception occurs
      */
-    public static void sendJson(HttpServletResponse resp, int statusCode, Object data) throws IOException {
+    public static void sendJson(HttpServletResponse resp, int statusCode, Object data)
+            throws IOException {
         resp.setStatus(statusCode);
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");

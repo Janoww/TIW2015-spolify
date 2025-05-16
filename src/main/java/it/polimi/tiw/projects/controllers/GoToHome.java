@@ -65,7 +65,8 @@ public class GoToHome extends HttpServlet {
 			return;
 		}
 		UUID userId = user.getIdUser();
-		logger.debug("User {} (ID: {}) authenticated. Fetching home page data.", user.getUsername(), userId);
+		logger.debug("User {} (ID: {}) authenticated. Fetching home page data.", user.getUsername(),
+				userId);
 
 		List<Integer> playlistIDs;
 		List<Song> songList;
@@ -78,8 +79,8 @@ public class GoToHome extends HttpServlet {
 			songList = songDAO.findSongsByUser(userId);
 			logger.debug("Found {} songs for user ID: {}", songList.size(), userId);
 		} catch (DAOException e) {
-			logger.error("DAOException while fetching initial data for user ID: {}. ErrorType: {}", userId,
-					e.getErrorType(), e);
+			logger.error("DAOException while fetching initial data for user ID: {}. ErrorType: {}",
+					userId, e.getErrorType(), e);
 			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			resp.setContentType("application/json");
 			resp.setCharacterEncoding("UTF-8");
@@ -95,13 +96,15 @@ public class GoToHome extends HttpServlet {
 				logger.trace("Fetching playlist details for ID: {} by user ID: {}", id, userId);
 				return playlistDAO.findPlaylistById(id, userId);
 			} catch (DAOException e) {
-				logger.error("DAOException while fetching playlist details for ID: {} by user ID: {}. ErrorType: {}",
+				logger.error(
+						"DAOException while fetching playlist details for ID: {} by user ID: {}. ErrorType: {}",
 						id, userId, e.getErrorType(), e);
 				return null; // Allow other playlists to be fetched
 			}
 		}).filter(p -> p != null) // Filter out playlists that failed to load
 				.collect(java.util.stream.Collectors.toList());
-		logger.debug("Successfully fetched details for {} playlists for user ID: {}", playlists.size(), userId);
+		logger.debug("Successfully fetched details for {} playlists for user ID: {}",
+				playlists.size(), userId);
 
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.setContentType("application/json");

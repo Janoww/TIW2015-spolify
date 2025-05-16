@@ -46,58 +46,76 @@ public class UserApiServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
         logger.debug("Received POST request to /api/v1/users for user sign up.");
         UserDAO userDAO = new UserDAO(connection);
         UserCreationRequest userCreationDetails;
 
         try {
-            userCreationDetails = new ObjectMapper().readValue(req.getReader(), UserCreationRequest.class);
+            userCreationDetails =
+                    new ObjectMapper().readValue(req.getReader(), UserCreationRequest.class);
         } catch (JsonParseException | MismatchedInputException e) {
             logger.warn("Failed to parse JSON request body for user sign up: {}", e.getMessage());
-            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON format or missing fields.");
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                    "Invalid JSON format or missing fields.");
             return;
         }
 
-        String name = userCreationDetails.getName() != null ? userCreationDetails.getName().strip() : null;
-        String surname = userCreationDetails.getSurname() != null ? userCreationDetails.getSurname().strip() : null;
-        String username = userCreationDetails.getUsername() != null ? userCreationDetails.getUsername().strip() : null;
+        String name = userCreationDetails.getName() != null ? userCreationDetails.getName().strip()
+                : null;
+        String surname =
+                userCreationDetails.getSurname() != null ? userCreationDetails.getSurname().strip()
+                        : null;
+        String username = userCreationDetails.getUsername() != null
+                ? userCreationDetails.getUsername().strip()
+                : null;
         String password = userCreationDetails.getPassword();
 
         logger.debug("Attempting to sign up user with username: {}", username);
 
         // OWASP: Input Validation - Check for presence of all fields
-        if (name == null || name.isEmpty() || surname == null || surname.isEmpty() || username == null
-                || username.isEmpty() || password == null || password.isEmpty()) {
+        if (name == null || name.isEmpty() || surname == null || surname.isEmpty()
+                || username == null || username.isEmpty() || password == null
+                || password.isEmpty()) {
             logger.warn("Sign up attempt with missing credential values for username: {}",
                     (username != null ? username : "null"));
             ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
                     "Missing required fields: name, surname, username, password.");
             return;
         }
-        logger.debug("All parameters present for username: {}", (username != null ? username : "null"));
+        logger.debug("All parameters present for username: {}",
+                (username != null ? username : "null"));
 
         ServletContext servletContext = getServletContext();
-        Pattern namePattern = (Pattern) servletContext.getAttribute(AppContextListener.NAME_REGEX_PATTERN);
-        Pattern usernamePattern = (Pattern) servletContext.getAttribute(AppContextListener.USERNAME_REGEX_PATTERN);
-        Integer passwordMinLength = (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MIN_LENGTH);
+        Pattern namePattern =
+                (Pattern) servletContext.getAttribute(AppContextListener.NAME_REGEX_PATTERN);
+        Pattern usernamePattern =
+                (Pattern) servletContext.getAttribute(AppContextListener.USERNAME_REGEX_PATTERN);
+        Integer passwordMinLength =
+                (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MIN_LENGTH);
 
         // OWASP: Input Validation - Name format
         if (namePattern != null) {
             if (!namePattern.matcher(name).matches()) {
-                logger.warn("Sign up attempt with invalid name format (context-configured regex): {}", name);
+                logger.warn(
+                        "Sign up attempt with invalid name format (context-configured regex): {}",
+                        name);
                 ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
                         "Invalid name format. Use letters, spaces, hyphens, or apostrophes (3-100 characters).");
                 return;
             }
         } else {
-            logger.error("Name regex pattern not available from servlet context. Name validation might be incomplete.");
+            logger.error(
+                    "Name regex pattern not available from servlet context. Name validation might be incomplete.");
         }
 
         // Input Validation - Surname format
         if (namePattern != null) {
             if (!namePattern.matcher(surname).matches()) {
-                logger.warn("Sign up attempt with invalid surname format (context-configured regex): {}", surname);
+                logger.warn(
+                        "Sign up attempt with invalid surname format (context-configured regex): {}",
+                        surname);
                 ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
                         "Invalid surname format. Use letters, spaces, hyphens, or apostrophes (3-100 characters).");
                 return;
@@ -110,7 +128,9 @@ public class UserApiServlet extends HttpServlet {
         // Input Validation - Username format
         if (usernamePattern != null) {
             if (!usernamePattern.matcher(username).matches()) {
-                logger.warn("Sign up attempt with invalid username format (context-configured regex): {}", username);
+                logger.warn(
+                        "Sign up attempt with invalid username format (context-configured regex): {}",
+                        username);
                 ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
                         "Invalid username format. Use alphanumeric characters or underscores (3-100 characters).");
                 return;
@@ -145,11 +165,14 @@ public class UserApiServlet extends HttpServlet {
 
         } catch (DAOException e) {
             if (e.getErrorType() == DAOException.DAOErrorType.NAME_ALREADY_EXISTS) {
-                logger.warn("Sign up attempt for already existing username: {}. Details: {}", username, e.getMessage());
-                ResponseUtils.sendError(resp, HttpServletResponse.SC_CONFLICT, "Username already taken");
+                logger.warn("Sign up attempt for already existing username: {}. Details: {}",
+                        username, e.getMessage());
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_CONFLICT,
+                        "Username already taken");
             } else {
-                logger.error("DAOException during user creation for username: {}. ErrorType: {}. Details: {}", username,
-                        e.getErrorType(), e.getMessage(), e);
+                logger.error(
+                        "DAOException during user creation for username: {}. ErrorType: {}. Details: {}",
+                        username, e.getErrorType(), e.getMessage(), e);
                 ResponseUtils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                         "Not possible to sign up due to a server error.");
             }
@@ -172,7 +195,8 @@ public class UserApiServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         // resp.getWriter().write(mapper.writeValueAsString(userResponse)); // Old way
         ResponseUtils.sendJson(resp, HttpServletResponse.SC_CREATED, userResponse); // New way
-        logger.debug("Successfully sent CREATED response with user details for user: {}", createdUser.getUsername());
+        logger.debug("Successfully sent CREATED response with user details for user: {}",
+                createdUser.getUsername());
     }
 
     @Override

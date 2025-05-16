@@ -81,8 +81,9 @@ public class GetPlaylistDetails extends HttpServlet {
 			playlistId = Integer.parseInt(playlistIdParam.strip());
 			logger.debug("Requested playlist ID: {} by user ID: {}", playlistId, userId);
 		} catch (NumberFormatException | NullPointerException e) {
-			logger.warn("Invalid or missing playlistId parameter: '{}' for user ID: {}. Details: {}", playlistIdParam,
-					userId, e.getMessage());
+			logger.warn(
+					"Invalid or missing playlistId parameter: '{}' for user ID: {}. Details: {}",
+					playlistIdParam, userId, e.getMessage());
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			resp.setContentType("application/json");
 			resp.setCharacterEncoding("UTF-8");
@@ -100,13 +101,15 @@ public class GetPlaylistDetails extends HttpServlet {
 				page = Integer.parseInt(pageParam.strip());
 			}
 			if (page < 0) {
-				logger.debug("Requested page {} is negative, defaulting to 0. Playlist ID: {}, User ID: {}", page,
-						playlistId, userId);
+				logger.debug(
+						"Requested page {} is negative, defaulting to 0. Playlist ID: {}, User ID: {}",
+						page, playlistId, userId);
 				page = 0;
 			}
 		} catch (NumberFormatException e) {
-			logger.warn("Invalid page parameter: '{}'. Defaulting to page 0. Playlist ID: {}, User ID: {}", pageParam,
-					playlistId, userId);
+			logger.warn(
+					"Invalid page parameter: '{}'. Defaulting to page 0. Playlist ID: {}, User ID: {}",
+					pageParam, playlistId, userId);
 			page = 0; // Default to 0 if parsing fails or param is invalid
 		}
 		logger.debug("Requested page: {}. Playlist ID: {}, User ID: {}", page, playlistId, userId);
@@ -114,22 +117,25 @@ public class GetPlaylistDetails extends HttpServlet {
 		Playlist myPlaylist;
 		try {
 			myPlaylist = playlistDAO.findPlaylistById(playlistId, userId);
-			logger.debug("Successfully fetched playlist ID: {} for user ID: {}", playlistId, userId);
+			logger.debug("Successfully fetched playlist ID: {} for user ID: {}", playlistId,
+					userId);
 		} catch (DAOException e) {
 			String errorMessage = "Error accessing playlist";
 			int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 			// Specific logging for expected/unexpected errors is handled in the switch
 			// cases.
 			switch (e.getErrorType()) {
-			case NOT_FOUND:
-			case ACCESS_DENIED:
-				errorMessage = "Playlist not found";
-				statusCode = HttpServletResponse.SC_NOT_FOUND;
-				logger.warn("Playlist ID: {} not found or access denied for user ID: {}", playlistId, userId);
-				break;
-			default:
-				logger.error("Unhandled DAOException type: {}. Details: {}", e.getErrorType(), e.getMessage(), e);
-				break;
+				case NOT_FOUND:
+				case ACCESS_DENIED:
+					errorMessage = "Playlist not found";
+					statusCode = HttpServletResponse.SC_NOT_FOUND;
+					logger.warn("Playlist ID: {} not found or access denied for user ID: {}",
+							playlistId, userId);
+					break;
+				default:
+					logger.error("Unhandled DAOException type: {}. Details: {}", e.getErrorType(),
+							e.getMessage(), e);
+					break;
 			}
 			resp.setStatus(statusCode);
 			resp.setContentType("application/json");
@@ -143,27 +149,32 @@ public class GetPlaylistDetails extends HttpServlet {
 
 		List<Song> allPlaylistSongsOrdered = orderAllSongs(myPlaylist, songDAO, albumDAO);
 		if (allPlaylistSongsOrdered == null) {
-			logger.debug("No songs found or error in ordering for playlist ID: {}. Initializing to empty list.",
+			logger.debug(
+					"No songs found or error in ordering for playlist ID: {}. Initializing to empty list.",
 					playlistId);
 			allPlaylistSongsOrdered = new ArrayList<>();
 		}
-		logger.debug("Total songs in playlist ID {}: {}. Ordered: {}", playlistId, myPlaylist.getSongs().size(),
-				allPlaylistSongsOrdered.size());
+		logger.debug("Total songs in playlist ID {}: {}. Ordered: {}", playlistId,
+				myPlaylist.getSongs().size(), allPlaylistSongsOrdered.size());
 
 		int totPages = (allPlaylistSongsOrdered.size() + 4) / 5; // 5 songs per page
 		if (totPages == 0) {
 			page = 0;
-			logger.debug("No songs in playlist ID: {}, so total pages is 0, current page is 0.", playlistId);
+			logger.debug("No songs in playlist ID: {}, so total pages is 0, current page is 0.",
+					playlistId);
 		} else if (page >= totPages) {
 			page = totPages - 1;
 			logger.debug(
 					"Requested page {} is out of bounds (total pages: {}). Setting to last page: {}. Playlist ID: {}",
 					req.getParameter("page"), totPages, page, playlistId);
 		}
-		logger.debug("Pagination for playlist ID {}: Current Page: {}, Total Pages: {}", playlistId, page, totPages);
+		logger.debug("Pagination for playlist ID {}: Current Page: {}, Total Pages: {}", playlistId,
+				page, totPages);
 
-		List<Song> songsOnPage = allPlaylistSongsOrdered.stream().skip(page * 5L).limit(5).collect(Collectors.toList());
-		logger.debug("Songs on current page ({}) for playlist ID {}: {} songs.", page, playlistId, songsOnPage.size());
+		List<Song> songsOnPage = allPlaylistSongsOrdered.stream().skip(page * 5L).limit(5)
+				.collect(Collectors.toList());
+		logger.debug("Songs on current page ({}) for playlist ID {}: {} songs.", page, playlistId,
+				songsOnPage.size());
 
 		List<SongWithAlbum> songsWithAlbumList = songsOnPage.stream().map(s -> {
 			try {
@@ -171,17 +182,19 @@ public class GetPlaylistDetails extends HttpServlet {
 				logger.trace("Fetched album ID: {} for song ID: {}", s.getIdAlbum(), s.getIdSong());
 				return new SongWithAlbum(s, album);
 			} catch (DAOException e) {
-				logger.error("DAOException while fetching album ID: {} for song ID: {}. ErrorType: {}", s.getIdAlbum(),
-						s.getIdSong(), e.getErrorType(), e);
+				logger.error(
+						"DAOException while fetching album ID: {} for song ID: {}. ErrorType: {}",
+						s.getIdAlbum(), s.getIdSong(), e.getErrorType(), e);
 				return new SongWithAlbum(s, null); // Song without album info if album fetch fails
 			}
 		}).collect(Collectors.toList());
-		logger.debug("Mapped {} songs on page to SongWithAlbum objects for playlist ID: {}", songsWithAlbumList.size(),
-				playlistId);
+		logger.debug("Mapped {} songs on page to SongWithAlbum objects for playlist ID: {}",
+				songsWithAlbumList.size(), playlistId);
 
 		List<Song> unusedSongs = getUnusedSongs(myPlaylist, songDAO);
 		if (unusedSongs == null) {
-			logger.debug("No unused songs found or error in fetching for playlist ID: {}. Initializing to empty list.",
+			logger.debug(
+					"No unused songs found or error in fetching for playlist ID: {}. Initializing to empty list.",
 					playlistId);
 			unusedSongs = new ArrayList<>();
 		}
@@ -200,7 +213,8 @@ public class GetPlaylistDetails extends HttpServlet {
 		responseData.put("unusedSongs", unusedSongs);
 
 		resp.getWriter().write(mapper.writeValueAsString(responseData));
-		logger.debug("Successfully sent OK response with playlist details for playlist ID: {}", playlistId);
+		logger.debug("Successfully sent OK response with playlist details for playlist ID: {}",
+				playlistId);
 	}
 
 	@Override
@@ -225,13 +239,16 @@ public class GetPlaylistDetails extends HttpServlet {
 			for (Integer songId : songsIDs) {
 				try {
 					// Use findSongsByIdsAndUser, expecting a single song or empty list
-					List<Song> songsFound = songDao.findSongsByIdsAndUser(List.of(songId), playlistUserId);
+					List<Song> songsFound =
+							songDao.findSongsByIdsAndUser(List.of(songId), playlistUserId);
 					if (songsFound != null && !songsFound.isEmpty()) {
 						Song song = songsFound.get(0); // Get the first (and should be only) song
 						result.add(song);
 					} else {
-						// This case means songId was not found OR it doesn't belong to playlistUserId
-						logger.warn("Song ID: {} (for playlist ID: {}) not found or not accessible for user ID: {}.",
+						// This case means songId was not found OR it doesn't belong to
+						// playlistUserId
+						logger.warn(
+								"Song ID: {} (for playlist ID: {}) not found or not accessible for user ID: {}.",
 								songId, playlist.getIdPlaylist(), playlistUserId);
 					}
 				} catch (DAOException e) {
@@ -241,8 +258,8 @@ public class GetPlaylistDetails extends HttpServlet {
 				}
 			}
 			// Placeholder for actual ordering logic if needed
-			logger.debug("Retrieved {} songs for playlist ID: {}. Actual ordering logic TBD.", result.size(),
-					playlist.getIdPlaylist());
+			logger.debug("Retrieved {} songs for playlist ID: {}. Actual ordering logic TBD.",
+					result.size(), playlist.getIdPlaylist());
 		} else {
 			logger.debug("Playlist ID: {} has no song IDs associated.", playlist.getIdPlaylist());
 			result = new ArrayList<>();
@@ -251,8 +268,8 @@ public class GetPlaylistDetails extends HttpServlet {
 	}
 
 	private static List<Song> getUnusedSongs(Playlist playlist, SongDAO songDao) {
-		logger.debug("Getting unused songs for user ID: {} (related to playlist ID: {})", playlist.getIdUser(),
-				playlist.getIdPlaylist());
+		logger.debug("Getting unused songs for user ID: {} (related to playlist ID: {})",
+				playlist.getIdUser(), playlist.getIdPlaylist());
 		// TODO: Implement actual logic to find songs by user not in this playlist.
 		// For now, returning null, which will be handled as an empty list.
 		List<Song> allUserSongs;
@@ -260,14 +277,17 @@ public class GetPlaylistDetails extends HttpServlet {
 		try {
 			allUserSongs = songDao.findSongsByUser(playlist.getIdUser());
 			if (allUserSongs != null) {
-				List<Integer> playlistSongIds = playlist.getSongs() != null ? playlist.getSongs() : new ArrayList<>();
+				List<Integer> playlistSongIds =
+						playlist.getSongs() != null ? playlist.getSongs() : new ArrayList<>();
 				for (Song song : allUserSongs) {
 					if (!playlistSongIds.contains(song.getIdSong())) {
 						unusedSongs.add(song);
 					}
 				}
-				logger.debug("Found {} unused songs for user ID: {} (playlist ID: {}). Total user songs: {}",
-						unusedSongs.size(), playlist.getIdUser(), playlist.getIdPlaylist(), allUserSongs.size());
+				logger.debug(
+						"Found {} unused songs for user ID: {} (playlist ID: {}). Total user songs: {}",
+						unusedSongs.size(), playlist.getIdUser(), playlist.getIdPlaylist(),
+						allUserSongs.size());
 			} else {
 				logger.debug("User ID: {} has no songs. Playlist ID: {}", playlist.getIdUser(),
 						playlist.getIdPlaylist());

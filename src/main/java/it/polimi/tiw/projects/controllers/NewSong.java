@@ -49,7 +49,8 @@ public class NewSong extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws IOException, ServletException {
 		logger.debug("Received POST request to create a new song.");
 		SongDAO songDAO = new SongDAO(connection);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
@@ -91,8 +92,8 @@ public class NewSong extends HttpServlet {
 			genre = Genre.valueOf(req.getParameter("sGenre").strip());
 			logger.debug("Parsed genre: {}", genre);
 		} catch (IllegalArgumentException | NullPointerException e) {
-			logger.warn("Invalid genre value received: '{}' for user ID: {}. Details: {}", req.getParameter("sGenre"),
-					user.getIdUser(), e.getMessage());
+			logger.warn("Invalid genre value received: '{}' for user ID: {}. Details: {}",
+					req.getParameter("sGenre"), user.getIdUser(), e.getMessage());
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			resp.setContentType("application/json");
 			resp.setCharacterEncoding("UTF-8");
@@ -102,17 +103,18 @@ public class NewSong extends HttpServlet {
 			resp.getWriter().write(mapper.writeValueAsString(errorResponse));
 			return;
 		}
-		logger.debug("New song details: Title='{}', Album='{}', Year={}, Artist='{}', Genre='{}', UserID={}", title,
-				albumName, year, artist, genre, user.getIdUser());
+		logger.debug(
+				"New song details: Title='{}', Album='{}', Year={}, Artist='{}', Genre='{}', UserID={}",
+				title, albumName, year, artist, genre, user.getIdUser());
 
 		List<Album> albums;
 		try {
 			albums = albumDAO.findAlbumsByUser(user.getIdUser());
-			logger.debug("User {} has {} existing albums. Checking for album '{}'.", user.getUsername(), albums.size(),
-					albumName);
+			logger.debug("User {} has {} existing albums. Checking for album '{}'.",
+					user.getUsername(), albums.size(), albumName);
 		} catch (DAOException e) {
-			logger.error("DAOException while fetching albums for user ID: {}. ErrorType: {}", user.getIdUser(),
-					e.getErrorType(), e);
+			logger.error("DAOException while fetching albums for user ID: {}. ErrorType: {}",
+					user.getIdUser(), e.getErrorType(), e);
 			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			resp.setContentType("application/json");
 			resp.setCharacterEncoding("UTF-8");
@@ -125,8 +127,8 @@ public class NewSong extends HttpServlet {
 
 		Album existingAlbum = findAlbum(albums, albumName);
 
-		if (existingAlbum != null
-				&& (!(existingAlbum.getYear() == year) || !existingAlbum.getArtist().equalsIgnoreCase(artist))) {
+		if (existingAlbum != null && (!(existingAlbum.getYear() == year)
+				|| !existingAlbum.getArtist().equalsIgnoreCase(artist))) {
 			logger.warn(
 					"Album conflict: Album '{}' (ID: {}) exists with different year/artist. Submitted: Year={}, Artist='{}'. Existing: Year={}, Artist='{}'. User ID: {}",
 					albumName, existingAlbum.getIdAlbum(), year, artist, existingAlbum.getYear(),
@@ -143,20 +145,26 @@ public class NewSong extends HttpServlet {
 			return;
 		}
 		if (existingAlbum != null)
-			logger.debug("Found existing album: ID={}, Name='{}'", existingAlbum.getIdAlbum(), existingAlbum.getName());
+			logger.debug("Found existing album: ID={}, Name='{}'", existingAlbum.getIdAlbum(),
+					existingAlbum.getName());
 		else
-			logger.debug("No existing album found with name '{}'. A new one will be created.", albumName);
+			logger.debug("No existing album found with name '{}'. A new one will be created.",
+					albumName);
 
 		try {
 			if (existingAlbum != null) {
 				List<Song> songsInAlbum = songDAO.findSongsByUser(user.getIdUser()).stream()
-						.filter(s -> s.getIdAlbum() == existingAlbum.getIdAlbum()).collect(Collectors.toList());
-				logger.debug("Album ID {} (Name: '{}') has {} songs by user {}.", existingAlbum.getIdAlbum(),
-						existingAlbum.getName(), songsInAlbum.size(), user.getUsername());
+						.filter(s -> s.getIdAlbum() == existingAlbum.getIdAlbum())
+						.collect(Collectors.toList());
+				logger.debug("Album ID {} (Name: '{}') has {} songs by user {}.",
+						existingAlbum.getIdAlbum(), existingAlbum.getName(), songsInAlbum.size(),
+						user.getUsername());
 
 				if (songsInAlbum.stream().anyMatch(s -> s.getTitle().equalsIgnoreCase(title))) {
-					logger.warn("Song conflict: Song titled '{}' already exists in album '{}' (ID: {}) for user ID: {}",
-							title, existingAlbum.getName(), existingAlbum.getIdAlbum(), user.getIdUser());
+					logger.warn(
+							"Song conflict: Song titled '{}' already exists in album '{}' (ID: {}) for user ID: {}",
+							title, existingAlbum.getName(), existingAlbum.getIdAlbum(),
+							user.getIdUser());
 					String conflictMsg = "The song titled \"" + escapeJson(title) + "\" in album \""
 							+ escapeJson(existingAlbum.getName()) + "\" already exists.";
 					resp.setStatus(HttpServletResponse.SC_CONFLICT);
@@ -168,11 +176,12 @@ public class NewSong extends HttpServlet {
 					resp.getWriter().write(mapper.writeValueAsString(errorResponse));
 					return;
 				}
-				logger.debug("No song title conflict for '{}' in album '{}' (ID: {})", title, existingAlbum.getName(),
-						existingAlbum.getIdAlbum());
+				logger.debug("No song title conflict for '{}' in album '{}' (ID: {})", title,
+						existingAlbum.getName(), existingAlbum.getIdAlbum());
 			}
 		} catch (DAOException e) {
-			logger.error("DAOException while checking for existing songs in album '{}' for user ID: {}. ErrorType: {}",
+			logger.error(
+					"DAOException while checking for existing songs in album '{}' for user ID: {}. ErrorType: {}",
 					albumName, user.getIdUser(), e.getErrorType(), e);
 			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			resp.setContentType("application/json");
@@ -193,21 +202,25 @@ public class NewSong extends HttpServlet {
 
 		Album albumToUse = existingAlbum;
 		if (albumToUse == null) {
-			logger.debug("Creating new album: Name='{}', Year={}, Artist='{}', Cover='{}', UserID={}", albumName, year,
-					artist, imageUrl, user.getIdUser());
+			logger.debug(
+					"Creating new album: Name='{}', Year={}, Artist='{}', Cover='{}', UserID={}",
+					albumName, year, artist, imageUrl, user.getIdUser());
 			try {
-				albumToUse = albumDAO.createAlbum(albumName, year, artist, imageUrl, user.getIdUser());
+				albumToUse =
+						albumDAO.createAlbum(albumName, year, artist, imageUrl, user.getIdUser());
 				if (albumToUse == null) { // Should not happen if DAO throws exceptions
-					logger.error("albumDAO.createAlbum returned null for '{}'. This indicates an issue in DAO.",
+					logger.error(
+							"albumDAO.createAlbum returned null for '{}'. This indicates an issue in DAO.",
 							albumName);
 					throw new DAOException("Failed to create or retrieve album.",
 							DAOException.DAOErrorType.GENERIC_ERROR);
 				}
-				logger.info("Successfully created new album ID: {} with name '{}'", albumToUse.getIdAlbum(),
-						albumToUse.getName());
+				logger.info("Successfully created new album ID: {} with name '{}'",
+						albumToUse.getIdAlbum(), albumToUse.getName());
 			} catch (DAOException e) {
-				logger.error("DAOException while creating new album '{}' for user ID: {}. ErrorType: {}", albumName,
-						user.getIdUser(), e.getErrorType(), e);
+				logger.error(
+						"DAOException while creating new album '{}' for user ID: {}. ErrorType: {}",
+						albumName, user.getIdUser(), e.getErrorType(), e);
 				resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				resp.setContentType("application/json");
 				resp.setCharacterEncoding("UTF-8");
@@ -221,18 +234,23 @@ public class NewSong extends HttpServlet {
 
 		it.polimi.tiw.projects.beans.Song createdSong;
 		try {
-			logger.debug("Creating new song: Title='{}', AlbumID={}, Year={}, Genre={}, Audio='{}', UserID={}", title,
-					albumToUse.getIdAlbum(), year, genre, audioUrl, user.getIdUser());
-			createdSong = songDAO.createSong(title, albumToUse.getIdAlbum(), year, genre, audioUrl, user.getIdUser());
+			logger.debug(
+					"Creating new song: Title='{}', AlbumID={}, Year={}, Genre={}, Audio='{}', UserID={}",
+					title, albumToUse.getIdAlbum(), year, genre, audioUrl, user.getIdUser());
+			createdSong = songDAO.createSong(title, albumToUse.getIdAlbum(), year, genre, audioUrl,
+					user.getIdUser());
 			if (createdSong == null) { // Should not happen if DAO throws exceptions
-				logger.error("songDAO.createSong returned null for title '{}'. This indicates an issue in DAO.", title);
-				throw new DAOException("Failed to create or retrieve song.", DAOException.DAOErrorType.GENERIC_ERROR);
+				logger.error(
+						"songDAO.createSong returned null for title '{}'. This indicates an issue in DAO.",
+						title);
+				throw new DAOException("Failed to create or retrieve song.",
+						DAOException.DAOErrorType.GENERIC_ERROR);
 			}
-			logger.info("Successfully created new song ID: {} with title '{}'", createdSong.getIdSong(),
-					createdSong.getTitle());
+			logger.info("Successfully created new song ID: {} with title '{}'",
+					createdSong.getIdSong(), createdSong.getTitle());
 		} catch (DAOException e) {
-			logger.error("DAOException while creating new song '{}' for user ID: {}. ErrorType: {}", title,
-					user.getIdUser(), e.getErrorType(), e);
+			logger.error("DAOException while creating new song '{}' for user ID: {}. ErrorType: {}",
+					title, user.getIdUser(), e.getErrorType(), e);
 			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			resp.setContentType("application/json");
 			resp.setCharacterEncoding("UTF-8");
@@ -268,15 +286,17 @@ public class NewSong extends HttpServlet {
 		responseData.put("album", albumMap);
 
 		resp.getWriter().write(mapper.writeValueAsString(responseData));
-		logger.debug("Successfully sent CREATED response with new song (ID: {}) and album (ID: {}) details.",
+		logger.debug(
+				"Successfully sent CREATED response with new song (ID: {}) and album (ID: {}) details.",
 				createdSong.getIdSong(), albumToUse.getIdAlbum());
 	}
 
 	private String escapeJson(String str) {
 		if (str == null)
 			return "";
-		return str.replace("\\", "\\\\").replace("\"", "\\\"").replace("\b", "\\b").replace("\f", "\\f")
-				.replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+		return str.replace("\\", "\\\\").replace("\"", "\\\"").replace("\b", "\\b")
+				.replace("\f", "\\f").replace("\n", "\\n").replace("\r", "\\r")
+				.replace("\t", "\\t");
 	}
 
 	@Override
@@ -290,8 +310,10 @@ public class NewSong extends HttpServlet {
 	}
 
 	private static Album findAlbum(List<Album> list, String albumName) {
-		logger.trace("Searching for album by name '{}' in a list of {} albums.", albumName, list.size());
-		Album found = list.stream().filter(a -> a.getName().equalsIgnoreCase(albumName)).findFirst().orElse(null);
+		logger.trace("Searching for album by name '{}' in a list of {} albums.", albumName,
+				list.size());
+		Album found = list.stream().filter(a -> a.getName().equalsIgnoreCase(albumName)).findFirst()
+				.orElse(null);
 		if (found != null) {
 			logger.trace("Album '{}' found with ID: {}", albumName, found.getIdAlbum());
 		} else {
@@ -357,7 +379,8 @@ public class NewSong extends HttpServlet {
 			}
 			String imageType = imagePart.getContentType();
 			if (imageType == null || !imageType.startsWith("image/")) {
-				logger.debug("Validation failed: Uploaded image file type '{}' is not valid.", imageType);
+				logger.debug("Validation failed: Uploaded image file type '{}' is not valid.",
+						imageType);
 				return "The uploaded file must be a valid image";
 			}
 			logger.trace("Image part content type: {}", imageType);
@@ -369,7 +392,8 @@ public class NewSong extends HttpServlet {
 			}
 			String audioType = audioPart.getContentType();
 			if (audioType == null || !audioType.startsWith("audio/")) {
-				logger.debug("Validation failed: Uploaded audio file type '{}' is not valid.", audioType);
+				logger.debug("Validation failed: Uploaded audio file type '{}' is not valid.",
+						audioType);
 				return "The uploaded file must be a valid audio file";
 			}
 			logger.trace("Audio part content type: {}", audioType);

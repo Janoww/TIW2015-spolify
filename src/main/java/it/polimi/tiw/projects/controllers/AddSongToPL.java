@@ -76,43 +76,44 @@ public class AddSongToPL extends HttpServlet {
 		}
 		logger.debug("Parameters validated successfully.");
 
-		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect")).map(Integer::parseInt)
-				.collect(Collectors.toList());
+		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect"))
+				.map(Integer::parseInt).collect(Collectors.toList());
 		Integer playlistId = Integer.parseInt(req.getParameter("playlistId").strip());
-		logger.debug("Attempting to add songs {} to playlist ID: {} for user ID: {}", songIDs, playlistId,
-				user.getIdUser());
+		logger.debug("Attempting to add songs {} to playlist ID: {} for user ID: {}", songIDs,
+				playlistId, user.getIdUser());
 
 		try {
 			for (Integer songId : songIDs) {
 				logger.debug("Adding song ID: {} to playlist ID: {}", songId, playlistId);
 				playlistDAO.addSongToPlaylist(playlistId, user.getIdUser(), songId);
 			}
-			logger.info("Successfully added {} song(s) to playlist ID: {} for user ID: {}", songIDs.size(), playlistId,
-					user.getIdUser());
+			logger.info("Successfully added {} song(s) to playlist ID: {} for user ID: {}",
+					songIDs.size(), playlistId, user.getIdUser());
 		} catch (DAOException e) {
 			String errorMessage = "Error adding song(s) to playlist";
 			int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			switch (e.getErrorType()) {
-			case NOT_FOUND:
-				errorMessage = e.getMessage(); // Specific message from DAO
-				statusCode = HttpServletResponse.SC_NOT_FOUND;
-				logger.warn("Playlist or song not found: {}", errorMessage);
-				break;
-			case ACCESS_DENIED:
-				errorMessage = "Playlist not found or access denied"; // Generic for security
-				statusCode = HttpServletResponse.SC_NOT_FOUND; // Or SC_FORBIDDEN
-				logger.warn("Access denied for playlist ID: {}", playlistId);
-				break;
-			case DUPLICATE_ENTRY:
-				errorMessage = e.getMessage(); // Specific message from DAO
-				statusCode = HttpServletResponse.SC_CONFLICT;
-				logger.warn("Duplicate entry detected: {}", errorMessage);
-				break;
-			default:
-				logger.error("Unhandled DAOException type: {}. Details: {}", e.getErrorType(), e.getMessage(), e);
-				// errorMessage and statusCode remain as defaults
-				break;
+				case NOT_FOUND:
+					errorMessage = e.getMessage(); // Specific message from DAO
+					statusCode = HttpServletResponse.SC_NOT_FOUND;
+					logger.warn("Playlist or song not found: {}", errorMessage);
+					break;
+				case ACCESS_DENIED:
+					errorMessage = "Playlist not found or access denied"; // Generic for security
+					statusCode = HttpServletResponse.SC_NOT_FOUND; // Or SC_FORBIDDEN
+					logger.warn("Access denied for playlist ID: {}", playlistId);
+					break;
+				case DUPLICATE_ENTRY:
+					errorMessage = e.getMessage(); // Specific message from DAO
+					statusCode = HttpServletResponse.SC_CONFLICT;
+					logger.warn("Duplicate entry detected: {}", errorMessage);
+					break;
+				default:
+					logger.error("Unhandled DAOException type: {}. Details: {}", e.getErrorType(),
+							e.getMessage(), e);
+					// errorMessage and statusCode remain as defaults
+					break;
 			}
 			resp.setStatus(statusCode);
 			resp.setContentType("application/json");
