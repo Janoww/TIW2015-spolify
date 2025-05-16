@@ -46,15 +46,16 @@ function createTitleContainer(titleText) {
 export function renderLoginView(appContainer) {
     appContainer.innerHTML = '';
 
-    const containerDiv = document.createElement('div');
-    containerDiv.className = 'container';
+    const loginSection = document.createElement('section');
+    loginSection.id = 'login-section';
+    loginSection.className = 'container';
 
-    containerDiv.appendChild(createTitleContainer('LOGIN'));
+    loginSection.appendChild(createTitleContainer('LOGIN'));
 
     const loginGeneralErrorDiv = document.createElement('div');
     loginGeneralErrorDiv.id = 'login-general-error';
     loginGeneralErrorDiv.className = 'error-message general-error-message';
-    containerDiv.appendChild(loginGeneralErrorDiv);
+    loginSection.appendChild(loginGeneralErrorDiv);
 
     const loginForm = document.createElement('form');
     loginForm.id = 'loginForm';
@@ -73,7 +74,7 @@ export function renderLoginView(appContainer) {
     buttonFieldDiv.appendChild(loginButton);
     loginForm.appendChild(buttonFieldDiv);
 
-    containerDiv.appendChild(loginForm);
+    loginSection.appendChild(loginForm);
 
     const pElement = document.createElement('p');
     pElement.textContent = "Don't have an account? ";
@@ -82,23 +83,24 @@ export function renderLoginView(appContainer) {
     signupLink.id = 'signupLink';
     signupLink.textContent = 'Sign up';
     pElement.appendChild(signupLink);
-    containerDiv.appendChild(pElement);
+    loginSection.appendChild(pElement);
 
-    appContainer.appendChild(containerDiv);
+    appContainer.appendChild(loginSection);
 }
 
 export function renderSignupView(appContainer) {
     appContainer.innerHTML = '';
 
-    const containerDiv = document.createElement('div');
-    containerDiv.className = 'container';
+    const signupSection = document.createElement('section');
+    signupSection.id = 'signup-section';
+    signupSection.className = 'container';
 
-    containerDiv.appendChild(createTitleContainer('SIGN UP'));
+    signupSection.appendChild(createTitleContainer('SIGN UP'));
 
     const signupGeneralErrorDiv = document.createElement('div');
     signupGeneralErrorDiv.id = 'signup-general-error';
-    signupGeneralErrorDiv.className = 'error-message general-error-message';
-    containerDiv.appendChild(signupGeneralErrorDiv);
+    signupGeneralErrorDiv.className = 'general-error-message';
+    signupSection.appendChild(signupGeneralErrorDiv);
 
     const signupForm = document.createElement('form');
     signupForm.id = 'signupForm';
@@ -118,7 +120,7 @@ export function renderSignupView(appContainer) {
     buttonFieldDiv.appendChild(signupButton);
     signupForm.appendChild(buttonFieldDiv);
 
-    containerDiv.appendChild(signupForm);
+    signupSection.appendChild(signupForm);
 
     const pElement = document.createElement('p');
     pElement.textContent = 'Already have an account? ';
@@ -127,7 +129,7 @@ export function renderSignupView(appContainer) {
     loginLink.id = 'loginLink';
     loginLink.textContent = 'Login';
     pElement.appendChild(loginLink);
-    containerDiv.appendChild(pElement);
+    signupSection.appendChild(pElement);
 
-    appContainer.appendChild(containerDiv);
+    appContainer.appendChild(signupSection);
 }

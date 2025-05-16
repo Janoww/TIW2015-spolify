@@ -12,16 +12,17 @@ body {
     background-color: #EEEEEE;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
 p {
-    color:#9B7EBD;
+    color: #9B7EBD;
     text-align: left;
-    font-size: 30px;
+    font-size: 25px;
+    display: inline-block;
 }
 
 /* Styles for the title and icon */
@@ -39,13 +40,6 @@ form {
     display: inline-block;
 }
 
-.container {
-    text-align: center;
-}
-
-.error-message {
-    color: #3B1E54;
-    font-size: 20px;
-    font-weight: bold;
+section {
     text-align: center;
 }
