@@ -5,12 +5,12 @@ import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
+import it.polimi.tiw.projects.beans.FileData;
+import it.polimi.tiw.projects.utils.StorageUtils; // Added import
 import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +48,6 @@ public class ImageDAO {
         } catch (IOException e) {
             log.error("CRITICAL: Could not create image storage directory: {}",
                     this.imageStorageDirectory, e);
-            // Throw a runtime exception as the image DAO cannot function without its
-            // storage
             throw new RuntimeException("Could not initialize image storage directory", e);
         } catch (SecurityException e) {
             log.error("CRITICAL: Security permissions prevent creating image storage directory: {}",
@@ -82,29 +80,29 @@ public class ImageDAO {
 
         Path tempFile = null;
         try {
-            // 1. Create a temporary file (use a generic suffix initially)
+            // Create a temporary file (use a generic suffix initially)
             tempFile = Files.createTempFile("img_upload_", ".tmp");
             log.debug("Created temporary file: {}", tempFile);
             Files.copy(imageStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
             log.debug("Copied input stream to temporary file.");
 
-            // 2. Validate content and get the correct extension based on MIME type
+            // Validate content and get the correct extension based on MIME type
             log.debug("Validating image file content and determining extension...");
             String targetExtension = validateAndGetExtension(tempFile);
             log.debug("Image content validated. Target extension: {}", targetExtension);
 
-            // 3. Generate final filename using the determined extension
+            // Generate final filename using the determined extension
             String finalFilename = generateUniqueFilename(originalFileName, targetExtension);
             Path finalPath = this.imageStorageDirectory.resolve(finalFilename);
             log.debug("Generated final path: {}", finalPath);
 
-            // 4. Move temporary file to permanent storage
+            // Move temporary file to permanent storage
             Files.move(tempFile, finalPath, StandardCopyOption.REPLACE_EXISTING);
             log.info("Successfully saved image to: {}", finalPath);
 
-            // 5. Return the final filename (relative to the image storage directory)
+            // Return the final filename (relative to the image storage directory)
             log.debug("Returning final filename: {}", finalFilename);
-            return finalFilename; // Return only the filename, not the relative path
+            return finalFilename;
 
         } catch (IOException e) {
             log.error("IOException occurred during image save process for original file {}: {}",
@@ -140,7 +138,7 @@ public class ImageDAO {
             mimeType = tika.detect(imageFile);
             log.debug("Detected MIME type for {}: {}", imageFile, mimeType);
 
-            // Basic check: Is it an image?
+            // Basic check
             if (mimeType == null || !mimeType.startsWith("image/")) {
                 log.warn("Image validation failed for {}: Detected MIME type '{}' is not image.",
                         imageFile, mimeType);
@@ -149,7 +147,7 @@ public class ImageDAO {
                                 + mimeType + ").");
             }
 
-            // Specific check: Is the detected MIME type in our allowed map?
+            // Specific check for allowed mimetypes
             String targetExtension = ALLOWED_MIME_TYPES_MAP.get(mimeType.toLowerCase());
             if (targetExtension == null) {
                 log.warn(
@@ -169,7 +167,6 @@ public class ImageDAO {
                     e.getMessage(), e);
             throw e;
         } catch (Exception e) {
-            // Catch any other unexpected errors during detection/validation
             log.error("Unexpected error during image validation for {}: {}", imageFile,
                     e.getMessage(), e);
             throw new IllegalArgumentException(
@@ -224,11 +221,10 @@ public class ImageDAO {
         // Ensure it doesn't end with an underscore if truncated or sanitized that way
         sanitizedBaseName = sanitizedBaseName.replaceAll("_+$", "");
         if (sanitizedBaseName.isEmpty()) {
-            sanitizedBaseName = "image"; // Default if sanitization results in empty string
+            sanitizedBaseName = "image";
         }
 
         String uuid = UUID.randomUUID().toString();
-        // Use the targetExtension determined from MIME type
         return sanitizedBaseName + "_" + uuid + targetExtension;
     }
 
@@ -245,89 +241,101 @@ public class ImageDAO {
     public void deleteImage(String filename) throws DAOException, IllegalArgumentException {
         log.info("Attempting to delete image file with filename: {}", filename);
 
-        // 1. Validate filename
+        // Validate filename for early exit
         if (filename == null || filename.isBlank()) {
             log.warn("Delete image failed: Filename was null or blank.");
             throw new IllegalArgumentException("Filename cannot be null or empty for deletion.");
         }
-        // Check for path separators or traversal attempts
-        if (filename.contains("/") || filename.contains("\\") || filename.contains("..")) {
-            log.warn(
-                    "Delete image failed: Filename '{}' contains invalid characters (path separators or '..').",
-                    filename);
-            throw new IllegalArgumentException(
-                    "Invalid filename: must not contain path separators ('/', '\\') or '..'.");
-        }
-        // Check for problematic names like "." or just an extension
+        // Specific check for problematic names not covered by general path validation for retrieval
         if (filename.equals(".") || filename.startsWith(".")) {
-            log.warn("Delete image failed: Filename '{}' is invalid.", filename);
-            throw new IllegalArgumentException("Invalid filename provided.");
-        }
-
-        // 2. Construct potential path within the configured image storage directory
-        Path potentialPath;
-        try {
-            potentialPath = this.imageStorageDirectory.resolve(filename).normalize();
-            log.debug("Constructed potential absolute path: {}", potentialPath);
-        } catch (InvalidPathException e) {
-            log.warn("Delete image failed: Invalid path generated from filename '{}'.", filename,
-                    e);
-            throw new IllegalArgumentException(
-                    "Invalid filename resulting in invalid path: " + e.getMessage(), e);
+            log.warn("Delete image failed: Filename '{}' is invalid for deletion.", filename);
+            throw new IllegalArgumentException("Invalid filename for deletion.");
         }
 
         try {
-            // 3. Validate that the resolved path is still within the image storage
-            // directory
-            Path imageStorageRealPath = this.imageStorageDirectory.toRealPath();
-            Path fileRealPath = potentialPath.toRealPath();
+            // Validate, resolve, and check existence using utility
+            Path fileRealPath =
+                    StorageUtils.validateAndResolveSecurePath(filename, this.imageStorageDirectory);
+            log.debug("Path validated for deletion: {}", fileRealPath);
 
-            log.debug("Image storage real path: {}", imageStorageRealPath);
-            log.debug("File real path: {}", fileRealPath);
-
-            if (!fileRealPath.startsWith(imageStorageRealPath)) {
-                log.warn(
-                        "Delete image failed: Filename '{}' resolves to path '{}' which is outside the designated image storage directory '{}'.",
-                        filename, fileRealPath, imageStorageRealPath);
-                throw new IllegalArgumentException(
-                        "Invalid filename: resolves outside storage directory.");
-            }
-
-            // 4. Delete the file
-            log.debug("Attempting to delete validated file at: {}", fileRealPath);
-
+            // Delete the file
             boolean deleted = Files.deleteIfExists(fileRealPath);
             if (deleted) {
                 log.info("Successfully deleted image file: {}", fileRealPath);
             } else {
-                log.warn("Image file not found for deletion (deleteIfExists returned false): {}",
+                log.warn(
+                        "Image file not found for deletion (deleteIfExists returned false after validation): {}",
                         fileRealPath);
-                throw new DAOException("Image file not found for deletion: " + filename,
+                throw new DAOException("Image file disappeared before deletion: " + filename,
                         DAOErrorType.NOT_FOUND);
             }
-
-        } catch (NoSuchFileException e) {
-            log.warn(
-                    "Image file not found for deletion (NoSuchFileException during path validation): {}",
-                    potentialPath);
-            throw new DAOException("Image file not found for deletion: " + filename,
-                    DAOErrorType.NOT_FOUND);
+        } catch (DAOException | IllegalArgumentException e) {
+            log.warn("Validation or access error during image deletion for {}: {}", filename,
+                    e.getMessage());
+            throw e;
         } catch (IOException e) {
-            log.error("IOException occurred during image deletion for relative path {}: {}",
-                    filename, e.getMessage(), e);
+            log.error("IOException occurred during image file deletion for {}: {}", filename,
+                    e.getMessage(), e);
             throw new DAOException("Failed to delete image due to I/O error: " + e.getMessage(), e,
                     DAOErrorType.GENERIC_ERROR);
         } catch (SecurityException e) {
-            log.error("SecurityException occurred during image deletion for filename {}: {}",
-                    filename, e.getMessage(), e);
+            log.error("SecurityException occurred during image file deletion for {}: {}", filename,
+                    e.getMessage(), e);
             throw new DAOException(
                     "Failed to delete image due to security restrictions: " + e.getMessage(), e,
                     DAOErrorType.GENERIC_ERROR);
-        } catch (Exception e) { // Catch unexpected errors
+        } catch (Exception e) {
             log.error("Unexpected error during image deletion for filename {}: {}", filename,
                     e.getMessage(), e);
             throw new DAOException("An unexpected error occurred during image deletion.", e,
                     DAOErrorType.GENERIC_ERROR);
+        }
+    }
+
+    /**
+     * Retrieves an image file's data and metadata.
+     *
+     * @param filename The unique filename of the image (e.g., "filename_uuid.jpg") stored in the
+     *        image directory.
+     * @return A FileData object containing the image's content stream and metadata.
+     * @throws DAOException If the file is not found, cannot be accessed, or an I/O error occurs.
+     * @throws IllegalArgumentException If the filename is invalid (null, blank, or contains path
+     *         traversal).
+     */
+    public FileData getImage(String filename) throws DAOException, IllegalArgumentException {
+        log.info("Attempting to retrieve image file with filename: {}", filename);
+
+        try {
+            // Validate, resolve, and check existence using utility
+            Path fileRealPath =
+                    StorageUtils.validateAndResolveSecurePath(filename, this.imageStorageDirectory);
+            log.debug("Path validated for retrieval: {}", fileRealPath);
+
+            // Get metadata and open stream
+            String mimeType = new Tika().detect(fileRealPath);
+            long size = Files.size(fileRealPath);
+            InputStream contentStream = Files.newInputStream(fileRealPath);
+
+            log.info("Successfully prepared FileData for image: {}", filename);
+            return new FileData(contentStream, filename, mimeType, size);
+
+        } catch (DAOException | IllegalArgumentException e) {
+            log.warn("Validation or access error during image retrieval for {}: {}", filename,
+                    e.getMessage());
+            throw e;
+        } catch (IOException e) {
+            log.error("IOException occurred during image metadata/content retrieval for {}: {}",
+                    filename, e.getMessage(), e);
+            throw new DAOException("Failed to retrieve image metadata or content due to I/O error: "
+                    + e.getMessage(), e, DAOErrorType.GENERIC_ERROR);
+        } catch (SecurityException e) {
+            log.error(
+                    "SecurityException occurred during image metadata/content retrieval for {}: {}",
+                    filename, e.getMessage(), e);
+            throw new DAOException(
+                    "Failed to retrieve image metadata or content due to security restrictions: "
+                            + e.getMessage(),
+                    e, DAOErrorType.GENERIC_ERROR);
         }
     }
 }
