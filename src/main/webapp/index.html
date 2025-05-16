@@ -15,7 +15,7 @@
 			<p> <label for="username">Username: </label> <input type="text" name="lUsername" id="lUsername" required>
 			</p>
 			<p> <label for="pwd">Password: </label><input type="password" name="lPwd" id="lPwd" required> </p>
-			<input type="submit" value="Continue">
+			<input type="submit" class="styled-button" value="Continue">
 			<p th:text=" ${errorLogInMsg}"></p>
 		</fieldset>
 	</form>
@@ -28,7 +28,7 @@
 			<p> <label for="username">Username: </label><input type="text" name="sUsername" id="sUsername" required>
 			</p>
 			<p> <label for="pwd">Password: </label><input type="password" name="sPwd" id="sPwd" required> </p>
-			<input type="submit" value="Sign Up">
+			<input type="submit" class="styled-button" value=" Sign Up">
 			<p th:text=" ${errorSignUpMsg}"></p>
 		</fieldset>
 
