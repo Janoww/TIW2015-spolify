@@ -5,10 +5,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.sql.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
 import it.polimi.tiw.projects.beans.User;
@@ -18,6 +21,7 @@ import it.polimi.tiw.projects.utils.ConnectionHandler;
 import it.polimi.tiw.projects.utils.TemplateHandler;
 
 public class CheckLogin extends HttpServlet {
+	private static final Logger logger = LoggerFactory.getLogger(CheckLogin.class);
 	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
 	private TemplateEngine templateEngine;
@@ -41,6 +45,7 @@ public class CheckLogin extends HttpServlet {
 
 		String username = req.getParameter("lUsername").strip();
 		String password = req.getParameter("lPwd").strip();
+		
 
 		// Checking if the parameters are empty
 		if (username == null || password == null || username.isEmpty() || password.isEmpty()) {
@@ -73,6 +78,7 @@ public class CheckLogin extends HttpServlet {
 
 		// Assign the user to the session
 		req.getSession().setAttribute("user", user);
+		
 		String path = getServletContext().getContextPath() + "/Home";
 		resp.sendRedirect(path);
 

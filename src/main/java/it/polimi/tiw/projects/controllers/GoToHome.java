@@ -48,7 +48,15 @@ public class GoToHome extends HttpServlet {
 		logger.debug("Loading HOME");
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		SongDAO songDAO = new SongDAO(connection);
+		
+		// If the user is not logged in (not present in session) redirect to the login
+		String loginPath = getServletContext().getContextPath() + "/index.html";
+		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
+			resp.sendRedirect(loginPath);
+			return;
+		}
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
+	
 
 		List<Integer> playlistIDs = null;
 		List<Song> songList = null;
@@ -65,8 +73,10 @@ public class GoToHome extends HttpServlet {
 		}
 
 		// Get the list of all playlists
+		
+		//FIXME playlists have to be ordered "ordinate per data di creazione decrescente"
 		List<Playlist> playlists = null;
-		if (playlistIDs != null || !playlistIDs.isEmpty()) {
+		if (playlistIDs != null && !playlistIDs.isEmpty()) {
 			playlists = playlistIDs.stream().map(id -> {
 				try {
 					return playlistDAO.findPlaylistById(id, userId);

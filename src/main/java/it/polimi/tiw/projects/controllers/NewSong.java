@@ -28,8 +28,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
-// FIXME: if you remove the annotation obviously it don't work use it to test the handling of null
-// parameters
+
 @MultipartConfig
 public class NewSong extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(NewSong.class);
@@ -131,7 +130,7 @@ public class NewSong extends HttpServlet {
 				return;
 			}
 
-			String imageUrl = null;
+			String imageFileRename = null;
 
 			if (album == null) {
 				// If an album already exists the image will not be updated
@@ -141,13 +140,12 @@ public class NewSong extends HttpServlet {
 
 				ImageDAO imageDAO = (ImageDAO) getServletContext().getAttribute("imageDAO");
 
-				String imageFileRename;
 				try {
 					imageFileRename = imageDAO.saveImage(imageStream, imageFileName);
 				} catch (IllegalArgumentException e) {
 					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 							"IllegalArgumentException during image save");
-					e.printStackTrace();
+					e.printStackTrace(); //FIXME
 					return;
 				} catch (DAOException e) {
 					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -156,14 +154,12 @@ public class NewSong extends HttpServlet {
 					return;
 				}
 
-				// TODO To get the image url knowing the filerename
-
 			}
 
 			// Create a new album if it doesn't exist
 			if (album == null) {
 				try {
-					album = albumDAO.createAlbum(albumName, year, artist, imageUrl,
+					album = albumDAO.createAlbum(albumName, year, artist, imageFileRename,
 							user.getIdUser());
 				} catch (DAOException e) {
 					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -176,7 +172,6 @@ public class NewSong extends HttpServlet {
 
 			// Saving the audio file
 
-			String audioUrl = null;
 
 			AudioDAO audioDAO = (AudioDAO) getServletContext().getAttribute("audioDAO");
 
@@ -198,10 +193,8 @@ public class NewSong extends HttpServlet {
 				return;
 			}
 
-			// TODO To get the audio url knowing the filerename
-
 			try {
-				songDAO.createSong(title, idAlbum, year, genre, audioUrl, user.getIdUser());
+				songDAO.createSong(title, idAlbum, year, genre, audioFileRename, user.getIdUser());
 			} catch (DAOException e) {
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 						"Error in the database");

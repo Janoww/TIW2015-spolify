@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
 
@@ -29,8 +31,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 public class GetPlaylistDetails extends HttpServlet {
+	private static final Logger logger = LoggerFactory.getLogger(GetPlaylistDetails.class);
 	private static final long serialVersionUID = 1L;
 	private Connection connection;
 	private TemplateEngine templateEngine;
@@ -53,7 +57,6 @@ public class GetPlaylistDetails extends HttpServlet {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		SongDAO songDAO = new SongDAO(connection);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
-		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 
 		// If the user is not logged in (not present in session) redirect to the login
 		String loginPath = getServletContext().getContextPath() + "/index.html";
@@ -61,6 +64,7 @@ public class GetPlaylistDetails extends HttpServlet {
 			resp.sendRedirect(loginPath);
 			return;
 		}
+		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 
 		// Get and check params
 		Integer playlistId = null;

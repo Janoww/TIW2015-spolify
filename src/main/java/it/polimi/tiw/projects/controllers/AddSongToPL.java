@@ -6,7 +6,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.PlaylistDAO;
@@ -19,6 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class AddSongToPL extends HttpServlet {
+	private static final Logger logger = LoggerFactory.getLogger(AddSongToPL.class);
 	private static final long serialVersionUID = 1L;
 	private Connection connection;
 
@@ -36,7 +41,15 @@ public class AddSongToPL extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException, ServletException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
-		User user = (User) req.getSession().getAttribute("user");
+		
+		
+		// If the user is not logged in (not present in session) redirect to the login
+		String loginPath = getServletContext().getContextPath() + "/index.html";
+		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
+			resp.sendRedirect(loginPath);
+			return;
+		}
+		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 
 		// Check parameter
 		String checkResult = areParametersOk(req);
@@ -55,7 +68,7 @@ public class AddSongToPL extends HttpServlet {
 
 		try {
 			for (Integer id : songIDs) {
-				playlistDAO.addSongToPlaylist(playlistId, user.getIdUser(), id);
+				playlistDAO.addSongToPlaylist(playlistId, userId, id);
 			}
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {

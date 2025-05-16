@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import it.polimi.tiw.projects.beans.Playlist;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.PlaylistDAO;
@@ -21,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class NewPlaylist extends HttpServlet {
+	private static final Logger logger = LoggerFactory.getLogger(NewPlaylist.class);
 	private static final long serialVersionUID = 1L;
 	private Connection connection;
 
@@ -38,7 +42,15 @@ public class NewPlaylist extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException, ServletException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
-		User user = (User) req.getSession().getAttribute("user");
+		
+		// If the user is not logged in (not present in session) redirect to the login
+		String loginPath = getServletContext().getContextPath() + "/index.html";
+		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
+			resp.sendRedirect(loginPath);
+			return;
+		}
+		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
+		
 
 		// Check Parameters
 
@@ -60,8 +72,8 @@ public class NewPlaylist extends HttpServlet {
 		Playlist playlist;
 		try {
 			// Search for a playlist with the same name
-			List<Integer> listOfPlaylists = playlistDAO.findPlaylistIdsByUser(user.getIdUser());
-			playlist = findPlaylistByName(playlistDAO, listOfPlaylists, name, user.getIdUser());
+			List<Integer> listOfPlaylists = playlistDAO.findPlaylistIdsByUser(userId);
+			playlist = findPlaylistByName(playlistDAO, listOfPlaylists, name, userId);
 		} catch (DAOException e) {
 			e.printStackTrace();
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
@@ -71,7 +83,7 @@ public class NewPlaylist extends HttpServlet {
 		if (playlist == null) {
 			// Let's create a new playlist
 			try {
-				playlistDAO.createPlaylist(name, user.getIdUser(), songIDs);
+				playlistDAO.createPlaylist(name, userId, songIDs);
 			} catch (SQLException e) {
 				e.printStackTrace();
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,

@@ -3,6 +3,8 @@ package it.polimi.tiw.projects.controllers;
 import java.io.IOException;
 import java.sql.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
 import it.polimi.tiw.projects.beans.User;
@@ -17,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class SignUp extends HttpServlet {
+	private static final Logger logger = LoggerFactory.getLogger(SignUp.class);
 	private static final long serialVersionUID = 1L;
 	private Connection connection;
 	private TemplateEngine templateEngine;
