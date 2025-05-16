@@ -1,68 +1,68 @@
 .title-container {
-    display: inline-flex;
-    justify-content: left;
-    margin-bottom: 10px;
+  display: inline-flex;
+  justify-content: left;
+  margin-bottom: 10px;
 }
 
 .form-icon {
-    width: 90px;
-    height: auto;
-    margin-right: 10px;
+  width: 90px;
+  height: auto;
+  margin-right: 10px;
 }
 
 .title-container h1 {
-    margin: 0;
+  margin: 0;
 }
 
 /* Styles for the form */
 .styled-button {
-    background-color: #9B7EBD;
-    color: #EEEEEE;
-    font-size: 20px;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    margin-top: 10px;
-    margin-left: 10px;
+  background-color: #9b7ebd;
+  color: #eeeeee;
+  font-size: 20px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-left: 10px;
 }
 
 .form-field {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    font-size: 20px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 20px;
 }
 
 .form-field label {
-    width: 100px;
-    margin-right: 10px;
-    text-align: right;
-    flex-shrink: 0;
+  width: 100px;
+  margin-right: 10px;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 .form-field input {
-    border-radius: 12px;
-    padding: 8px;
-    border: 1px solid #D4BEE4;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    color: #9B7EBD;
-    background-color: #EEEEEE;
-    font-size: 20px;
+  border-radius: 12px;
+  padding: 8px;
+  border: 1px solid #d4bee4;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  color: #9b7ebd;
+  background-color: #eeeeee;
+  font-size: 20px;
 }
 
 .form-field .error-message {
-    color: #3B1E54;
-    font-size: 20px;
-    margin-left: 10px;
-    display: block;
-    min-height: 1em;
-    flex-grow: 1;
-    font-weight: bold;
+  color: #3b1e54;
+  font-size: 20px;
+  margin-left: 10px;
+  display: block;
+  min-height: 1em;
+  flex-grow: 1;
+  font-weight: bold;
 }
 
 .form-field input.input-error {
-    border-color: #3B1E54;
-    background-color: #D4BEE4;
+  border-color: #3b1e54;
+  background-color: #d4bee4;
 }
