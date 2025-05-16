@@ -34,6 +34,7 @@ public class AppContextListener implements ServletContextListener {
     public static final String USERNAME_REGEX_PATTERN = "USERNAME_REGEX_PATTERN";
     public static final String NAME_REGEX_PATTERN = "NAME_REGEX_PATTERN";
     public static final String PASSWORD_MIN_LENGTH = "PASSWORD_MIN_LENGTH";
+    public static final String PASSWORD_MAX_LENGTH = "PASSWORD_MAX_LENGTH";
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -155,6 +156,29 @@ public class AppContextListener implements ServletContextListener {
         } else {
             logger.warn(
                     "Password minimum length (validation.password.minLength) not found or empty in web.xml. Password length validation might be affected.");
+        }
+
+        // Password Maximum Length
+        String passwordMaxLengthStr = context.getInitParameter("validation.password.maxLength");
+        if (passwordMaxLengthStr != null && !passwordMaxLengthStr.isBlank()) {
+            try {
+                int maxLength = Integer.parseInt(passwordMaxLengthStr);
+                if (maxLength > 0) {
+                    context.setAttribute(PASSWORD_MAX_LENGTH, maxLength);
+                    logger.info("Loaded password maximum length: {}", maxLength);
+                } else {
+                    logger.warn(
+                            "Password maximum length (validation.password.maxLength) must be a positive integer, but was: {}. Using default or skipping length check.",
+                            passwordMaxLengthStr);
+                }
+            } catch (NumberFormatException e) {
+                logger.error(
+                        "Invalid number format for password maximum length (validation.password.maxLength): '{}'. Error: {}",
+                        passwordMaxLengthStr, e.getMessage());
+            }
+        } else {
+            logger.warn(
+                    "Password maximum length (validation.password.maxLength) not found or empty in web.xml. Password length validation might be affected.");
         }
 
         logger.info("Validation patterns loading complete.");

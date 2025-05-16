@@ -34,6 +34,10 @@
     <param-name>validation.password.minLength</param-name>
     <param-value>4</param-value>
   </context-param>
+  <context-param>
+    <param-name>validation.password.maxLength</param-name>
+    <param-value>100</param-value>
+  </context-param>
 
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>

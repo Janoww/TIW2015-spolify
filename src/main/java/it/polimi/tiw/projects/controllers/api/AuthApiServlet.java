@@ -111,6 +111,8 @@ public class AuthApiServlet extends HttpServlet {
                 (Pattern) servletContext.getAttribute(AppContextListener.USERNAME_REGEX_PATTERN);
         Integer passwordMinLength =
                 (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MIN_LENGTH);
+        Integer passwordMaxLength =
+                (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MAX_LENGTH);
 
         // Input Validation - Username format
         if (usernamePattern != null) {
@@ -127,14 +129,23 @@ public class AuthApiServlet extends HttpServlet {
                     "Username regex pattern not available from servlet context. Username validation might be incomplete.");
         }
 
-        // Input Validation - Password minimum length
-        if (passwordMinLength != null) {
+        if (passwordMinLength != null && passwordMaxLength != null) {
+            // Input Validation - Password minimum length
             if (password.length() < passwordMinLength) {
                 logger.warn(
                         "Login attempt with password too short (context-configured min length: {}) for username: {}",
                         passwordMinLength, username);
                 ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
                         "Password must be at least " + passwordMinLength + " characters long.");
+                return;
+            }
+            // Input Validation - Password maximum length
+            if (password.length() > passwordMaxLength) {
+                logger.warn(
+                        "Login attempt with password too long (context-configured max length: {}) for username: {}",
+                        passwordMaxLength, username);
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                        "Password must be at most " + passwordMaxLength + " characters long.");
                 return;
             }
         } else {
