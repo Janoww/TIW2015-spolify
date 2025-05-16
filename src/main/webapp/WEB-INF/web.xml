@@ -21,6 +21,20 @@
     <param-value>com.mysql.cj.jdbc.Driver</param-value>
   </context-param>
 
+  <!-- Validation Parameters -->
+  <context-param>
+    <param-name>regex.username</param-name>
+    <param-value>^[a-zA-Z0-9_]{3,100}$</param-value>
+  </context-param>
+  <context-param>
+    <param-name>regex.name</param-name>
+    <param-value>^[a-zA-Z\s'-]{3,100}$</param-value>
+  </context-param>
+  <context-param>
+    <param-name>validation.password.minLength</param-name>
+    <param-value>4</param-value>
+  </context-param>
+
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>

@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,7 +18,9 @@ import it.polimi.tiw.projects.beans.LoginRequest;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.UserDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import it.polimi.tiw.projects.listeners.AppContextListener;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
+import it.polimi.tiw.projects.utils.ResponseUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -52,13 +55,7 @@ public class AuthApiServlet extends HttpServlet {
             handleCheckSession(req, resp);
         } else {
             logger.warn("Invalid path for GET request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Endpoint not found.");
-            resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
         }
     }
 
@@ -73,47 +70,64 @@ public class AuthApiServlet extends HttpServlet {
             handleLogout(req, resp);
         } else {
             logger.warn("Invalid path for POST request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Endpoint not found.");
-            resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
         }
     }
 
     private void handleLogin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         logger.debug("Handling login request.");
         UserDAO userDAO = new UserDAO(connection);
-        ObjectMapper mapper = new ObjectMapper();
         LoginRequest loginDetails;
 
         try {
-            loginDetails = mapper.readValue(req.getReader(), LoginRequest.class);
+            // Assuming LoginRequest.class is appropriate for the JSON structure
+            loginDetails = new ObjectMapper().readValue(req.getReader(), LoginRequest.class);
         } catch (JsonParseException | MismatchedInputException e) {
             logger.warn("Failed to parse JSON request body for login: {}", e.getMessage());
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Invalid JSON format or missing fields.");
-            resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON format or missing fields.");
             return;
         }
 
         String username = loginDetails.getUsername() != null ? loginDetails.getUsername().strip() : null;
         String password = loginDetails.getPassword();
 
+        // OWASP: Input Validation - Username and Password presence
         if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
-            logger.warn("Login attempt with missing credentials for username: {}", username);
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Missing username or password.");
-            resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+            logger.warn("Login attempt with missing credentials for username: {}",
+                    (username != null ? username : "null"));
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Missing username or password.");
             return;
+        }
+
+        ServletContext servletContext = getServletContext();
+        Pattern usernamePattern = (Pattern) servletContext.getAttribute(AppContextListener.USERNAME_REGEX_PATTERN);
+        Integer passwordMinLength = (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MIN_LENGTH);
+
+        // Input Validation - Username format
+        if (usernamePattern != null) {
+            if (!usernamePattern.matcher(username).matches()) {
+                logger.warn("Login attempt with invalid username format (context-configured regex): {}", username);
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid username format.");
+                return;
+            }
+        } else {
+            logger.error(
+                    "Username regex pattern not available from servlet context. Username validation might be incomplete.");
+        }
+
+        // Input Validation - Password minimum length
+        if (passwordMinLength != null) {
+            if (password.length() < passwordMinLength) {
+                logger.warn(
+                        "Login attempt with password too short (context-configured min length: {}) for username: {}",
+                        passwordMinLength, username);
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                        "Password must be at least " + passwordMinLength + " characters long.");
+                return;
+            }
+        } else {
+            logger.error(
+                    "Password minimum length not available from servlet context. Password length validation might be incomplete.");
         }
 
         User user;
@@ -124,20 +138,11 @@ public class AuthApiServlet extends HttpServlet {
         } catch (DAOException e) {
             if (e.getErrorType() == DAOException.DAOErrorType.INVALID_CREDENTIALS) {
                 logger.warn("Invalid credentials attempt for username: {}. Details: {}", username, e.getMessage());
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Invalid username or password.");
-                resp.setContentType("application/json");
-                resp.setCharacterEncoding("UTF-8");
-                resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Invalid username or password.");
             } else {
                 logger.warn("DAOException during login for username: {}. ErrorType: {}", username, e.getErrorType(), e);
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Login failed due to a server error.");
-                resp.setContentType("application/json");
-                resp.setCharacterEncoding("UTF-8");
-                resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "Login failed due to a server error.");
             }
             return;
         }
@@ -150,17 +155,13 @@ public class AuthApiServlet extends HttpServlet {
         userResponse.put("name", user.getName());
         userResponse.put("surname", user.getSurname());
 
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(mapper.writeValueAsString(userResponse));
+        ResponseUtils.sendJson(resp, HttpServletResponse.SC_OK, userResponse);
         logger.debug("Successfully sent OK response with user details for user: {}", user.getUsername());
     }
 
     private void handleCheckSession(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         logger.debug("Handling check session request (/me).");
-        HttpSession session = req.getSession(false); // false == do not create new session if one does not exist
-        ObjectMapper mapper = new ObjectMapper();
+        HttpSession session = req.getSession(false);
 
         if (session != null) {
             User user = (User) session.getAttribute("user");
@@ -171,10 +172,7 @@ public class AuthApiServlet extends HttpServlet {
                 userResponse.put("name", user.getName());
                 userResponse.put("surname", user.getSurname());
 
-                resp.setStatus(HttpServletResponse.SC_OK);
-                resp.setContentType("application/json");
-                resp.setCharacterEncoding("UTF-8");
-                resp.getWriter().write(mapper.writeValueAsString(userResponse));
+                ResponseUtils.sendJson(resp, HttpServletResponse.SC_OK, userResponse);
                 logger.debug("Successfully sent OK response with user details for active session: {}",
                         user.getUsername());
                 return;
@@ -186,12 +184,8 @@ public class AuthApiServlet extends HttpServlet {
         }
 
         // If we reach here, no active user session was found
-        resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("error", "No active session or user not authenticated.");
-        resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+        ResponseUtils.sendError(resp, HttpServletResponse.SC_UNAUTHORIZED,
+                "No active session or user not authenticated.");
         logger.debug("Sent UNAUTHORIZED response for /me request.");
     }
 
@@ -209,13 +203,9 @@ public class AuthApiServlet extends HttpServlet {
         } else {
             logger.debug("Logout request for a session that does not exist or is already invalidated.");
         }
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        ObjectMapper mapper = new ObjectMapper();
         Map<String, String> successResponse = new HashMap<>();
         successResponse.put("message", "Logout successful.");
-        resp.getWriter().write(mapper.writeValueAsString(successResponse));
+        ResponseUtils.sendJson(resp, HttpServletResponse.SC_OK, successResponse);
         logger.debug("Logout successful response sent.");
     }
 

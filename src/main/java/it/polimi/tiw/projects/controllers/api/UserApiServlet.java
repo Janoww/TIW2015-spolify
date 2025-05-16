@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,7 +18,9 @@ import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.beans.UserCreationRequest;
 import it.polimi.tiw.projects.dao.UserDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import it.polimi.tiw.projects.listeners.AppContextListener;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
+import it.polimi.tiw.projects.utils.ResponseUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -46,19 +49,13 @@ public class UserApiServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         logger.debug("Received POST request to /api/v1/users for user sign up.");
         UserDAO userDAO = new UserDAO(connection);
-        ObjectMapper mapper = new ObjectMapper();
         UserCreationRequest userCreationDetails;
 
         try {
-            userCreationDetails = mapper.readValue(req.getReader(), UserCreationRequest.class);
+            userCreationDetails = new ObjectMapper().readValue(req.getReader(), UserCreationRequest.class);
         } catch (JsonParseException | MismatchedInputException e) {
             logger.warn("Failed to parse JSON request body for user sign up: {}", e.getMessage());
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Invalid JSON format or missing fields.");
-            resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON format or missing fields.");
             return;
         }
 
@@ -69,19 +66,74 @@ public class UserApiServlet extends HttpServlet {
 
         logger.debug("Attempting to sign up user with username: {}", username);
 
-        // Checking that parameters are not empty
+        // OWASP: Input Validation - Check for presence of all fields
         if (name == null || name.isEmpty() || surname == null || surname.isEmpty() || username == null
                 || username.isEmpty() || password == null || password.isEmpty()) {
-            logger.warn("Sign up attempt with missing credential values for username: {}", username);
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Missing required fields: name, surname, username, password.");
-            resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+            logger.warn("Sign up attempt with missing credential values for username: {}",
+                    (username != null ? username : "null"));
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                    "Missing required fields: name, surname, username, password.");
             return;
         }
-        logger.debug("All parameters present for username: {}", username);
+        logger.debug("All parameters present for username: {}", (username != null ? username : "null"));
+
+        ServletContext servletContext = getServletContext();
+        Pattern namePattern = (Pattern) servletContext.getAttribute(AppContextListener.NAME_REGEX_PATTERN);
+        Pattern usernamePattern = (Pattern) servletContext.getAttribute(AppContextListener.USERNAME_REGEX_PATTERN);
+        Integer passwordMinLength = (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MIN_LENGTH);
+
+        // OWASP: Input Validation - Name format
+        if (namePattern != null) {
+            if (!namePattern.matcher(name).matches()) {
+                logger.warn("Sign up attempt with invalid name format (context-configured regex): {}", name);
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                        "Invalid name format. Use letters, spaces, hyphens, or apostrophes (3-100 characters).");
+                return;
+            }
+        } else {
+            logger.error("Name regex pattern not available from servlet context. Name validation might be incomplete.");
+        }
+
+        // Input Validation - Surname format
+        if (namePattern != null) {
+            if (!namePattern.matcher(surname).matches()) {
+                logger.warn("Sign up attempt with invalid surname format (context-configured regex): {}", surname);
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                        "Invalid surname format. Use letters, spaces, hyphens, or apostrophes (3-100 characters).");
+                return;
+            }
+        } else {
+            logger.error(
+                    "Name regex pattern not available from servlet context. Surname validation might be incomplete.");
+        }
+
+        // Input Validation - Username format
+        if (usernamePattern != null) {
+            if (!usernamePattern.matcher(username).matches()) {
+                logger.warn("Sign up attempt with invalid username format (context-configured regex): {}", username);
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                        "Invalid username format. Use alphanumeric characters or underscores (3-100 characters).");
+                return;
+            }
+        } else {
+            logger.error(
+                    "Username regex pattern not available from servlet context. Username validation might be incomplete.");
+        }
+
+        // Input Validation - Password minimum length
+        if (passwordMinLength != null) {
+            if (password.length() < passwordMinLength) {
+                logger.warn(
+                        "Sign up attempt with password too short (context-configured min length: {}) for username: {}",
+                        passwordMinLength, username);
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                        "Password must be at least " + passwordMinLength + " characters long.");
+                return;
+            }
+        } else {
+            logger.error(
+                    "Password minimum length not available from servlet context. Password length validation might be incomplete.");
+        }
 
         User createdUser;
         try {
@@ -94,21 +146,12 @@ public class UserApiServlet extends HttpServlet {
         } catch (DAOException e) {
             if (e.getErrorType() == DAOException.DAOErrorType.NAME_ALREADY_EXISTS) {
                 logger.warn("Sign up attempt for already existing username: {}. Details: {}", username, e.getMessage());
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
-                resp.setContentType("application/json");
-                resp.setCharacterEncoding("UTF-8");
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Username already taken");
-                resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_CONFLICT, "Username already taken");
             } else {
                 logger.error("DAOException during user creation for username: {}. ErrorType: {}. Details: {}", username,
                         e.getErrorType(), e.getMessage(), e);
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                resp.setContentType("application/json");
-                resp.setCharacterEncoding("UTF-8");
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Not possible to sign up due to a server error.");
-                resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "Not possible to sign up due to a server error.");
             }
             return;
         }
@@ -127,7 +170,8 @@ public class UserApiServlet extends HttpServlet {
         resp.setStatus(HttpServletResponse.SC_CREATED);
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(mapper.writeValueAsString(userResponse));
+        // resp.getWriter().write(mapper.writeValueAsString(userResponse)); // Old way
+        ResponseUtils.sendJson(resp, HttpServletResponse.SC_CREATED, userResponse); // New way
         logger.debug("Successfully sent CREATED response with user details for user: {}", createdUser.getUsername());
     }
 
