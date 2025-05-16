@@ -52,7 +52,7 @@ The database consists of the following tables:
 - **playlist_metadata:** Stores playlist metadata. Each playlist is created by a user.
   - `idPlaylist` (PK, INT, Auto-Increment, NOT NULL)
   - `name` (VARCHAR(100), NOT NULL) - _Unique per user_
-  - `birthday` (TIMESTAMP, NOT NULL, DEFAULT CURRENT_TIMESTAMP) - _Creation timestamp_
+  - `birthday` (TIMESTAMP, NOT NULL, DEFAULT CURRENT*TIMESTAMP) - \_Creation timestamp*
   - `idUser` (FK, BINARY(16), NOT NULL - References User.idUser)
 - **playlist_content:** Joining table for the N-N relationship between `playlist_metadata` and `Song`.
   - `idPlaylist` (PK, FK, INT, NOT NULL - References playlist_metadata.idPlaylist)
@@ -91,6 +91,7 @@ The JavaScript SPA will manage different views/components:
   - **Playlist View Section:** Displays songs of the selected playlist (5 at a time), Previous/Next buttons (client-side logic), "Add Songs" form, "Reorder" button.
   - **Player Section:** Displays details of the selected song and an HTML5 audio player.
   - **Reorder Modal:** Activated from Playlist View. Shows a list of songs in the playlist, allowing drag-and-drop reordering. Includes a "Save Order" button.
+  - **Color Palette** Background color: #EEEEEE, alternative background color: #D4BEE4, text: #9B7EBD, highlight color: #3B1E54.
 
 ## 6. Key Features (SPA Specifics)
 
