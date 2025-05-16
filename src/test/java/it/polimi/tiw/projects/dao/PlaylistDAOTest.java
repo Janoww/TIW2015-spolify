@@ -85,12 +85,13 @@ public class PlaylistDAOTest {
             testUserId = testUser.getIdUser();
 
             // Create test album and song (pass null for image)
-            Album album = albumDAO.createAlbum(TEST_ALBUM_NAME, TEST_ALBUM_YEAR, TEST_ALBUM_ARTIST, null, testUserId);
+            Album album = albumDAO.createAlbum(TEST_ALBUM_NAME, TEST_ALBUM_YEAR, TEST_ALBUM_ARTIST,
+                    null, testUserId);
             connection.commit();
             createdAlbumId = album.getIdAlbum();
 
-            Song song = songDAO.createSong(TEST_SONG_TITLE, createdAlbumId, TEST_SONG_YEAR, TEST_SONG_GENRE,
-                    TEST_SONG_FILE, testUserId);
+            Song song = songDAO.createSong(TEST_SONG_TITLE, createdAlbumId, TEST_SONG_YEAR,
+                    TEST_SONG_GENRE, TEST_SONG_FILE, testUserId);
             connection.commit();
             createdSongId = song.getIdSong();
 
@@ -185,7 +186,8 @@ public class PlaylistDAOTest {
             }
         }
 
-        assertDoesNotThrow(() -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, testUserId, songIds));
+        assertDoesNotThrow(
+                () -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, testUserId, songIds));
 
         connection.commit(); // Manually commit the transaction
 
@@ -196,8 +198,10 @@ public class PlaylistDAOTest {
             pStatement.setString(2, testUserId.toString());
             try (ResultSet rs = pStatement.executeQuery()) {
                 assertTrue(rs.next(), "Playlist metadata should exist after commit");
-                assertNotNull(rs.getTimestamp("birthday"), "Birthday should not be null after commit");
-                createdPlaylistId = rs.getInt("idPlaylist"); // Store the ID for later use/verification
+                assertNotNull(rs.getTimestamp("birthday"),
+                        "Birthday should not be null after commit");
+                createdPlaylistId = rs.getInt("idPlaylist"); // Store the ID for later
+                                                             // use/verification
                 assertFalse(rs.next(), "Should only be one playlist with this name for this user");
             }
         }
@@ -209,7 +213,8 @@ public class PlaylistDAOTest {
             pStatement.setInt(1, createdPlaylistId);
             try (ResultSet rs = pStatement.executeQuery()) {
                 assertTrue(rs.next(), "Playlist content should exist after commit");
-                assertEquals(createdSongId, rs.getInt("idSong"), "Song ID in playlist content should match");
+                assertEquals(createdSongId, rs.getInt("idSong"),
+                        "Song ID in playlist content should match");
                 assertFalse(rs.next(), "Should only be one song in the playlist initially");
             }
         }
@@ -222,13 +227,14 @@ public class PlaylistDAOTest {
         songIds.add(createdSongId);
 
         // First creation should succeed
-        assertDoesNotThrow(() -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME_DUPLICATE, testUserId, songIds));
+        assertDoesNotThrow(() -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME_DUPLICATE,
+                testUserId, songIds));
 
         connection.commit();
 
         // Second creation should fail
-        DAOException exception = assertThrows(DAOException.class,
-                () -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME_DUPLICATE, testUserId, songIds));
+        DAOException exception = assertThrows(DAOException.class, () -> playlistDAO
+                .createPlaylist(TEST_PLAYLIST_NAME_DUPLICATE, testUserId, songIds));
 
         connection.rollback(); // Rollback the failed transaction explicitly for clarity
 
@@ -243,7 +249,8 @@ public class PlaylistDAOTest {
             pStatement.setString(2, testUserId.toString());
             try (ResultSet rs = pStatement.executeQuery()) {
                 assertTrue(rs.next(), "Should be able to query count");
-                assertEquals(1, rs.getInt("count"), "Only one playlist with the duplicate name should exist");
+                assertEquals(1, rs.getInt("count"),
+                        "Only one playlist with the duplicate name should exist");
             }
         }
     }
@@ -253,11 +260,13 @@ public class PlaylistDAOTest {
     public void testFindPlaylistsByUser() throws Exception {
         List<Integer> songIds = new ArrayList<>();
         songIds.add(createdSongId);
-        assertDoesNotThrow(() -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, testUserId, songIds));
+        assertDoesNotThrow(
+                () -> playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, testUserId, songIds));
 
         connection.commit();
 
-        List<Integer> playlists = assertDoesNotThrow(() -> playlistDAO.findPlaylistIdsByUser(testUserId));
+        List<Integer> playlists =
+                assertDoesNotThrow(() -> playlistDAO.findPlaylistIdsByUser(testUserId));
 
         assertNotNull(playlists, "Playlist list should not be null");
         assertEquals(1, playlists.size(), "Should find exactly one playlist for the user");
@@ -282,7 +291,8 @@ public class PlaylistDAOTest {
     public void testFindPlaylistById() throws Exception {
         List<Integer> songIds = List.of(createdSongId);
 
-        Playlist createdPlaylist = playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, testUserId, songIds);
+        Playlist createdPlaylist =
+                playlistDAO.createPlaylist(TEST_PLAYLIST_NAME, testUserId, songIds);
         // Commit is needed here in the test context, as createPlaylist might throw an
         // exception before its internal commit.
         // The DAO method handles its own commit on success.
@@ -291,12 +301,14 @@ public class PlaylistDAOTest {
         assertNotNull(createdPlaylist, "createPlaylist should return the created playlist object");
         // Check if the ID is set (primitive int cannot be null, but check if it's the
         // default 0 if not set)
-        assertTrue(createdPlaylist.getIdPlaylist() > 0, "Created playlist must have a valid ID (> 0) from the DAO");
+        assertTrue(createdPlaylist.getIdPlaylist() > 0,
+                "Created playlist must have a valid ID (> 0) from the DAO");
         int playlistIdToFind = createdPlaylist.getIdPlaylist(); // Get ID from the returned object
 
         // Successful find
-        Playlist foundPlaylist = assertDoesNotThrow(() -> playlistDAO.findPlaylistById(playlistIdToFind, testUserId),
-                "Finding an existing playlist by owner should not throw.");
+        Playlist foundPlaylist =
+                assertDoesNotThrow(() -> playlistDAO.findPlaylistById(playlistIdToFind, testUserId),
+                        "Finding an existing playlist by owner should not throw.");
 
         assertNotNull(foundPlaylist, "Found playlist should not be null");
         assertEquals(playlistIdToFind, foundPlaylist.getIdPlaylist(), "Playlist ID should match");
@@ -305,7 +317,8 @@ public class PlaylistDAOTest {
 
         assertNotNull(foundPlaylist.getSongs(), "Playlist songs list should not be null");
         assertEquals(1, foundPlaylist.getSongs().size(), "Playlist should contain one song");
-        assertEquals(createdSongId, foundPlaylist.getSongs().get(0), "Song ID in playlist should match");
+        assertEquals(createdSongId, foundPlaylist.getSongs().get(0),
+                "Song ID in playlist should match");
 
         // Test NOT_FOUND
         final int nonExistentPlaylistId = 99999;
@@ -325,11 +338,12 @@ public class PlaylistDAOTest {
     @Test
     @Order(5)
     public void testCreatePlaylist_InvalidSong() throws SQLException {
-        List<Integer> invalidSongIds = List.of(-1); // Assuming -1 is an invalid/non-existent song ID
+        List<Integer> invalidSongIds = List.of(-1); // Assuming -1 is an invalid/non-existent song
+                                                    // ID
 
         // Expect NOT_FOUND because the song ID check in createPlaylist should fail
-        DAOException exception = assertThrows(DAOException.class,
-                () -> playlistDAO.createPlaylist("Invalid Song Playlist", testUserId, invalidSongIds));
+        DAOException exception = assertThrows(DAOException.class, () -> playlistDAO
+                .createPlaylist("Invalid Song Playlist", testUserId, invalidSongIds));
         connection.rollback(); // Ensure transaction is rolled back after expected failure
 
         assertEquals(DAOErrorType.NOT_FOUND, exception.getErrorType());
@@ -350,7 +364,8 @@ public class PlaylistDAOTest {
     public void testDeletePlaylist() throws Exception {
         // 1. Create a playlist to delete
         List<Integer> songIds = List.of(createdSongId);
-        Playlist playlistToDelete = playlistDAO.createPlaylist("Playlist To Delete", testUserId, songIds);
+        Playlist playlistToDelete =
+                playlistDAO.createPlaylist("Playlist To Delete", testUserId, songIds);
         connection.commit();
         assertNotNull(playlistToDelete, "Playlist for deletion should be created");
         int playlistIdToDelete = playlistToDelete.getIdPlaylist();
@@ -372,12 +387,13 @@ public class PlaylistDAOTest {
         assertEquals(DAOErrorType.NOT_FOUND, findException.getErrorType());
 
         // 5. Verify associated content is gone (due to ON DELETE CASCADE)
-        try (PreparedStatement pStatement = connection
-                .prepareStatement("SELECT COUNT(*) as count FROM playlist_content WHERE idPlaylist = ?")) {
+        try (PreparedStatement pStatement = connection.prepareStatement(
+                "SELECT COUNT(*) as count FROM playlist_content WHERE idPlaylist = ?")) {
             pStatement.setInt(1, playlistIdToDelete);
             try (ResultSet rs = pStatement.executeQuery()) {
                 assertTrue(rs.next());
-                assertEquals(0, rs.getInt("count"), "Playlist content should be deleted by cascade");
+                assertEquals(0, rs.getInt("count"),
+                        "Playlist content should be deleted by cascade");
             }
         }
 
@@ -391,9 +407,11 @@ public class PlaylistDAOTest {
 
         // 7. Test deleting by non-owner - Should throw ACCESS_DENIED
         // Recreate playlist first
-        playlistToDelete = playlistDAO.createPlaylist("Playlist To Delete Again", testUserId, songIds);
+        playlistToDelete =
+                playlistDAO.createPlaylist("Playlist To Delete Again", testUserId, songIds);
         connection.commit();
-        final int finalPlaylistIdToDelete = playlistToDelete.getIdPlaylist(); // Use final variable for lambda
+        final int finalPlaylistIdToDelete = playlistToDelete.getIdPlaylist(); // Use final variable
+                                                                              // for lambda
         UUID otherUserId = UUID.randomUUID();
         DAOException accessDeniedException = assertThrows(DAOException.class,
                 () -> playlistDAO.deletePlaylist(finalPlaylistIdToDelete, otherUserId),
@@ -410,22 +428,24 @@ public class PlaylistDAOTest {
     @Order(7)
     public void testAddSongToPlaylist() throws Exception {
         // 1. Create a playlist (initially empty for this test)
-        Playlist playlist = playlistDAO.createPlaylist("Playlist For Adding Songs", testUserId, new ArrayList<>());
+        Playlist playlist = playlistDAO.createPlaylist("Playlist For Adding Songs", testUserId,
+                new ArrayList<>());
         connection.commit();
         assertNotNull(playlist, "Playlist for adding songs should be created");
         int playlistId = playlist.getIdPlaylist();
         assertTrue(playlistId > 0, "Playlist ID must be valid");
 
         // 2. Create a second song to add
-        Song secondSong = songDAO.createSong("Second JUnit Song", createdAlbumId, TEST_SONG_YEAR, TEST_SONG_GENRE,
-                "/audio/second_test.mp3", testUserId);
+        Song secondSong = songDAO.createSong("Second JUnit Song", createdAlbumId, TEST_SONG_YEAR,
+                TEST_SONG_GENRE, "/audio/second_test.mp3", testUserId);
         connection.commit();
         assertNotNull(secondSong, "Second song should be created");
         int secondSongId = secondSong.getIdSong();
         assertTrue(secondSongId > 0, "Second song ID must be valid");
 
         // 3. Add the first song (created in @BeforeAll) - Now returns void
-        assertDoesNotThrow(() -> playlistDAO.addSongToPlaylist(playlistId, testUserId, createdSongId),
+        assertDoesNotThrow(
+                () -> playlistDAO.addSongToPlaylist(playlistId, testUserId, createdSongId),
                 "Adding first song should not throw.");
         connection.commit();
 
@@ -436,7 +456,8 @@ public class PlaylistDAOTest {
         assertTrue(playlistAfterFirstAdd.getSongs().contains(createdSongId));
 
         // 5. Add the second song - Now returns void
-        assertDoesNotThrow(() -> playlistDAO.addSongToPlaylist(playlistId, testUserId, secondSongId),
+        assertDoesNotThrow(
+                () -> playlistDAO.addSongToPlaylist(playlistId, testUserId, secondSongId),
                 "Adding second song should not throw.");
         connection.commit();
 
@@ -463,13 +484,15 @@ public class PlaylistDAOTest {
                 () -> playlistDAO.addSongToPlaylist(playlistId, testUserId, nonExistentSongId),
                 "Adding non-existent song should throw NOT_FOUND.");
         assertEquals(DAOErrorType.NOT_FOUND, songNotFoundException.getErrorType());
-        assertTrue(songNotFoundException.getMessage().contains("Song with ID " + nonExistentSongId + " not found"));
+        assertTrue(songNotFoundException.getMessage()
+                .contains("Song with ID " + nonExistentSongId + " not found"));
         connection.rollback(); // Rollback after expected exception
 
         // 9. Test adding to a non-existent playlist - Should throw NOT_FOUND
         final int nonExistentPlaylistId = 88888;
         DAOException playlistNotFoundException = assertThrows(DAOException.class,
-                () -> playlistDAO.addSongToPlaylist(nonExistentPlaylistId, testUserId, createdSongId),
+                () -> playlistDAO.addSongToPlaylist(nonExistentPlaylistId, testUserId,
+                        createdSongId),
                 "Adding song to non-existent playlist should throw NOT_FOUND.");
         assertEquals(DAOErrorType.NOT_FOUND, playlistNotFoundException.getErrorType());
         assertTrue(playlistNotFoundException.getMessage()
@@ -489,8 +512,8 @@ public class PlaylistDAOTest {
     @Order(8)
     public void testRemoveSongFromPlaylist() throws Exception {
         // 1. Create a second song
-        Song secondSong = songDAO.createSong("Second JUnit Song For Removal", createdAlbumId, TEST_SONG_YEAR,
-                TEST_SONG_GENRE, "/audio/second_removal_test.mp3", testUserId);
+        Song secondSong = songDAO.createSong("Second JUnit Song For Removal", createdAlbumId,
+                TEST_SONG_YEAR, TEST_SONG_GENRE, "/audio/second_removal_test.mp3", testUserId);
         connection.commit();
         assertNotNull(secondSong, "Second song for removal should be created");
         int secondSongId = secondSong.getIdSong();
@@ -498,7 +521,8 @@ public class PlaylistDAOTest {
 
         // 2. Create a playlist with both songs
         List<Integer> initialSongIds = List.of(createdSongId, secondSongId);
-        Playlist playlist = playlistDAO.createPlaylist("Playlist For Removing Songs", testUserId, initialSongIds);
+        Playlist playlist = playlistDAO.createPlaylist("Playlist For Removing Songs", testUserId,
+                initialSongIds);
         connection.commit();
         assertNotNull(playlist, "Playlist for removing songs should be created");
         int playlistId = playlist.getIdPlaylist();
@@ -527,18 +551,22 @@ public class PlaylistDAOTest {
 
         // 6. Test removing a song not in the playlist - Returns boolean
         boolean removedNonPresent = assertDoesNotThrow(
-                () -> playlistDAO.removeSongFromPlaylist(playlistId, testUserId, secondSongId), // Try removing again
+                () -> playlistDAO.removeSongFromPlaylist(playlistId, testUserId, secondSongId), // Try
+                                                                                                // removing
+                                                                                                // again
                 "Removing non-present song should not throw.");
         connection.commit(); // Commit even if no change expected
         assertFalse(removedNonPresent, "Removing a song not present should return false");
-        Playlist playlistAfterRemovingNonPresent = playlistDAO.findPlaylistById(playlistId, testUserId);
+        Playlist playlistAfterRemovingNonPresent =
+                playlistDAO.findPlaylistById(playlistId, testUserId);
         assertEquals(1, playlistAfterRemovingNonPresent.getSongs().size(),
                 "Playlist size should not change after removing non-present song");
 
         // 7. Test removing from a non-existent playlist - Should throw NOT_FOUND
         final int nonExistentPlaylistId = 88888;
         DAOException notFoundException = assertThrows(DAOException.class,
-                () -> playlistDAO.removeSongFromPlaylist(nonExistentPlaylistId, testUserId, createdSongId),
+                () -> playlistDAO.removeSongFromPlaylist(nonExistentPlaylistId, testUserId,
+                        createdSongId),
                 "Removing song from non-existent playlist should throw NOT_FOUND.");
         assertEquals(DAOErrorType.NOT_FOUND, notFoundException.getErrorType());
         connection.rollback(); // Rollback after expected exception
