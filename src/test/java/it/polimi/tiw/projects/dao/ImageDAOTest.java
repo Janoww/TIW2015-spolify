@@ -2,6 +2,7 @@ package it.polimi.tiw.projects.dao;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -10,13 +11,16 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import it.polimi.tiw.projects.beans.FileData;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import org.apache.tika.Tika;
 
 class ImageDAOTest {
 
     private ImageDAO imageDAO;
-    private static final String SAMPLES_DIR = "/sample_images/"; // Updated sample directory
-    private static final String IMAGE_SUBFOLDER = "image"; // Matches ImageDAO subfolder
+    private Tika tika;
+    private static final String SAMPLES_DIR = "/sample_images/";
+    private static final String IMAGE_SUBFOLDER = "image";
 
     @TempDir
     Path tempDir;
@@ -25,6 +29,7 @@ class ImageDAOTest {
     void setUp() {
         // Instantiate DAO with the temporary directory path
         imageDAO = new ImageDAO(tempDir);
+        tika = new Tika();
     }
 
     private InputStream getResourceStream(String resourceName) {
@@ -228,5 +233,86 @@ class ImageDAOTest {
         assertThrows(IllegalArgumentException.class, () -> {
             imageDAO.deleteImage("../../../etc/passwd");
         }, "Should throw IllegalArgumentException for filename containing '..'");
+    }
+
+    // --- getImage Tests ---
+
+    @Test
+    void getImage_shouldReturnFileData_whenFileExists() throws DAOException, IOException {
+        // Arrange: Save a file first
+        String originalTestFileName = "get_test.png";
+        InputStream inputStream = getResourceStream("valid.png");
+        String savedFilename = imageDAO.saveImage(inputStream, originalTestFileName);
+        Path expectedPath = tempDir.resolve(IMAGE_SUBFOLDER).resolve(savedFilename);
+        assertTrue(Files.exists(expectedPath), "File should exist after saving for get test");
+
+        // Act: Retrieve the file
+        try (FileData fileData = imageDAO.getImage(savedFilename)) {
+            // Assert
+            assertNotNull(fileData, "FileData should not be null for existing file");
+            assertEquals(savedFilename, fileData.getFilename(),
+                    "Filename in FileData should match");
+
+            // Verify MIME type
+            String expectedMimeType = tika.detect(expectedPath);
+            assertEquals(expectedMimeType, fileData.getMimeType(),
+                    "MIME type should match detected type");
+
+            // Verify size
+            long expectedSize = Files.size(expectedPath);
+            assertEquals(expectedSize, fileData.getSize(), "File size should match");
+
+            // Verify content
+            assertNotNull(fileData.getContent(), "Content stream should not be null");
+            byte[] originalBytes = Files.readAllBytes(expectedPath);
+            ByteArrayOutputStream retrievedBytesStream = new ByteArrayOutputStream();
+            fileData.getContent().transferTo(retrievedBytesStream);
+            assertArrayEquals(originalBytes, retrievedBytesStream.toByteArray(),
+                    "File content should match");
+        }
+    }
+
+    @Test
+    void getImage_shouldThrowNotFound_whenFileDoesNotExist() {
+        String nonExistentFilename = "non_existent_for_get.jpg";
+        DAOException exception = assertThrows(DAOException.class, () -> {
+            imageDAO.getImage(nonExistentFilename);
+        }, "getImage should throw DAOException for a non-existent filename");
+        assertEquals(DAOException.DAOErrorType.NOT_FOUND, exception.getErrorType(),
+                "Exception type should be NOT_FOUND for non-existent file");
+    }
+
+    @Test
+    void getImage_shouldThrowIllegalArgument_whenFilenameIsNull() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            imageDAO.getImage(null);
+        }, "Should throw IllegalArgumentException for null filename in getImage");
+    }
+
+    @Test
+    void getImage_shouldThrowIllegalArgument_whenFilenameIsBlank() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            imageDAO.getImage("   ");
+        }, "Should throw IllegalArgumentException for blank filename in getImage");
+    }
+
+    @Test
+    void getImage_shouldThrowIllegalArgument_whenFilenameContainsTraversal() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            imageDAO.getImage("../../../etc/passwd");
+        }, "Should throw IllegalArgumentException for filename containing '..' in getImage");
+    }
+
+    @Test
+    void getImage_shouldThrowIllegalArgument_whenFilenameIsInvalidFormat() {
+        // Filename contains forward slash
+        assertThrows(IllegalArgumentException.class, () -> {
+            imageDAO.getImage("invalid/name.jpg");
+        }, "Should throw IllegalArgumentException for filename containing '/' in getImage");
+
+        // Filename contains backslash
+        assertThrows(IllegalArgumentException.class, () -> {
+            imageDAO.getImage("invalid\\name.jpg");
+        }, "Should throw IllegalArgumentException for filename containing '\\' in getImage");
     }
 }
