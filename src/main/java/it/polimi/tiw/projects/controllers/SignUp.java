@@ -34,7 +34,8 @@ public class SignUp extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
 		UserDAO userDAO = new UserDAO(connection);
 
 		String name = req.getParameter("sName").strip();
@@ -43,8 +44,9 @@ public class SignUp extends HttpServlet {
 		String password = req.getParameter("sPwd").strip();
 
 		// Checking that parameters are not empty
-		if (name == null || surname == null || username == null || password == null || name.isEmpty()
-				|| surname.isEmpty() || password.isEmpty() || username.isEmpty()) {
+		if (name == null || surname == null || username == null || password == null
+				|| name.isEmpty() || surname.isEmpty() || password.isEmpty()
+				|| username.isEmpty()) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing credential value");
 			return;
 		}
@@ -55,18 +57,19 @@ public class SignUp extends HttpServlet {
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
 
-			case NAME_ALREADY_EXISTS: { // If a user with that name already exists:
-				WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
+				case NAME_ALREADY_EXISTS: { // If a user with that name already exists:
+					WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
 
-				ctx.setVariable("errorSignUpMsg", "Username already taken");
-				String path = "/index.html";
-				templateEngine.process(path, ctx, resp.getWriter());
-			}
-				break;
+					ctx.setVariable("errorSignUpMsg", "Username already taken");
+					String path = "/index.html";
+					templateEngine.process(path, ctx, resp.getWriter());
+				}
+					break;
 
-			default: { // If another exception occurs
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to sign up");
-			}
+				default: { // If another exception occurs
+					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Not possible to sign up");
+				}
 
 			}
 			return;
@@ -78,7 +81,8 @@ public class SignUp extends HttpServlet {
 			user = userDAO.checkCredentials(username, password);
 		} catch (DAOException e) { // Failed to retrieve the newly created user
 			e.printStackTrace();
-			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not Possible to check credentials");
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+					"Not Possible to check credentials");
 			return;
 		}
 

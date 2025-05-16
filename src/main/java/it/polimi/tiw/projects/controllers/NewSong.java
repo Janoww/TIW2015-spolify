@@ -28,7 +28,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
-//FIXME: if you remove the annotation obviously it don't work use it to test the handling of null parameters
+// FIXME: if you remove the annotation obviously it don't work use it to test the handling of null
+// parameters
 @MultipartConfig
 public class NewSong extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(NewSong.class);
@@ -46,7 +47,8 @@ public class NewSong extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws IOException, ServletException {
 		logger.debug("processing the Post request");
 		SongDAO songDAO = new SongDAO(connection);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
@@ -94,17 +96,19 @@ public class NewSong extends HttpServlet {
 				albums = albumDAO.findAlbumsByUser(user.getIdUser());
 			} catch (DAOException e) {
 				e.printStackTrace();
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+						"Error in the database");
 				return;
 			}
 
 			// Search if there is already an album with that name
 			Album album = findAlbum(albums, albumName);
 
-			if (album != null && (!(album.getYear() == year) || !album.getArtist().equalsIgnoreCase(artist))) {
+			if (album != null && (!(album.getYear() == year)
+					|| !album.getArtist().equalsIgnoreCase(artist))) {
 				// If an album with that name already exists but the information don't match
-				req.setAttribute("errorNewSongMsg", "An album named " + album.getName() + " already exists, "
-						+ "it is from " + year + " by: " + album.getArtist());
+				req.setAttribute("errorNewSongMsg", "An album named " + album.getName()
+						+ " already exists, " + "it is from " + year + " by: " + album.getArtist());
 
 				req.getRequestDispatcher("/Home").forward(req, resp);
 				return;
@@ -114,14 +118,16 @@ public class NewSong extends HttpServlet {
 			try {
 				if (album != null && songDAO.findSongsByUser(user.getIdUser()).stream()
 						.anyMatch(s -> s.getTitle().equals(title))) {
-					req.setAttribute("errorNewSongMsg", "The song titled \"" + title + "\" of the album \""
-							+ album.getName() + "\" have already been uploaded");
+					req.setAttribute("errorNewSongMsg",
+							"The song titled \"" + title + "\" of the album \"" + album.getName()
+									+ "\" have already been uploaded");
 					req.getRequestDispatcher("/Home").forward(req, resp);
 					return;
 				}
 			} catch (DAOException e) {
 				e.printStackTrace();
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+						"Error in the database");
 				return;
 			}
 
@@ -130,7 +136,8 @@ public class NewSong extends HttpServlet {
 			if (album == null) {
 				// If an album already exists the image will not be updated
 
-				String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
+				String imageFileName =
+						Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
 
 				ImageDAO imageDAO = (ImageDAO) getServletContext().getAttribute("imageDAO");
 
@@ -156,9 +163,11 @@ public class NewSong extends HttpServlet {
 			// Create a new album if it doesn't exist
 			if (album == null) {
 				try {
-					album = albumDAO.createAlbum(albumName, year, artist, imageUrl, user.getIdUser());
+					album = albumDAO.createAlbum(albumName, year, artist, imageUrl,
+							user.getIdUser());
 				} catch (DAOException e) {
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Error in the database");
 					e.printStackTrace();
 					return;
 				}
@@ -171,7 +180,8 @@ public class NewSong extends HttpServlet {
 
 			AudioDAO audioDAO = (AudioDAO) getServletContext().getAttribute("audioDAO");
 
-			String audioFileName = Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
+			String audioFileName =
+					Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
 
 			String audioFileRename;
 			try {
@@ -182,7 +192,8 @@ public class NewSong extends HttpServlet {
 				e.printStackTrace();
 				return;
 			} catch (DAOException e) {
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to save image due to I/O error");
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+						"Failed to save image due to I/O error");
 				e.printStackTrace();
 				return;
 			}
@@ -192,7 +203,8 @@ public class NewSong extends HttpServlet {
 			try {
 				songDAO.createSong(title, idAlbum, year, genre, audioUrl, user.getIdUser());
 			} catch (DAOException e) {
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+						"Error in the database");
 				e.printStackTrace();
 				return;
 			}
@@ -218,7 +230,8 @@ public class NewSong extends HttpServlet {
 	}
 
 	private static Album findAlbum(List<Album> list, String albumName) {
-		return list.stream().filter(a -> a.getName().equalsIgnoreCase(albumName)).findFirst().orElse(null);
+		return list.stream().filter(a -> a.getName().equalsIgnoreCase(albumName)).findFirst()
+				.orElse(null);
 	}
 
 	private static String areParametersOk(HttpServletRequest req) {

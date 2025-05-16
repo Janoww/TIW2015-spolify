@@ -33,8 +33,10 @@ class SongDAOTest {
 	private static final String DB_PASS = "TIW2025";
 
 	// Test Data - Use unique values
-	private static final String TEST_SONG_TITLE_1 = "JUnit Test Song 1 - " + System.currentTimeMillis();
-	private static final String TEST_SONG_TITLE_2 = "JUnit Test Song 2 - " + System.currentTimeMillis();
+	private static final String TEST_SONG_TITLE_1 =
+			"JUnit Test Song 1 - " + System.currentTimeMillis();
+	private static final String TEST_SONG_TITLE_2 =
+			"JUnit Test Song 2 - " + System.currentTimeMillis();
 	private static final int TEST_SONG_YEAR = 2025;
 	private static final Genre TEST_GENRE = Genre.POP;
 	private static final String TEST_AUDIO_FILE_1 = "/audio/junit_test1.mp3";
@@ -56,7 +58,8 @@ class SongDAOTest {
 	private static final String TEST_SURNAME_2 = "Tester2";
 
 	// Test Album details
-	private static final String TEST_ALBUM_TITLE = "JUnit Test Album - " + System.currentTimeMillis();
+	private static final String TEST_ALBUM_TITLE =
+			"JUnit Test Album - " + System.currentTimeMillis();
 	private static final String TEST_ALBUM_ARTIST = "JUnit Artist";
 	private static final int TEST_ALBUM_YEAR = 2024;
 	private static Integer testAlbumId = null;
@@ -99,8 +102,8 @@ class SongDAOTest {
 			logger.info("Test user 2 created with ID: {}", testUserId2);
 
 			// Create the test album required for creating songs (pass null for image)
-			Album testAlbum = albumDAO.createAlbum(TEST_ALBUM_TITLE, TEST_ALBUM_YEAR, TEST_ALBUM_ARTIST, null,
-					testUserId);
+			Album testAlbum = albumDAO.createAlbum(TEST_ALBUM_TITLE, TEST_ALBUM_YEAR,
+					TEST_ALBUM_ARTIST, null, testUserId);
 			connection.commit(); // Commit album creation
 			assertNotNull(testAlbum, "Test album could not be created.");
 			testAlbumId = testAlbum.getIdAlbum();
@@ -130,7 +133,8 @@ class SongDAOTest {
 				cleanupTestAlbum(); // Album depends on User
 				cleanupTestUsers(); // Clean up both users
 				connection.commit(); // Commit final cleanup
-			} catch (SQLException | NullPointerException e) { // Catch potential NPE if setup failed badly
+			} catch (SQLException | NullPointerException e) { // Catch potential NPE if setup failed
+																// badly
 				logger.error("Error during final cleanup", e);
 				connection.rollback(); // Attempt rollback on cleanup error
 			} finally {
@@ -176,18 +180,23 @@ class SongDAOTest {
 		}
 		// Robust cleanup: Delete any songs matching the test title patterns or
 		// belonging to test users
-		String deleteSQL = "DELETE FROM Song WHERE title LIKE ? OR idUser = UUID_TO_BIN(?) OR idUser = UUID_TO_BIN(?)";
+		String deleteSQL =
+				"DELETE FROM Song WHERE title LIKE ? OR idUser = UUID_TO_BIN(?) OR idUser = UUID_TO_BIN(?)";
 		try (PreparedStatement pStatement = connection.prepareStatement(deleteSQL)) {
 			pStatement.setString(1, "JUnit Test Song %"); // Pattern matching
-			pStatement.setString(2, testUserId != null ? testUserId.toString() : UUID.randomUUID().toString()); // Avoid
-																												// null
-																												// UUID
-			pStatement.setString(3, testUserId2 != null ? testUserId2.toString() : UUID.randomUUID().toString()); // Avoid
-																													// null
-																													// UUID
+			pStatement.setString(2,
+					testUserId != null ? testUserId.toString() : UUID.randomUUID().toString()); // Avoid
+																								// null
+																								// UUID
+			pStatement.setString(3,
+					testUserId2 != null ? testUserId2.toString() : UUID.randomUUID().toString()); // Avoid
+																									// null
+																									// UUID
 			pStatement.executeUpdate();
 		} catch (NullPointerException e) {
-			logger.warn("NPE during song cleanup, likely testUserId not set", e); // Use WARN for potential issues
+			logger.warn("NPE during song cleanup, likely testUserId not set", e); // Use WARN for
+																					// potential
+																					// issues
 			// Continue cleanup if possible
 		}
 	}
@@ -221,15 +230,19 @@ class SongDAOTest {
 		// Robust cleanup: Delete any albums matching the test name pattern or user ID
 		String deleteSQL = "DELETE FROM Album WHERE name = ? OR idUser = UUID_TO_BIN(?)";
 		try (PreparedStatement pStatement = connection.prepareStatement(deleteSQL)) {
-			pStatement.setString(1, TEST_ALBUM_TITLE); // TEST_ALBUM_TITLE holds the name used for creation
-			pStatement.setString(2, testUserId != null ? testUserId.toString() : UUID.randomUUID().toString()); // Clean
-																												// albums
-																												// by
-																												// user
-																												// 1
+			pStatement.setString(1, TEST_ALBUM_TITLE); // TEST_ALBUM_TITLE holds the name used for
+														// creation
+			pStatement.setString(2,
+					testUserId != null ? testUserId.toString() : UUID.randomUUID().toString()); // Clean
+																								// albums
+																								// by
+																								// user
+																								// 1
 			pStatement.executeUpdate();
 		} catch (NullPointerException e) {
-			logger.warn("NPE during album cleanup, likely testUserId not set", e); // Use WARN for potential issues
+			logger.warn("NPE during album cleanup, likely testUserId not set", e); // Use WARN for
+																					// potential
+																					// issues
 			// Continue cleanup if possible
 		}
 		testAlbumId = null; // Reset after deletion attempts
@@ -250,8 +263,8 @@ class SongDAOTest {
 	@DisplayName("Test successful song creation")
 	void testCreateSong_Success() throws DAOException, SQLException {
 		assertNotNull(testAlbumId, "Test Album ID must be set before creating a song.");
-		Song createdSong = assertDoesNotThrow(() -> songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR,
-				TEST_GENRE, TEST_AUDIO_FILE_1, testUserId));
+		Song createdSong = assertDoesNotThrow(() -> songDAO.createSong(TEST_SONG_TITLE_1,
+				testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1, testUserId));
 
 		assertNotNull(createdSong, "Created song object should not be null.");
 		assertTrue(createdSong.getIdSong() > 0, "Created song ID should be positive.");
@@ -285,10 +298,10 @@ class SongDAOTest {
 	void testFindSongsByUser_Success() throws DAOException, SQLException {
 		assertNotNull(testAlbumId, "Test Album ID must be set before creating songs.");
 		// Create two songs for the test user
-		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-				testUserId);
-		Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR + 1, TEST_GENRE,
-				TEST_AUDIO_FILE_2, testUserId);
+		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE,
+				TEST_AUDIO_FILE_1, testUserId);
+		Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR + 1,
+				TEST_GENRE, TEST_AUDIO_FILE_2, testUserId);
 		createdSongId1 = song1.getIdSong();
 		createdSongId2 = song2.getIdSong();
 		connection.commit();
@@ -299,10 +312,10 @@ class SongDAOTest {
 		assertEquals(2, userSongs.size(), "Should find exactly 2 songs for the test user.");
 
 		// Check if the found songs match the created ones (order might vary)
-		assertTrue(userSongs.stream()
-				.anyMatch(s -> s.getIdSong() == createdSongId1 && s.getTitle().equals(TEST_SONG_TITLE_1)));
-		assertTrue(userSongs.stream()
-				.anyMatch(s -> s.getIdSong() == createdSongId2 && s.getTitle().equals(TEST_SONG_TITLE_2)));
+		assertTrue(userSongs.stream().anyMatch(
+				s -> s.getIdSong() == createdSongId1 && s.getTitle().equals(TEST_SONG_TITLE_1)));
+		assertTrue(userSongs.stream().anyMatch(
+				s -> s.getIdSong() == createdSongId2 && s.getTitle().equals(TEST_SONG_TITLE_2)));
 	}
 
 	@Test
@@ -323,10 +336,10 @@ class SongDAOTest {
 	void testFindAllSongs_Success() throws DAOException, SQLException {
 		assertNotNull(testAlbumId, "Test Album ID must be set before creating songs.");
 		// Create two songs
-		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-				testUserId);
-		Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR + 1, TEST_GENRE,
-				TEST_AUDIO_FILE_2, testUserId);
+		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE,
+				TEST_AUDIO_FILE_1, testUserId);
+		Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR + 1,
+				TEST_GENRE, TEST_AUDIO_FILE_2, testUserId);
 		createdSongId1 = song1.getIdSong();
 		createdSongId2 = song2.getIdSong();
 		connection.commit();
@@ -339,10 +352,10 @@ class SongDAOTest {
 		assertTrue(allSongs.size() >= 2, "Should find at least the 2 created test songs.");
 
 		// Verify our test songs are present
-		assertTrue(allSongs.stream()
-				.anyMatch(s -> s.getIdSong() == createdSongId1 && s.getTitle().equals(TEST_SONG_TITLE_1)));
-		assertTrue(allSongs.stream()
-				.anyMatch(s -> s.getIdSong() == createdSongId2 && s.getTitle().equals(TEST_SONG_TITLE_2)));
+		assertTrue(allSongs.stream().anyMatch(
+				s -> s.getIdSong() == createdSongId1 && s.getTitle().equals(TEST_SONG_TITLE_1)));
+		assertTrue(allSongs.stream().anyMatch(
+				s -> s.getIdSong() == createdSongId2 && s.getTitle().equals(TEST_SONG_TITLE_2)));
 	}
 
 	@Test
@@ -370,8 +383,8 @@ class SongDAOTest {
 	void testDeleteSong_Success() throws DAOException, SQLException {
 		assertNotNull(testAlbumId, "Test Album ID must be set before creating a song.");
 		// Create a song
-		Song songToDelete = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE,
-				TEST_AUDIO_FILE_1, testUserId);
+		Song songToDelete = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR,
+				TEST_GENRE, TEST_AUDIO_FILE_1, testUserId);
 		createdSongId1 = songToDelete.getIdSong(); // Store ID for verification
 		connection.commit();
 
@@ -384,7 +397,8 @@ class SongDAOTest {
 		connection.commit(); // Commit the deletion
 
 		// Verify it's gone
-		assertNull(findSongByIdDirectly(createdSongId1), "Song should not be findable after deletion.");
+		assertNull(findSongByIdDirectly(createdSongId1),
+				"Song should not be findable after deletion.");
 		createdSongId1 = null; // Nullify ID as it's successfully deleted (cleanup won't find it)
 	}
 
@@ -400,7 +414,8 @@ class SongDAOTest {
 		});
 
 		// Updated expected message based on SongDAO implementation
-		assertEquals("Deleting song failed, song ID " + nonExistentSongId + " not found in database.",
+		assertEquals(
+				"Deleting song failed, song ID " + nonExistentSongId + " not found in database.",
 				exception.getMessage());
 		assertEquals(DAOException.DAOErrorType.NOT_FOUND, exception.getErrorType());
 	}
@@ -413,14 +428,16 @@ class SongDAOTest {
 		int nonExistentAlbumId = -999;
 
 		DAOException exception = assertThrows(DAOException.class, () -> {
-			songDAO.createSong(TEST_SONG_TITLE_1, nonExistentAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-					testUserId);
+			songDAO.createSong(TEST_SONG_TITLE_1, nonExistentAlbumId, TEST_SONG_YEAR, TEST_GENRE,
+					TEST_AUDIO_FILE_1, testUserId);
 			// Rollback will happen in @AfterEach
 		}, "Creating a song with a non-existent album ID should throw DAOException.");
 
 		assertEquals(DAOException.DAOErrorType.NOT_FOUND, exception.getErrorType(),
 				"Exception type should be NOT_FOUND.");
-		assertTrue(exception.getMessage().contains("Album with ID " + nonExistentAlbumId + " not found."),
+		assertTrue(
+				exception.getMessage()
+						.contains("Album with ID " + nonExistentAlbumId + " not found."),
 				"Exception message should indicate album not found.");
 	}
 
@@ -432,21 +449,24 @@ class SongDAOTest {
 		assertNotNull(testUserId, "Test User ID must be set.");
 
 		// Create two songs for user 1
-		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-				testUserId);
-		Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR + 1, TEST_GENRE,
-				TEST_AUDIO_FILE_2, testUserId);
+		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE,
+				TEST_AUDIO_FILE_1, testUserId);
+		Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR + 1,
+				TEST_GENRE, TEST_AUDIO_FILE_2, testUserId);
 		createdSongId1 = song1.getIdSong();
 		createdSongId2 = song2.getIdSong();
 		connection.commit();
 
 		List<Integer> requestedIds = List.of(createdSongId1, createdSongId2);
-		List<Song> foundSongs = assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(requestedIds, testUserId));
+		List<Song> foundSongs =
+				assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(requestedIds, testUserId));
 
 		assertNotNull(foundSongs);
 		assertEquals(2, foundSongs.size(), "Should find exactly 2 songs.");
-		assertTrue(foundSongs.stream().anyMatch(s -> s.getIdSong() == createdSongId1), "Song 1 should be present.");
-		assertTrue(foundSongs.stream().anyMatch(s -> s.getIdSong() == createdSongId2), "Song 2 should be present.");
+		assertTrue(foundSongs.stream().anyMatch(s -> s.getIdSong() == createdSongId1),
+				"Song 1 should be present.");
+		assertTrue(foundSongs.stream().anyMatch(s -> s.getIdSong() == createdSongId2),
+				"Song 2 should be present.");
 	}
 
 	@Test
@@ -458,17 +478,19 @@ class SongDAOTest {
 		int nonExistentId = -555;
 
 		// Create one song for user 1
-		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-				testUserId);
+		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE,
+				TEST_AUDIO_FILE_1, testUserId);
 		createdSongId1 = song1.getIdSong();
 		connection.commit();
 
 		List<Integer> requestedIds = List.of(createdSongId1, nonExistentId);
-		List<Song> foundSongs = assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(requestedIds, testUserId));
+		List<Song> foundSongs =
+				assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(requestedIds, testUserId));
 
 		assertNotNull(foundSongs);
 		assertEquals(1, foundSongs.size(), "Should find only the 1 valid song.");
-		assertEquals(createdSongId1, foundSongs.get(0).getIdSong(), "The found song should be song 1.");
+		assertEquals(createdSongId1, foundSongs.get(0).getIdSong(),
+				"The found song should be song 1.");
 	}
 
 	@Test
@@ -480,24 +502,26 @@ class SongDAOTest {
 		assertNotNull(testUserId2, "Test User ID 2 must be set.");
 
 		// Create one song for user 1
-		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-				testUserId);
+		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE,
+				TEST_AUDIO_FILE_1, testUserId);
 		createdSongId1 = song1.getIdSong();
 		// Create one song for user 2
-		Song song3 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_3,
-				testUserId2);
+		Song song3 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR, TEST_GENRE,
+				TEST_AUDIO_FILE_3, testUserId2);
 		createdSongId3 = song3.getIdSong();
 		connection.commit();
 
 		// Request both songs, but as user 1
 		List<Integer> requestedIds = List.of(createdSongId1, createdSongId3);
-		List<Song> foundSongs = assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(requestedIds, testUserId));
+		List<Song> foundSongs =
+				assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(requestedIds, testUserId));
 
 		assertNotNull(foundSongs);
 		assertEquals(1, foundSongs.size(), "Should find only the 1 song belonging to user 1.");
 		assertEquals(createdSongId1, foundSongs.get(0).getIdSong(),
 				"The found song should be song 1 (owned by user 1).");
-		assertEquals(testUserId, foundSongs.get(0).getIdUser(), "Found song must belong to user 1.");
+		assertEquals(testUserId, foundSongs.get(0).getIdUser(),
+				"Found song must belong to user 1.");
 	}
 
 	@Test
@@ -508,12 +532,14 @@ class SongDAOTest {
 
 		// Test with empty list
 		List<Integer> emptyList = List.of();
-		List<Song> foundSongsEmpty = assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(emptyList, testUserId));
+		List<Song> foundSongsEmpty =
+				assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(emptyList, testUserId));
 		assertNotNull(foundSongsEmpty);
 		assertTrue(foundSongsEmpty.isEmpty(), "Result should be empty for an empty input list.");
 
 		// Test with null list
-		List<Song> foundSongsNull = assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(null, testUserId));
+		List<Song> foundSongsNull =
+				assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(null, testUserId));
 		assertNotNull(foundSongsNull);
 		assertTrue(foundSongsNull.isEmpty(), "Result should be empty for a null input list.");
 	}
@@ -527,22 +553,25 @@ class SongDAOTest {
 		assertNotNull(testUserId2, "Test User ID 2 must be set.");
 
 		// Create one song for user 2
-		Song song3 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_3,
-				testUserId2);
+		Song song3 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR, TEST_GENRE,
+				TEST_AUDIO_FILE_3, testUserId2);
 		createdSongId3 = song3.getIdSong();
 		connection.commit();
 
 		// Request user 2's song, but as user 1
 		List<Integer> requestedIds = List.of(createdSongId3);
-		List<Song> foundSongs = assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(requestedIds, testUserId));
+		List<Song> foundSongs =
+				assertDoesNotThrow(() -> songDAO.findSongsByIdsAndUser(requestedIds, testUserId));
 
 		assertNotNull(foundSongs);
-		assertTrue(foundSongs.isEmpty(), "Should find no songs when requesting another user's song ID.");
+		assertTrue(foundSongs.isEmpty(),
+				"Should find no songs when requesting another user's song ID.");
 	}
 
 	// --- Helper method for direct DB verification ---
 	private Song findSongByIdDirectly(int songId) throws SQLException {
-		String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idSong = ?";
+		String query =
+				"SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idSong = ?";
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
 			pStatement.setInt(1, songId);
 			try (ResultSet result = pStatement.executeQuery()) {

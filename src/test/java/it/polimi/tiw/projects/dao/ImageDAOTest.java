@@ -46,20 +46,25 @@ class ImageDAOTest {
         assertFalse(filename.contains("\\"), "Filename should not contain path separators");
 
         // Tika detects image/jpeg, map should resolve to .jpg
-        assertTrue(filename.endsWith(".jpg"), "Filename should end with '.jpg' based on detected type");
-        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
+        assertTrue(filename.endsWith(".jpg"),
+                "Filename should end with '.jpg' based on detected type");
+        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)),
+                "File should exist in temp dir");
     }
 
     @Test
     void saveImage_shouldReturnFilename_whenValidJpegProvided() throws DAOException {
         // Test with .jpeg extension, should still save as .jpg due to MIME type mapping
-        InputStream inputStream = getResourceStream("valid.jpeg"); // Assuming you have a valid.jpeg sample
+        InputStream inputStream = getResourceStream("valid.jpeg"); // Assuming you have a valid.jpeg
+                                                                   // sample
         String filename = imageDAO.saveImage(inputStream, "test_image.jpeg");
 
         assertNotNull(filename, "Returned filename should not be null for valid JPEG");
         assertFalse(filename.isBlank(), "Returned filename should not be blank for valid JPEG");
-        assertTrue(filename.endsWith(".jpg"), "Filename should end with '.jpg' based on detected type (image/jpeg)");
-        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
+        assertTrue(filename.endsWith(".jpg"),
+                "Filename should end with '.jpg' based on detected type (image/jpeg)");
+        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)),
+                "File should exist in temp dir");
     }
 
     @Test
@@ -69,8 +74,10 @@ class ImageDAOTest {
 
         assertNotNull(filename, "Returned filename should not be null for valid PNG");
         assertFalse(filename.isBlank(), "Returned filename should not be blank for valid PNG");
-        assertTrue(filename.endsWith(".png"), "Filename should end with '.png' based on detected type");
-        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
+        assertTrue(filename.endsWith(".png"),
+                "Filename should end with '.png' based on detected type");
+        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)),
+                "File should exist in temp dir");
     }
 
     @Test
@@ -80,24 +87,29 @@ class ImageDAOTest {
 
         assertNotNull(filename, "Returned filename should not be null for valid WEBP");
         assertFalse(filename.isBlank(), "Returned filename should not be blank for valid WEBP");
-        assertTrue(filename.endsWith(".webp"), "Filename should end with '.webp' based on detected type");
-        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
+        assertTrue(filename.endsWith(".webp"),
+                "Filename should end with '.webp' based on detected type");
+        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)),
+                "File should exist in temp dir");
     }
 
     // --- saveImage Validation Failure / Edge Case Tests ---
 
     @Test
-    void saveImage_shouldSaveWithCorrectExtension_whenValidContentHasWrongExtension() throws DAOException {
+    void saveImage_shouldSaveWithCorrectExtension_whenValidContentHasWrongExtension()
+            throws DAOException {
         // Valid JPG content pretending to be PNG
         InputStream inputStream = getResourceStream("valid.jpg");
         String originalFilename = "valid_jpg_pretending_to_be.png";
         String filename = imageDAO.saveImage(inputStream, originalFilename);
 
-        assertNotNull(filename, "Filename should not be null for valid content with wrong extension");
+        assertNotNull(filename,
+                "Filename should not be null for valid content with wrong extension");
         // Tika should detect image/jpeg, map it to .jpg
         assertTrue(filename.endsWith(".jpg"),
                 "Should be saved with correct extension (.jpg) based on content, not original filename");
-        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
+        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)),
+                "File should exist in temp dir");
     }
 
     @Test
@@ -139,10 +151,13 @@ class ImageDAOTest {
         InputStream inputStream = getResourceStream("valid.png"); // Use PNG for this test
         String filename = imageDAO.saveImage(inputStream, "testfile_no_extension");
 
-        assertNotNull(filename, "Filename should not be null even if original filename has no extension");
+        assertNotNull(filename,
+                "Filename should not be null even if original filename has no extension");
         assertFalse(filename.isBlank(), "Filename should not be blank");
-        assertTrue(filename.endsWith(".png"), "Should be saved with correct extension (.png) based on content");
-        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
+        assertTrue(filename.endsWith(".png"),
+                "Should be saved with correct extension (.png) based on content");
+        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)),
+                "File should exist in temp dir");
     }
 
     // --- deleteImage Tests ---
@@ -157,7 +172,8 @@ class ImageDAOTest {
         assertTrue(Files.exists(expectedPath), "File should exist after saving");
 
         // Act & Assert: Delete the file using the filename and assert no exception
-        assertDoesNotThrow(() -> imageDAO.deleteImage(filename), "Deleting an existing file should not throw");
+        assertDoesNotThrow(() -> imageDAO.deleteImage(filename),
+                "Deleting an existing file should not throw");
         assertFalse(Files.exists(expectedPath), "File should not exist after deletion");
     }
 

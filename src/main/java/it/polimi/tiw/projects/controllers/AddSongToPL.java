@@ -33,7 +33,8 @@ public class AddSongToPL extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws IOException, ServletException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		User user = (User) req.getSession().getAttribute("user");
 
@@ -48,8 +49,8 @@ public class AddSongToPL extends HttpServlet {
 
 		// Retrieve Parameters
 
-		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect")).map(Integer::parseInt)
-				.collect(Collectors.toList());
+		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect"))
+				.map(Integer::parseInt).collect(Collectors.toList());
 		Integer playlistId = Integer.parseInt(req.getParameter("playlistID"));
 
 		try {
@@ -58,26 +59,27 @@ public class AddSongToPL extends HttpServlet {
 			}
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-			case NOT_FOUND: {
-				req.setAttribute("errorAddSongMsg", e.getMessage());
-				req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
-				return;
-			}
-			case ACCESS_DENIED: {
-				req.setAttribute("errorAddSongMsg", "The playlist was not fount");
-				req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
-				return;
-			}
-			case DUPLICATE_ENTRY: {
-				req.setAttribute("errorAddSongMsg", e.getMessage());
-				req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
-				return;
-			}
-			default: {
-				e.printStackTrace();
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
-				return;
-			}
+				case NOT_FOUND: {
+					req.setAttribute("errorAddSongMsg", e.getMessage());
+					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
+					return;
+				}
+				case ACCESS_DENIED: {
+					req.setAttribute("errorAddSongMsg", "The playlist was not fount");
+					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
+					return;
+				}
+				case DUPLICATE_ENTRY: {
+					req.setAttribute("errorAddSongMsg", e.getMessage());
+					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
+					return;
+				}
+				default: {
+					e.printStackTrace();
+					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"Error in the database");
+					return;
+				}
 			}
 		}
 

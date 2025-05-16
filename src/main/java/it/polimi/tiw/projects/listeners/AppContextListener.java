@@ -68,7 +68,8 @@ public class AppContextListener implements ServletContextListener {
         String homeDirectory = System.getProperty("user.home"); // Get user's home directory
         if (homeDirectory == null) {
             logger.error("!!! FAILED TO GET USER HOME DIRECTORY (user.home property) !!!");
-            throw new RuntimeException("Could not determine user home directory for storage setup.");
+            throw new RuntimeException(
+                    "Could not determine user home directory for storage setup.");
         }
         Path storageBasePath = Paths.get(homeDirectory, "Spolify");
         logger.info("Base storage path for DAOs set to: {}", storageBasePath);

@@ -35,7 +35,8 @@ public class NewPlaylist extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws IOException, ServletException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		User user = (User) req.getSession().getAttribute("user");
 
@@ -53,8 +54,8 @@ public class NewPlaylist extends HttpServlet {
 
 		String name = req.getParameter("pName").strip();
 
-		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect")).map(Integer::parseInt)
-				.collect(Collectors.toList());
+		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect"))
+				.map(Integer::parseInt).collect(Collectors.toList());
 
 		Playlist playlist;
 		try {
@@ -73,30 +74,35 @@ public class NewPlaylist extends HttpServlet {
 				playlistDAO.createPlaylist(name, user.getIdUser(), songIDs);
 			} catch (SQLException e) {
 				e.printStackTrace();
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+						"Error in the database");
 				return;
 			} catch (DAOException e) {
 				switch (e.getErrorType()) {
-				case NOT_FOUND: {
-					req.setAttribute("errorNewPlaylistMsg", "One of the song you selected was not found");
-					req.getRequestDispatcher("/Home").forward(req, resp);
-					return;
-				}
-				case DUPLICATE_ENTRY: {
-					req.setAttribute("errorNewPlaylistMsg", "You selected two times the same song");
-					req.getRequestDispatcher("/Home").forward(req, resp);
-					return;
-				}
-				default: {
-					e.printStackTrace();
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
-					return;
-				}
+					case NOT_FOUND: {
+						req.setAttribute("errorNewPlaylistMsg",
+								"One of the song you selected was not found");
+						req.getRequestDispatcher("/Home").forward(req, resp);
+						return;
+					}
+					case DUPLICATE_ENTRY: {
+						req.setAttribute("errorNewPlaylistMsg",
+								"You selected two times the same song");
+						req.getRequestDispatcher("/Home").forward(req, resp);
+						return;
+					}
+					default: {
+						e.printStackTrace();
+						resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+								"Error in the database");
+						return;
+					}
 				}
 			}
 		} else {
 			// A playlist with that name already exist
-			req.setAttribute("errorNewPlaylistMsg", "A playlist named \"" + name + "\" already exists");
+			req.setAttribute("errorNewPlaylistMsg",
+					"A playlist named \"" + name + "\" already exists");
 			req.getRequestDispatcher("/Home").forward(req, resp);
 			return;
 		}
@@ -115,8 +121,8 @@ public class NewPlaylist extends HttpServlet {
 		}
 	}
 
-	private Playlist findPlaylistByName(PlaylistDAO dao, List<Integer> list, String name, UUID userId)
-			throws DAOException {
+	private Playlist findPlaylistByName(PlaylistDAO dao, List<Integer> list, String name,
+			UUID userId) throws DAOException {
 		for (int id : list) {
 			Playlist playlist = dao.findPlaylistById(id, userId);
 			if (playlist.getName().equalsIgnoreCase(name)) {
