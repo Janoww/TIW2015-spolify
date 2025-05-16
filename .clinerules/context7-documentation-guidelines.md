@@ -27,9 +27,16 @@ These guidelines describe how to utilize the Context7 MCP server for retrieving 
     1. Use `resolve-library-id` with `libraryName: "javascript cheatsheet"` (resolved to `/wilfredinni/javascript-cheatsheet`).
     2. Or directly use `get-library-docs` with ID `/wilfredinni/javascript-cheatsheet`.
 - **Java JDK Documentation:**
+
   - To get documentation for the Java Development Kit (JDK):
     1. Use `resolve-library-id` with `libraryName: "jdk"` or `libraryName: "openjdk jdk"` (resolved to `/openjdk/jdk`).
     2. Or directly use `get-library-docs` with ID `/openjdk/jdk`, potentially specifying a topic like "collections" or "streams".
+
+- **OWASP Cheatsheets:**
+  - To get documentation for OWASP security risks and standards:
+    1. Use `resolve-library-id` with `libraryName: "OWASP cheatsheet"` (resolved to `/owasp/cheatsheetseries`).
+    2. Or directly use `get-library-docs` with ID `/owasp/cheatsheetseries`, potentially specifying a topic like "XSS", "Servlet", "Tomcat", "html", or "css".
+  - If information is not found, search more topics with different keywords to try to retrieve the relevant information.
 
 ## General Guideline
 
