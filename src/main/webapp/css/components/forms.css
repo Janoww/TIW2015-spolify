@@ -1,6 +1,5 @@
 .title-container {
-    display: flex;
-    align-items: left;
+    display: inline-flex;
     justify-content: left;
     margin-bottom: 10px;
 }
