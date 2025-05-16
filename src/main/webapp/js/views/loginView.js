@@ -102,7 +102,7 @@ export function renderSignupView(appContainer) {
 
     const signupForm = document.createElement('form');
     signupForm.id = 'signupForm';
-    signupForm.noValidate = true; // Disable native browser validation
+    signupForm.noValidate = true;
 
     signupForm.appendChild(createFormField('Username:', 'text', 'signupUsername', 'username'));
     signupForm.appendChild(createFormField('Name:', 'text', 'name', 'name'));

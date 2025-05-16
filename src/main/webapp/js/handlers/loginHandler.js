@@ -179,14 +179,14 @@ export async function logoutUser(appContainer) {
             console.log('Logout successful:', data.message);
         } else {
             console.warn('Logout request failed on server:', data.error || response.statusText);
-            // Even if server logout fails for some reason, proceed to clear client-side session
+            // TODO: Even if server logout fails for some reason, proceed to clear client-side session
         }
     } catch (error) {
         console.error('Error during logout fetch:', error);
-        // Proceed to clear client-side session even if network error
+        // TODO: Proceed to clear client-side session even if network error
     } finally {
         sessionStorage.removeItem('currentUser');
         console.log('Client-side user session cleared.');
-        initLoginPage(appContainer); // Redirect to login page
+        initLoginPage(appContainer);
     }
 }
