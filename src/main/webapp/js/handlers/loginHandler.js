@@ -1,5 +1,5 @@
 import { renderLoginView, renderSignupView } from "../views/loginView.js";
-import { renderHomeView } from "../views/homeView.js";
+import { initHomePage } from "./homeHandler.js";
 
 // Helper function to validate a single form field
 function validateField(inputElement, errorElementId) {
@@ -34,7 +34,6 @@ function validateForm(formId, fieldIds) {
     return isValid;
 }
 
-
 function displayLogin(appContainer) {
     renderLoginView(appContainer);
 
@@ -63,7 +62,7 @@ function displayLogin(appContainer) {
                     if (response.ok) {
                         console.log('Login successful:', data);
                         sessionStorage.setItem('currentUser', JSON.stringify(data));
-                        renderHomeView(appContainer);
+                        initHomePage(appContainer);
                     } else {
                         console.error('Login failed:', data.error || response.statusText);
                         const generalErrorElement = document.getElementById('login-general-error');
@@ -179,11 +178,9 @@ export async function logoutUser(appContainer) {
             console.log('Logout successful:', data.message);
         } else {
             console.warn('Logout request failed on server:', data.error || response.statusText);
-            // TODO: Even if server logout fails for some reason, proceed to clear client-side session
         }
     } catch (error) {
         console.error('Error during logout fetch:', error);
-        // TODO: Proceed to clear client-side session even if network error
     } finally {
         sessionStorage.removeItem('currentUser');
         console.log('Client-side user session cleared.');

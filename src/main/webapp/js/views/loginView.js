@@ -45,6 +45,8 @@ function createTitleContainer(titleText) {
 
 export function renderLoginView(appContainer) {
     appContainer.innerHTML = '';
+    appContainer.style.maxWidth = '800px';
+
 
     const loginSection = document.createElement('section');
     loginSection.id = 'login-section';
@@ -90,6 +92,7 @@ export function renderLoginView(appContainer) {
 
 export function renderSignupView(appContainer) {
     appContainer.innerHTML = '';
+    appContainer.style.maxWidth = '800px';
 
     const signupSection = document.createElement('section');
     signupSection.id = 'signup-section';

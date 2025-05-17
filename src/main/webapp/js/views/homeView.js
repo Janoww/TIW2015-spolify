@@ -1,20 +1,18 @@
-import { logoutUser } from '../handlers/loginHandler.js';
 
 export function renderHomeView(appContainer) {
     appContainer.innerHTML = '';
+    appContainer.style.maxWidth = '80%';
 
     // Add Logout Button
     const logoutButton = document.createElement('button');
     logoutButton.id = 'logoutButton';
     logoutButton.textContent = 'Logout';
     logoutButton.className = 'styled-button logout-button-top-left';
-    logoutButton.addEventListener('click', () => {
-        logoutUser(appContainer);
-    });
     appContainer.appendChild(logoutButton);
 
-    const containerDiv = document.createElement('div');
-    containerDiv.className = 'container';
+    const homeSection = document.createElement('section');
+    homeSection.className = 'section';
+    homeSection.id = 'home-section';
 
     const h1 = document.createElement('h1');
     const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
@@ -23,9 +21,7 @@ export function renderHomeView(appContainer) {
     } else {
         h1.textContent = 'Welcome to Spolify!';
     }
-    containerDiv.appendChild(h1);
+    homeSection.appendChild(h1);
 
-    // Logout button is now created and appended at the beginning of this function
-
-    appContainer.appendChild(containerDiv);
+    appContainer.appendChild(homeSection);
 }

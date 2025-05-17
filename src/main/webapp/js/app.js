@@ -1,5 +1,5 @@
+import { initHomePage } from './handlers/homeHandler.js';
 import { initLoginPage } from './handlers/loginHandler.js';
-import { renderHomeView } from './views/homeView.js';
 
 const appContainer = document.getElementById('app');
 
@@ -24,7 +24,7 @@ async function checkUserSessionAndInitialize() {
             const userData = await response.json();
             console.log('Active session found for user:', userData.username);
             sessionStorage.setItem('currentUser', JSON.stringify(userData));
-            renderHomeView(appContainer);
+            initHomePage(appContainer);
         } else if (response.status === 401) {
             console.log('No active session found or user not authenticated.');
             sessionStorage.removeItem('currentUser');
