@@ -39,8 +39,7 @@ public class SignUp extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		logger.debug("Received POST request for user sign up.");
 		UserDAO userDAO = new UserDAO(connection);
 
@@ -51,11 +50,9 @@ public class SignUp extends HttpServlet {
 		logger.debug("Attempting to sign up user with username: {}", username);
 
 		// Checking that parameters are not empty
-		if (name == null || surname == null || username == null || password == null
-				|| name.isEmpty() || surname.isEmpty() || password.isEmpty()
-				|| username.isEmpty()) {
-			logger.warn("Sign up attempt with missing credential values for username: {}",
-					username);
+		if (name == null || surname == null || username == null || password == null || name.isEmpty()
+				|| surname.isEmpty() || password.isEmpty() || username.isEmpty()) {
+			logger.warn("Sign up attempt with missing credential values for username: {}", username);
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			resp.setContentType("application/json");
 			resp.setCharacterEncoding("UTF-8");
@@ -74,31 +71,30 @@ public class SignUp extends HttpServlet {
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
 
-				case NAME_ALREADY_EXISTS: {
-					logger.warn("Username '{}' already exists.", username);
-					resp.setStatus(HttpServletResponse.SC_CONFLICT);
-					resp.setContentType("application/json");
-					resp.setCharacterEncoding("UTF-8");
-					ObjectMapper mapper = new ObjectMapper();
-					Map<String, String> errorResponse = new HashMap<>();
-					errorResponse.put("error", "Username already taken");
-					resp.getWriter().write(mapper.writeValueAsString(errorResponse));
-				}
-					break;
+			case NAME_ALREADY_EXISTS: {
+				logger.warn("Username '{}' already exists.", username);
+				resp.setStatus(HttpServletResponse.SC_CONFLICT);
+				resp.setContentType("application/json");
+				resp.setCharacterEncoding("UTF-8");
+				ObjectMapper mapper = new ObjectMapper();
+				Map<String, String> errorResponse = new HashMap<>();
+				errorResponse.put("error", "Username already taken");
+				resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+			}
+				break;
 
-				default: {
-					logger.error(
-							"Unhandled DAOException for username: {}. ErrorType: {}. Details: {}",
-							username, e.getErrorType(), e.getMessage(), e);
-					resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-					resp.setContentType("application/json");
-					resp.setCharacterEncoding("UTF-8");
-					ObjectMapper mapper = new ObjectMapper();
-					Map<String, String> errorResponse = new HashMap<>();
-					errorResponse.put("error", "Not possible to sign up");
-					resp.getWriter().write(mapper.writeValueAsString(errorResponse));
-				}
-					break;
+			default: {
+				logger.error("Unhandled DAOException for username: {}. ErrorType: {}. Details: {}", username,
+						e.getErrorType(), e.getMessage(), e);
+				resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				resp.setContentType("application/json");
+				resp.setCharacterEncoding("UTF-8");
+				ObjectMapper mapper = new ObjectMapper();
+				Map<String, String> errorResponse = new HashMap<>();
+				errorResponse.put("error", "Not possible to sign up");
+				resp.getWriter().write(mapper.writeValueAsString(errorResponse));
+			}
+				break;
 			}
 			return;
 		}
@@ -110,16 +106,14 @@ public class SignUp extends HttpServlet {
 			if (user == null) { // Should not happen if createUser was successful and
 								// checkCredentials is
 								// correct
-				logger.error(
-						"Failed to retrieve newly created user '{}' - checkCredentials returned null.",
-						username);
+				logger.error("Failed to retrieve newly created user '{}' - checkCredentials returned null.", username);
 				throw new DAOException("Newly created user could not be retrieved.",
 						DAOException.DAOErrorType.GENERIC_ERROR);
 			}
 			logger.debug("Successfully retrieved newly created user: {}", username);
 		} catch (DAOException e) {
-			logger.error("DAOException while retrieving newly created user '{}'. ErrorType: {}",
-					username, e.getErrorType(), e);
+			logger.error("DAOException while retrieving newly created user '{}'. ErrorType: {}", username,
+					e.getErrorType(), e);
 			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			resp.setContentType("application/json");
 			resp.setCharacterEncoding("UTF-8");
@@ -132,8 +126,7 @@ public class SignUp extends HttpServlet {
 
 		// Assign the user to the session
 		req.getSession().setAttribute("user", user);
-		logger.debug("User {} (ID: {}) set in session after sign up.", user.getUsername(),
-				user.getIdUser());
+		logger.debug("User {} (ID: {}) set in session after sign up.", user.getUsername(), user.getIdUser());
 
 		// Send user details as JSON
 		resp.setStatus(HttpServletResponse.SC_CREATED);
@@ -141,8 +134,7 @@ public class SignUp extends HttpServlet {
 		resp.setCharacterEncoding("UTF-8");
 		ObjectMapper mapper = new ObjectMapper();
 		resp.getWriter().write(mapper.writeValueAsString(user));
-		logger.debug("Successfully sent CREATED response with user details for user: {}",
-				user.getUsername());
+		logger.debug("Successfully sent CREATED response with user details for user: {}", user.getUsername());
 	}
 
 	@Override

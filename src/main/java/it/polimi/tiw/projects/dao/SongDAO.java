@@ -23,29 +23,26 @@ public class SongDAO {
 	/**
 	 * Creates a new song in the database.
 	 *
-	 * @param title The title of the song.
-	 * @param idAlbum The ID of the album the song belongs to.
-	 * @param year The release year of the song.
-	 * @param genre The genre of the song.
+	 * @param title     The title of the song.
+	 * @param idAlbum   The ID of the album the song belongs to.
+	 * @param year      The release year of the song.
+	 * @param genre     The genre of the song.
 	 * @param audioFile The path or URL to the audio file.
-	 * @param idUser The UUID of the user who uploaded the song.
+	 * @param idUser    The UUID of the user who uploaded the song.
 	 * @return The newly created Song object with its generated ID.
 	 * @throws DAOException if the specified album ID does not exist
-	 *         ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NOT_FOUND}) or
-	 *         another database access error occurs
-	 *         ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NOT_FOUND})
+	 *                      or another database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
-	public Song createSong(String title, int idAlbum, int year, Genre genre, String audioFile,
-			UUID idUser) throws DAOException {
-		logger.debug(
-				"Attempting to create song: title={}, idAlbum={}, year={}, genre={}, audioFile={}, userId={}",
+	public Song createSong(String title, int idAlbum, int year, Genre genre, String audioFile, UUID idUser)
+			throws DAOException {
+		logger.debug("Attempting to create song: title={}, idAlbum={}, year={}, genre={}, audioFile={}, userId={}",
 				title, idAlbum, year, genre, audioFile, idUser);
-		String query =
-				"INSERT into Song (title, idAlbum, year, genre, audioFile, idUser) VALUES(?, ?, ?, ?, ?, UUID_TO_BIN(?))";
+		String query = "INSERT into Song (title, idAlbum, year, genre, audioFile, idUser) VALUES(?, ?, ?, ?, ?, UUID_TO_BIN(?))";
 		Song newSong = null;
 
-		try (PreparedStatement pStatement =
-				connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+		try (PreparedStatement pStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 			pStatement.setString(1, title);
 			pStatement.setInt(2, idAlbum);
 			pStatement.setInt(3, year);
@@ -75,8 +72,7 @@ public class SongDAO {
 					logger.info("Song created successfully with ID: {}", newId);
 
 				} else {
-					logger.error("Creating song failed, no ID obtained for title={}, userId={}",
-							title, idUser);
+					logger.error("Creating song failed, no ID obtained for title={}, userId={}", title, idUser);
 					throw new DAOException("Creating song failed, no ID obtained.",
 							DAOException.DAOErrorType.GENERIC_ERROR);
 				}
@@ -90,8 +86,7 @@ public class SongDAO {
 				throw new DAOException("Album with ID " + idAlbum + " not found.", e,
 						DAOException.DAOErrorType.NOT_FOUND);
 			} else { // GENERIC_ERROR
-				logger.error(
-						"SQL error creating song title={}, userId={}: SQLState={}, ErrorCode={}, Message={}",
+				logger.error("SQL error creating song title={}, userId={}: SQLState={}, ErrorCode={}, Message={}",
 						title, idUser, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
 				throw new DAOException("Error creating song: " + e.getMessage(), e,
 						DAOException.DAOErrorType.GENERIC_ERROR);
@@ -106,13 +101,12 @@ public class SongDAO {
 	 * @param userId The UUID of the user.
 	 * @return A list of songs uploaded by the user.
 	 * @throws DAOException if a database access error occurs
-	 *         ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public List<Song> findSongsByUser(UUID userId) throws DAOException {
 		logger.debug("Attempting to find songs for user ID: {}", userId);
 		List<Song> songs = new ArrayList<>();
-		String query =
-				"SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?)";
+		String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?)";
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
 			pStatement.setString(1, userId.toString());
 			try (ResultSet result = pStatement.executeQuery()) {
@@ -134,8 +128,7 @@ public class SongDAO {
 			throw new DAOException("Error finding songs by user: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		} catch (IllegalArgumentException e) { // GENERIC_ERROR
-			logger.error("Error parsing data (e.g., Genre, UUID) for songs for user ID {}: {}",
-					userId, e.getMessage());
+			logger.error("Error parsing data (e.g., Genre, UUID) for songs for user ID {}: {}", userId, e.getMessage());
 			throw new DAOException("Error parsing song data: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
@@ -147,15 +140,13 @@ public class SongDAO {
 	 *
 	 * @return A list of all songs.
 	 * @throws DAOException if a database access error occurs
-	 *         ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public List<Song> findAllSongs() throws DAOException {
 		logger.debug("Attempting to find all songs");
 		List<Song> songs = new ArrayList<>();
-		String query =
-				"SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song";
-		try (Statement statement = connection.createStatement();
-				ResultSet result = statement.executeQuery(query)) {
+		String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song";
+		try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(query)) {
 			while (result.next()) {
 				Song song = new Song();
 				song.setIdSong(result.getInt("idSong"));
@@ -173,8 +164,7 @@ public class SongDAO {
 			throw new DAOException("Error finding all songs: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		} catch (IllegalArgumentException e) { // GENERIC_ERROR
-			logger.error("Error parsing data (e.g., Genre, UUID) when finding all songs: {}",
-					e.getMessage());
+			logger.error("Error parsing data (e.g., Genre, UUID) when finding all songs: {}", e.getMessage());
 			throw new DAOException("Error parsing song data: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
@@ -186,9 +176,9 @@ public class SongDAO {
 	 *
 	 * @param songId The ID of the song to delete.
 	 * @throws DAOException if the song is not found
-	 *         ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NOT_FOUND}) or
-	 *         another database access error occurs
-	 *         ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NOT_FOUND})
+	 *                      or another database access error occurs
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
 	public void deleteSong(int songId) throws DAOException {
 		logger.debug("Attempting to delete song ID: {}", songId);
@@ -198,11 +188,9 @@ public class SongDAO {
 			pStatement.setInt(1, songId);
 			int affectedRows = pStatement.executeUpdate();
 			if (affectedRows == 0) {
-				logger.warn(
-						"Deleting song ID {} from database failed (0 rows affected). Song might not exist in DB.",
+				logger.warn("Deleting song ID {} from database failed (0 rows affected). Song might not exist in DB.",
 						songId);
-				throw new DAOException(
-						"Deleting song failed, song ID " + songId + " not found in database.",
+				throw new DAOException("Deleting song failed, song ID " + songId + " not found in database.",
 						DAOException.DAOErrorType.NOT_FOUND);
 			}
 			logger.info("Song ID {} deleted successfully from database.", songId);
@@ -215,18 +203,18 @@ public class SongDAO {
 	}
 
 	/**
-	 * Finds songs by a list of their IDs, ensuring they belong to a specific user. Returns only the
-	 * songs that match both the ID list and the user ID.
+	 * Finds songs by a list of their IDs, ensuring they belong to a specific user.
+	 * Returns only the songs that match both the ID list and the user ID.
 	 *
 	 * @param songIds The list of song IDs to retrieve.
-	 * @param userId The UUID of the user who must own the songs.
-	 * @return A list of {@link Song} objects matching the criteria. Returns an empty list if
-	 *         songIds is null or empty, or if no matching songs are found for this user.
+	 * @param userId  The UUID of the user who must own the songs.
+	 * @return A list of {@link Song} objects matching the criteria. Returns an
+	 *         empty list if songIds is null or empty, or if no matching songs are
+	 *         found for this user.
 	 * @throws DAOException if a database access error occurs
-	 *         ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
+	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
-	public List<Song> findSongsByIdsAndUser(List<Integer> songIds, UUID userId)
-			throws DAOException {
+	public List<Song> findSongsByIdsAndUser(List<Integer> songIds, UUID userId) throws DAOException {
 		logger.debug("Attempting to find songs by IDs: {} for user ID: {}", songIds, userId);
 
 		if (songIds == null || songIds.isEmpty()) {
@@ -273,18 +261,15 @@ public class SongDAO {
 					song.setIdUser(UUID.fromString(result.getString("idUser")));
 					songs.add(song);
 				}
-				logger.debug("Found {} songs matching IDs {} for user ID: {}", songs.size(),
-						songIds, userId);
+				logger.debug("Found {} songs matching IDs {} for user ID: {}", songs.size(), songIds, userId);
 			}
 		} catch (SQLException e) { // GENERIC_ERROR (unexpected)
-			logger.error("SQL error finding songs by IDs {} for user ID {}: {}", songIds, userId,
-					e.getMessage(), e);
+			logger.error("SQL error finding songs by IDs {} for user ID {}: {}", songIds, userId, e.getMessage(), e);
 			throw new DAOException("Error finding songs by IDs and user: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		} catch (IllegalArgumentException e) { // GENERIC_ERROR
-			logger.error(
-					"Error parsing data (e.g., Genre, UUID) for songs by IDs {} for user ID {}: {}",
-					songIds, userId, e.getMessage());
+			logger.error("Error parsing data (e.g., Genre, UUID) for songs by IDs {} for user ID {}: {}", songIds,
+					userId, e.getMessage());
 			throw new DAOException("Error parsing song data: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}

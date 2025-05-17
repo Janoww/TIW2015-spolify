@@ -76,8 +76,7 @@ public class AppContextListener implements ServletContextListener {
         String homeDirectory = System.getProperty("user.home"); // Get user's home directory
         if (homeDirectory == null) {
             logger.error("!!! FAILED TO GET USER HOME DIRECTORY (user.home property) !!!");
-            throw new RuntimeException(
-                    "Could not determine user home directory for storage setup.");
+            throw new RuntimeException("Could not determine user home directory for storage setup.");
         }
         Path storageBasePath = Paths.get(homeDirectory, "Spolify");
         logger.info("Base storage path for DAOs set to: {}", storageBasePath);
@@ -110,8 +109,7 @@ public class AppContextListener implements ServletContextListener {
                 context.setAttribute(USERNAME_REGEX_PATTERN, usernamePattern);
                 logger.info("Loaded and compiled username regex pattern: {}", usernameRegexStr);
             } catch (PatternSyntaxException e) {
-                logger.error(
-                        "Invalid regex syntax for username pattern (regex.username): '{}'. Error: {}",
+                logger.error("Invalid regex syntax for username pattern (regex.username): '{}'. Error: {}",
                         usernameRegexStr, e.getMessage());
             }
         } else {
@@ -127,8 +125,8 @@ public class AppContextListener implements ServletContextListener {
                 context.setAttribute(NAME_REGEX_PATTERN, namePattern);
                 logger.info("Loaded and compiled name/surname regex pattern: {}", nameRegexStr);
             } catch (PatternSyntaxException e) {
-                logger.error("Invalid regex syntax for name pattern (regex.name): '{}'. Error: {}",
-                        nameRegexStr, e.getMessage());
+                logger.error("Invalid regex syntax for name pattern (regex.name): '{}'. Error: {}", nameRegexStr,
+                        e.getMessage());
             }
         } else {
             logger.warn(
