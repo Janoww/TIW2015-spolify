@@ -1,9 +1,17 @@
-
-
 import { logoutUser } from '../handlers/loginHandler.js';
 
 export function renderHomeView(appContainer) {
     appContainer.innerHTML = '';
+
+    // Add Logout Button
+    const logoutButton = document.createElement('button');
+    logoutButton.id = 'logoutButton';
+    logoutButton.textContent = 'Logout';
+    logoutButton.className = 'styled-button logout-button-top-left';
+    logoutButton.addEventListener('click', () => {
+        logoutUser(appContainer);
+    });
+    appContainer.appendChild(logoutButton);
 
     const containerDiv = document.createElement('div');
     containerDiv.className = 'container';
@@ -17,16 +25,7 @@ export function renderHomeView(appContainer) {
     }
     containerDiv.appendChild(h1);
 
-    // Add Logout Button
-    const logoutButton = document.createElement('button');
-    logoutButton.id = 'logoutButton';
-    logoutButton.textContent = 'Logout';
-    logoutButton.className = 'styled-button';
-    logoutButton.addEventListener('click', () => {
-        logoutUser(appContainer);
-    });
-    containerDiv.appendChild(logoutButton);
-
+    // Logout button is now created and appended at the beginning of this function
 
     appContainer.appendChild(containerDiv);
 }
