@@ -130,8 +130,7 @@ public class UserDAOTest {
 		}, "Checking credentials immediately after creation should succeed.");
 
 		// Now commit the transaction
-		assertDoesNotThrow(() -> connection.commit(),
-				"Commit after successful creation should succeed.");
+		assertDoesNotThrow(() -> connection.commit(), "Commit after successful creation should succeed.");
 	}
 
 	@Test
@@ -216,25 +215,18 @@ public class UserDAOTest {
 		}, "Modification method call should not throw an exception.");
 
 		User modifiedUserCheck1 = userDAO.checkCredentials(TEST_USERNAME, TEST_PASSWORD);
-		assertNotNull(modifiedUserCheck1,
-				"Failed to retrieve user immediately after modification.");
-		assertEquals(TEST_NAME_MODIFIED, modifiedUserCheck1.getName(),
-				"Name should be updated immediately.");
-		assertEquals(TEST_SURNAME_MODIFIED, modifiedUserCheck1.getSurname(),
-				"Surname should be updated immediately.");
+		assertNotNull(modifiedUserCheck1, "Failed to retrieve user immediately after modification.");
+		assertEquals(TEST_NAME_MODIFIED, modifiedUserCheck1.getName(), "Name should be updated immediately.");
+		assertEquals(TEST_SURNAME_MODIFIED, modifiedUserCheck1.getSurname(), "Surname should be updated immediately.");
 		assertEquals(originalId, modifiedUserCheck1.getIdUser(), "User ID should remain the same.");
 
-		assertDoesNotThrow(() -> connection.commit(),
-				"Commit after successful modification should succeed.");
+		assertDoesNotThrow(() -> connection.commit(), "Commit after successful modification should succeed.");
 
 		User modifiedUserCheck2 = userDAO.checkCredentials(TEST_USERNAME, TEST_PASSWORD);
 		assertNotNull(modifiedUserCheck2, "Failed to retrieve user after commit.");
-		assertEquals(TEST_NAME_MODIFIED, modifiedUserCheck2.getName(),
-				"Name should be updated after commit.");
-		assertEquals(TEST_SURNAME_MODIFIED, modifiedUserCheck2.getSurname(),
-				"Surname should be updated after commit.");
-		assertEquals(originalId, modifiedUserCheck2.getIdUser(),
-				"User ID should remain the same after commit.");
+		assertEquals(TEST_NAME_MODIFIED, modifiedUserCheck2.getName(), "Name should be updated after commit.");
+		assertEquals(TEST_SURNAME_MODIFIED, modifiedUserCheck2.getSurname(), "Surname should be updated after commit.");
+		assertEquals(originalId, modifiedUserCheck2.getIdUser(), "User ID should remain the same after commit.");
 	}
 
 	@Test
@@ -254,8 +246,7 @@ public class UserDAOTest {
 		User notModifiedUser = userDAO.checkCredentials(TEST_USERNAME, TEST_PASSWORD);
 		assertNotNull(notModifiedUser);
 		assertEquals(TEST_NAME, notModifiedUser.getName(), "Name should remain the original.");
-		assertEquals(TEST_SURNAME, notModifiedUser.getSurname(),
-				"Surname should remain the original.");
+		assertEquals(TEST_SURNAME, notModifiedUser.getSurname(), "Surname should remain the original.");
 	}
 
 	@Test
@@ -276,8 +267,7 @@ public class UserDAOTest {
 		User modifiedUser = userDAO.checkCredentials(TEST_USERNAME, TEST_PASSWORD);
 		assertNotNull(modifiedUser);
 		assertEquals(TEST_NAME_MODIFIED, modifiedUser.getName(), "Name should be updated.");
-		assertEquals(TEST_SURNAME, modifiedUser.getSurname(),
-				"Surname should remain the original.");
+		assertEquals(TEST_SURNAME, modifiedUser.getSurname(), "Surname should remain the original.");
 	}
 
 	@Test
@@ -297,7 +287,6 @@ public class UserDAOTest {
 		User modifiedUser = userDAO.checkCredentials(TEST_USERNAME, TEST_PASSWORD);
 		assertNotNull(modifiedUser);
 		assertEquals(TEST_NAME, modifiedUser.getName(), "Name should remain the original.");
-		assertEquals(TEST_SURNAME_MODIFIED, modifiedUser.getSurname(),
-				"Surname should be updated.");
+		assertEquals(TEST_SURNAME_MODIFIED, modifiedUser.getSurname(), "Surname should be updated.");
 	}
 }

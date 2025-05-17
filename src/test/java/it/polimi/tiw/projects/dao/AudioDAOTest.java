@@ -53,11 +53,9 @@ class AudioDAOTest {
         assertFalse(filename.contains("/"), "Filename should not contain path separators");
         assertFalse(filename.contains("\\"), "Filename should not contain path separators");
 
-        assertTrue(filename.endsWith(".mp3"),
-                "Filename should end with '.mp3' based on detected type");
+        assertTrue(filename.endsWith(".mp3"), "Filename should end with '.mp3' based on detected type");
 
-        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)),
-                "File should exist in temp dir");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
     }
 
     @Test
@@ -70,10 +68,8 @@ class AudioDAOTest {
         assertFalse(filename.contains("/"), "Filename should not contain path separators");
         assertFalse(filename.contains("\\"), "Filename should not contain path separators");
 
-        assertTrue(filename.endsWith(".wav"),
-                "Filename should end with '.wav' based on detected type");
-        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)),
-                "File should exist in temp dir");
+        assertTrue(filename.endsWith(".wav"), "Filename should end with '.wav' based on detected type");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
 
     }
 
@@ -87,10 +83,8 @@ class AudioDAOTest {
         assertFalse(filename.contains("/"), "Filename should not contain path separators");
         assertFalse(filename.contains("\\"), "Filename should not contain path separators");
 
-        assertTrue(filename.endsWith(".ogg"),
-                "Filename should end with '.ogg' based on detected type");
-        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)),
-                "File should exist in temp dir");
+        assertTrue(filename.endsWith(".ogg"), "Filename should end with '.ogg' based on detected type");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
 
     }
 
@@ -99,8 +93,7 @@ class AudioDAOTest {
     @Test
     // @Disabled("Obsolete: Validation is now based on MIME type, not original
     // extension")
-    void saveAudio_shouldSaveWithCorrectExtension_whenValidContentHasWrongExtension()
-            throws DAOException {
+    void saveAudio_shouldSaveWithCorrectExtension_whenValidContentHasWrongExtension() throws DAOException {
         // This test now checks if valid audio content (MP3) with a wrong extension
         // (.txt)
         // is correctly identified, saved, and given the proper extension (.mp3).
@@ -108,14 +101,12 @@ class AudioDAOTest {
         String originalFilename = "valid_mp3_pretending_to_be.txt";
         String filename = audioDAO.saveAudio(inputStream, originalFilename);
 
-        assertNotNull(filename,
-                "Filename should not be null for valid content with wrong extension");
+        assertNotNull(filename, "Filename should not be null for valid content with wrong extension");
         // Tika should detect audio/mpeg, map it to .mp3 via ALLOWED_MIME_TYPES_MAP
         assertTrue(filename.endsWith(".mp3"),
                 "Should be saved with correct extension (.mp3) based on content, not original filename");
         assertFalse(filename.contains("/"), "Filename should not contain path separators");
-        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)),
-                "File should exist in temp dir");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
     }
 
     @Test
@@ -127,8 +118,7 @@ class AudioDAOTest {
     }
 
     @Test
-    void saveAudio_shouldSaveWithCorrectExtension_whenContentTypeMismatchesExtension()
-            throws DAOException {
+    void saveAudio_shouldSaveWithCorrectExtension_whenContentTypeMismatchesExtension() throws DAOException {
         InputStream inputStream = getResourceStream("valid.wav");
         String originalFilename = "valid_wav_pretending_to_be.mp3";
         String filename = audioDAO.saveAudio(inputStream, originalFilename);
@@ -139,8 +129,7 @@ class AudioDAOTest {
         assertTrue(filename.endsWith(".wav"),
                 "Should be saved with correct extension (.wav) based on content, not original filename");
         assertFalse(filename.contains("/"), "Filename should not contain path separators");
-        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)),
-                "File should exist in temp dir");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
     }
 
     @Test
@@ -164,14 +153,11 @@ class AudioDAOTest {
         InputStream inputStream = getResourceStream("valid.mp3");
         String filename = audioDAO.saveAudio(inputStream, "testfile_no_extension");
 
-        assertNotNull(filename,
-                "Filename should not be null even if original filename has no extension");
+        assertNotNull(filename, "Filename should not be null even if original filename has no extension");
         assertFalse(filename.isBlank(), "Filename should not be blank");
         assertFalse(filename.contains("/"), "Filename should not contain path separators");
-        assertTrue(filename.endsWith(".mp3"),
-                "Should be saved with correct extension (.mp3) based on content");
-        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)),
-                "File should exist in temp dir");
+        assertTrue(filename.endsWith(".mp3"), "Should be saved with correct extension (.mp3) based on content");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
     }
 
     @Test
@@ -195,8 +181,7 @@ class AudioDAOTest {
         assertTrue(Files.exists(expectedPath), "File should exist after saving");
 
         // Act & Assert: Delete the file using the filename and assert no exception
-        assertDoesNotThrow(() -> audioDAO.deleteAudio(filename),
-                "Deleting an existing file should not throw");
+        assertDoesNotThrow(() -> audioDAO.deleteAudio(filename), "Deleting an existing file should not throw");
         assertFalse(Files.exists(expectedPath), "File should not exist after deletion");
     }
 
@@ -268,13 +253,11 @@ class AudioDAOTest {
         try (FileData fileData = audioDAO.getAudio(savedFilename)) {
             // Assert
             assertNotNull(fileData, "FileData should not be null for existing file");
-            assertEquals(savedFilename, fileData.getFilename(),
-                    "Filename in FileData should match");
+            assertEquals(savedFilename, fileData.getFilename(), "Filename in FileData should match");
 
             // Verify MIME type (Tika might give slightly different but compatible types)
             String expectedMimeType = tika.detect(expectedPath);
-            assertEquals(expectedMimeType, fileData.getMimeType(),
-                    "MIME type should match detected type");
+            assertEquals(expectedMimeType, fileData.getMimeType(), "MIME type should match detected type");
 
             // Verify size
             long expectedSize = Files.size(expectedPath);
@@ -285,8 +268,7 @@ class AudioDAOTest {
             byte[] originalBytes = Files.readAllBytes(expectedPath);
             ByteArrayOutputStream retrievedBytesStream = new ByteArrayOutputStream();
             fileData.getContent().transferTo(retrievedBytesStream);
-            assertArrayEquals(originalBytes, retrievedBytesStream.toByteArray(),
-                    "File content should match");
+            assertArrayEquals(originalBytes, retrievedBytesStream.toByteArray(), "File content should match");
         }
     }
 
