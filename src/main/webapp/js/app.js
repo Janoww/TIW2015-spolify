@@ -1,5 +1,5 @@
 import { initHomePage } from './handlers/homeHandler.js';
-import { initLoginPage } from './handlers/loginHandler.js';
+import { initLoginPage, logoutUser } from './handlers/loginHandler.js';
 
 const appContainer = document.getElementById('app');
 
@@ -42,7 +42,15 @@ async function checkUserSessionAndInitialize() {
     }
 }
 
-// Entry point for the application
 document.addEventListener('DOMContentLoaded', () => {
     checkUserSessionAndInitialize();
+
+    const logoutButton = document.getElementById('logout-button');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+            logoutUser(appContainer);
+        });
+    } else {
+        console.error("Logout button not found in the DOM on initial load.");
+    }
 });

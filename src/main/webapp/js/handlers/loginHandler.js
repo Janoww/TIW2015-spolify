@@ -159,6 +159,8 @@ function displaySignup(appContainer) {
 }
 
 export function initLoginPage(appContainer) {
+    document.getElementById("navbar").style.display = "none";
+    console.log("Initializing login page...")
     displayLogin(appContainer);
 }
 

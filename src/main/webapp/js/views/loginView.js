@@ -27,20 +27,9 @@ function createFormField(labelText, inputType, inputId, inputName, required = tr
 
 // Helper function to create a title container
 function createTitleContainer(titleText) {
-    const titleContainerDiv = document.createElement('div');
-    titleContainerDiv.className = 'title-container';
-
-    const img = document.createElement('img');
-    img.src = 'images/SpolifyIcon.png';
-    img.alt = 'App Icon';
-    img.className = 'form-icon';
-
     const h1 = document.createElement('h1');
     h1.textContent = titleText;
-
-    titleContainerDiv.appendChild(img);
-    titleContainerDiv.appendChild(h1);
-    return titleContainerDiv;
+    return h1;
 }
 
 export function renderLoginView(appContainer) {
@@ -56,7 +45,7 @@ export function renderLoginView(appContainer) {
 
     const loginGeneralErrorDiv = document.createElement('div');
     loginGeneralErrorDiv.id = 'login-general-error';
-    loginGeneralErrorDiv.className = 'error-message general-error-message';
+    loginGeneralErrorDiv.className = 'general-error-message';
     loginSection.appendChild(loginGeneralErrorDiv);
 
     const loginForm = document.createElement('form');
@@ -73,6 +62,7 @@ export function renderLoginView(appContainer) {
     loginButton.id = 'loginButton';
     loginButton.className = 'styled-button';
     loginButton.textContent = 'Login';
+    loginButton.style.fontSize = '1.2em';
     buttonFieldDiv.appendChild(loginButton);
     loginForm.appendChild(buttonFieldDiv);
 
@@ -120,6 +110,7 @@ export function renderSignupView(appContainer) {
     signupButton.type = 'submit';
     signupButton.className = 'styled-button';
     signupButton.textContent = 'Sign Up';
+    signupButton.style.fontSize = '1.2em';
     buttonFieldDiv.appendChild(signupButton);
     signupForm.appendChild(buttonFieldDiv);
 
