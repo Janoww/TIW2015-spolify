@@ -1,31 +1,4 @@
-.title-container {
-  display: inline-flex;
-  justify-content: left;
-  margin-bottom: 10px;
-}
-
-.form-icon {
-  width: 90px;
-  height: auto;
-  margin-right: 10px;
-}
-
-.title-container h1 {
-  margin: 0;
-}
-
 /* Styles for the form */
-.styled-button {
-  background-color: #9b7ebd;
-  color: #eeeeee;
-  font-size: 40px;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  margin-top: 10px;
-  margin-left: 10px;
-}
 
 .form-field {
   display: flex;
@@ -69,13 +42,4 @@
 .form-field input.input-error {
   border-color: #3b1e54;
   background-color: #d4bee4;
-}
-
-.general-error-message {
-  color: #3b1e54;
-  font-size: 25px;
-  font-weight: bold;
-  min-height: 1.2em;
-  margin-bottom: 10px;
-  text-align: center;
 }
