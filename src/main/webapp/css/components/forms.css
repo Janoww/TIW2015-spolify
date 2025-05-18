@@ -3,17 +3,18 @@
 .form-field {
   display: flex;
   align-items: center;
+  align-content: center;
+  justify-content: center;
   margin-bottom: 10px;
-  font-size: 40px;
+  font-size: 2vw;
   position: relative;
   padding-bottom: 1.2em;
 }
 
 .form-field label {
-  width: 200px;
+  width: 20vw;
   margin-right: 10px;
   text-align: right;
-  flex-shrink: 0;
 }
 
 .form-field input {
@@ -24,15 +25,14 @@
   margin-bottom: 5px;
   color: #9b7ebd;
   background-color: #eeeeee;
-  flex-grow: 1;
-  font-size: 25px;
+  font-size: 2vw;
 }
 
 .form-field .error-message {
   position: absolute;
-  left: 170px;
+  left: 35%;
   bottom: 10px;
-  width: calc(100% - 110px);
+  width: 75%;
   color: #3b1e54;
   font-size: 0.6em;
   font-weight: bold;

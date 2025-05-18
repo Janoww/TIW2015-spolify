@@ -34,7 +34,7 @@ function createTitleContainer(titleText) {
 
 export function renderLoginView(appContainer) {
     appContainer.innerHTML = '';
-    appContainer.style.maxWidth = '800px';
+    appContainer.style.maxWidth = '60vw';
 
 
     const loginSection = document.createElement('section');
