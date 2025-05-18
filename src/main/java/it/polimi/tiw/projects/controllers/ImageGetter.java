@@ -2,16 +2,23 @@ package it.polimi.tiw.projects.controllers;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
 
+import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.FileData;
 import it.polimi.tiw.projects.beans.User;
+import it.polimi.tiw.projects.dao.AlbumDAO;
 import it.polimi.tiw.projects.dao.ImageDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import it.polimi.tiw.projects.utils.ConnectionHandler;
+import it.polimi.tiw.projects.utils.TemplateHandler;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,19 +27,20 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ImageGetter extends HttpServlet{
 	private static final Logger logger = LoggerFactory.getLogger(ImageGetter.class);
 	static final long serialVersionUID = 1L;
-	private Connection connection;
-	private TemplateEngine templateEngine;
 	private static final int DEFAULT_BUFFER_SIZE = 8192;
+	private Connection connection = null;
 
-	
 	@Override
-	public void init() {
-		
+	public void init() throws ServletException {
+		ServletContext context = getServletContext();
+		connection = ConnectionHandler.getConnection(context);
 	}
+
 	
 	@Override
 	public void doGet (HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		ImageDAO imageDAO = (ImageDAO) getServletContext().getAttribute("imageDAO");
+		AlbumDAO albumDAO = new AlbumDAO(connection);
 		
 		// If the user is not logged in (not present in session) redirect to the login
 		String loginPath = getServletContext().getContextPath() + "/index.html";
@@ -40,9 +48,7 @@ public class ImageGetter extends HttpServlet{
 			resp.sendRedirect(loginPath);
 			return;
 		}
-		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
-		
-		
+		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();		
 		String imageName = req.getParameter("imageName");
 		
 		//Check Parameter, if the image is not fount nothing happen
@@ -50,15 +56,29 @@ public class ImageGetter extends HttpServlet{
 			return;
 		}
 		
+		
+		try {
+			List<String> userAlbums = albumDAO.findAlbumsByUser(userId).stream().map(Album::getImage).toList();
+			
+			if (!userAlbums.stream().anyMatch(img -> img.equals(imageName))) {
+				return;
+			}	
+			
+			//TODO if we could add a method in AlbumDAO "boolean userOwnsImage(UUID userId, String imageName);" it would be an optimized query
+		} catch (DAOException e) {
+			logger.error(e.getMessage());
+		}
+		
+		
 		FileData imageFileData = null;
 		try {
 			imageFileData=imageDAO.getImage(imageName);
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Filename {} is invalid, {}", imageName, e.getMessage());
+			return;
 		} catch (DAOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("The file is not found, cannot be accessed, or an I/O error occurs");
+			return;
 		}
 		
 		if (imageFileData == null || imageFileData.getContent() == null) {
@@ -91,15 +111,6 @@ public class ImageGetter extends HttpServlet{
             }
         }
 
-		
-		
-		
-		
-		
 	}
 	
-	@Override
-	public void destroy() {
-		
-	}
 }

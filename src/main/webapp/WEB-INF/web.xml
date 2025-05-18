@@ -4,6 +4,8 @@
   xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
   version="6.0">
   <display-name>Spolify</display-name>
+  
+  <!-- Parameters -->
   <context-param>
     <param-name>dbUrl</param-name>
     <param-value>jdbc:mysql://localhost:3306/TIW2025</param-value>
@@ -26,6 +28,7 @@
     <listener-class>it.polimi.tiw.projects.listeners.AppContextListener</listener-class>
   </listener>
 
+  <!-- Mapping -->
   <servlet>
     <servlet-name>CheckLogin</servlet-name>
     <servlet-class>it.polimi.tiw.projects.controllers.CheckLogin</servlet-class>
@@ -62,7 +65,6 @@
     <url-pattern>/NewSong</url-pattern>
   </servlet-mapping>
 
-
   <servlet>
     <servlet-name>NewPlaylist</servlet-name>
     <servlet-class>it.polimi.tiw.projects.controllers.NewPlaylist</servlet-class>
@@ -74,7 +76,7 @@
 
   <servlet>
     <servlet-name>GetPlaylistDetails</servlet-name>
-    <servlet-class>it.polimi.tiw.project.controllers.GetMissionDetails</servlet-class>
+    <servlet-class>it.polimi.tiw.projects.controllers.GetPlaylistDetails</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>GetPlaylistDetails</servlet-name>
@@ -83,14 +85,42 @@
 
   <servlet>
     <servlet-name>AddSongToPL</servlet-name>
-    <servlet-class>it.polimi.tiw.project.controllers.AddSongToPL</servlet-class>
+    <servlet-class>it.polimi.tiw.projects.controllers.AddSongToPL</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>AddSongToPL</servlet-name>
     <url-pattern>/AddSongToPL</url-pattern>
   </servlet-mapping>
 
-
+  <servlet>
+	 <servlet-name>AudioGetter</servlet-name>
+	 <servlet-class>it.polimi.tiw.projects.controllers.AudioGetter</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AudioGetter</servlet-name>
+    <url-pattern>/GetSong</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+	 <servlet-name>ImageGetter</servlet-name>
+	 <servlet-class>it.polimi.tiw.projects.controllers.ImageGetter</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ImageGetter</servlet-name>
+    <url-pattern>/GetImage</url-pattern>
+  </servlet-mapping>
+ 
+  <servlet>
+	 <servlet-name>OpenSong</servlet-name>
+	 <servlet-class>it.polimi.tiw.projects.controllers.OpenSong</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OpenSong</servlet-name>
+    <url-pattern>/OpenSong</url-pattern>
+  </servlet-mapping>
+  
+  
+  
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>

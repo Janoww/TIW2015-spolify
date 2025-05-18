@@ -13,32 +13,38 @@
 
 
 	<table>
-		<tbody th:remove="all-but-first">
+		<tbody>
 			<tr>
 				<td th:each="swa : ${songWithAlbum}">
 					<div>
+					
+						<a th:href="@{/OpenSong(songId=${swa.song.idSong}, playlistId=${playlist.idPlaylist})}">
 						<img th:src="@{/GetImage(imageName=${swa.album.image})}" alt="Album Image" width="100" />
+						</a>
+						
 						<p th:text="${swa.song.title}">We No Speak Americano</p>
 						<audio controls>
 							<source th:src="${swa.song.audioFile}" type="audio/mpeg">
 						</audio>
 					</div>
 				</td>
-				<td>
+				<td th:remove="all">
 					<p>Oye Baby</p><img src="" alt="IDK">
 				</td>
-				<td>
+				<td th:remove="all">
 					<p>Hey Hey</p><img src="" alt="IDK">
 				</td>
-				<td>
+				<td th:remove="all">
 					<p>Waka Waka</p><img src="" alt="IDK">
 				</td>
-				<td>
+				<td th:remove="all">
 					<p>Alejandro</p><img src="" alt="IDK">
 				</td>
 			</tr>
 		</tbody>
 	</table>
+	
+	<pt th:text="${errorOpeningSong}"></pt>
 
 	<div th:if="${page > 0}">
 		<form method="get" action="/GetPlaylistDetails">
@@ -61,7 +67,7 @@
 		<fieldset>
 			<legend>Add songs to the playlist:</legend>
 
-			<div th:if="${sogns.size() > 0}">
+			<div th:if="${songs != null && songs.size() > 0}">
 				<p>Choose the songs:</p>
 				<div id="songsSelectCheckboxes" style="height: 150px; overflow-y: auto; border: 1px solid #ccc;">
 					<div th:each="song : ${songs}">
@@ -95,7 +101,7 @@
 				<input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
 				<p> <input type="submit" value="Add Playlist"> </p>
 			</div>
-			<div th:if="${songs.size() = 0"> To add to a playlist you need to upload a new songs</div>
+			<div th:if="${songs == null || songs.size() == 0"> To add to a playlist you need to upload a new songs</div>
 			<p th:text=" ${errorAddSongMsg}"></p>
 		</fieldset>
 

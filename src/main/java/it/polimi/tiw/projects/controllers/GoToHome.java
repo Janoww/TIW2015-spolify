@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -74,7 +76,6 @@ public class GoToHome extends HttpServlet {
 
 		// Get the list of all playlists
 		
-		//FIXME playlists have to be ordered "ordinate per data di creazione decrescente"
 		List<Playlist> playlists = null;
 		if (playlistIDs != null && !playlistIDs.isEmpty()) {
 			playlists = playlistIDs.stream().map(id -> {
@@ -84,7 +85,10 @@ public class GoToHome extends HttpServlet {
 					logger.error(e.getMessage(), e);
 					return null;
 				}
-			}).toList();
+			})
+			.filter(Objects::nonNull)
+			.sorted(Comparator.comparing(Playlist::getBirthday).reversed())
+			.toList();
 		}
 
 		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());

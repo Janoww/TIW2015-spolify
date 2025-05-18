@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title th:text="${swa.song.title}">Waka Waka</title>
+</head>
+<body>
+<h1>Song details:</h1>
+		
+<table>
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>Singer</th>
+			<th>Album Title</th>
+			<th>Publication Year</th>
+			<th>Genre</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><span th:text="${swa.song.title}"></span></td>
+			<td><span th:text="${swa.album.artist}"></span></td>
+			<td><span th:text="${swa.album.name}"></span></td>
+			<td><span th:text="${swa.album.year}"></span></td>
+			<td><span th:text="${swa.song.genre}"></span></td>
+		</tr>
+	</tbody>
+</table>
+
+<div>
+	<img th:src="@{/GetImage(imageName=${swa.album.image})}" alt="Album Image" width="100" />
+</div>
+
+<div>
+<audio controls>
+	<source th:src="@{/GetSong(song=${swa.song.audioFile})}" type="audio/*" >
+</audio>
+</div>
+
+<div >
+	<a th:href="@{/GetPlaylistDetails(playlistId=${playlistId})}">Back</a>
+</div>
+
+
+
+
+</body>
+</html>

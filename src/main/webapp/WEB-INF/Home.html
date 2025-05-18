@@ -95,7 +95,7 @@
 
 
 	<h1> Playlists: </h1>
-	<div th:if="${playlists.size() > 0}">
+	<div th:if="${playlists != null && playlists.size() > 0}">
 		<table>
 			<thead>
 				<tr>
@@ -105,7 +105,7 @@
 			<tbody th:remove="all-but-first">
 				<tr th:each="playlist : ${playlists}">
 					<td th:text="${playlist.name}">Hit Estive 2010</td>
-					<td><a th:href="@{/GetPlaylistDetails(playlistid=${playlist.idPlaylist})}">Open</a></td>
+					<td><a th:href="@{/GetPlaylistDetails(playlistId=${playlist.idPlaylist})}">Open</a></td>
 				</tr>
 				<tr>
 					<td>Party</td>
@@ -126,7 +126,7 @@
 			</tbody>
 		</table>
 	</div>
-	<div th:if="${playlists.size() == 0}">You don't have any playlist, create one</div>
+	<div th:if="${playlists == null || playlists.size() == 0}">You don't have any playlist, create one</div>
 	<pt th:text="${errorOpeningPlaylist}"></pt>
 
 

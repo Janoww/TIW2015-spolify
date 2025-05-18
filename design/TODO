@@ -1,0 +1,10 @@
+
+TODO:
+- input validation with regex
+- remove all printstacktrace
+- remove all senderror
+
+
+WHAT?
+- why does both the song and the album have the year?
+- if the song fail to be saved the album will still be saved

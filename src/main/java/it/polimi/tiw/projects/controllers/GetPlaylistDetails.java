@@ -204,11 +204,13 @@ public class GetPlaylistDetails extends HttpServlet {
 
 		List<Integer> alreadyPresentSongsIDs = playlist.getSongs();
 
+		List<Song> toRemove = new ArrayList<>();
 		for (Song song : result) {
-			if (alreadyPresentSongsIDs.contains(song.getIdSong())) {
-				result.remove(song);
-			}
+		    if (alreadyPresentSongsIDs.contains(song.getIdSong())) {
+		        toRemove.add(song);
+		    }
 		}
+		result.removeAll(toRemove);
 
 		return result;
 
