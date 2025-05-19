@@ -1,6 +1,8 @@
 package it.polimi.tiw.projects.beans;
 
-public class SongWithAlbum {
+import java.io.Serializable;
+
+public class SongWithAlbum implements Serializable {
 	private Song song;
 	private Album album;
 

@@ -32,7 +32,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class UserApiServlet extends HttpServlet {
         private static final long serialVersionUID = 1L;
         private static final Logger logger = LoggerFactory.getLogger(UserApiServlet.class);
-        private Connection connection;
+        private transient Connection connection;
 
         public UserApiServlet() {
                 super();

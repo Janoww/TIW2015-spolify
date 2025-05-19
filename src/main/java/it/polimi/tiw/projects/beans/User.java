@@ -1,10 +1,11 @@
 package it.polimi.tiw.projects.beans;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class User {
+public class User implements Serializable {
 
 	@JsonIgnore
 	private UUID idUser;

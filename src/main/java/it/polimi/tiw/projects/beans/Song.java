@@ -1,10 +1,11 @@
 package it.polimi.tiw.projects.beans;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import it.polimi.tiw.projects.utils.Genre;
 
-public class Song {
+public class Song implements Serializable {
 
 	private int idSong;
 	private String title;

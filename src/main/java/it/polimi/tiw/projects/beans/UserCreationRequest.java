@@ -1,6 +1,8 @@
 package it.polimi.tiw.projects.beans;
 
-public class UserCreationRequest {
+import java.io.Serializable;
+
+public class UserCreationRequest implements Serializable {
     private String username;
     private String password;
     private String name;

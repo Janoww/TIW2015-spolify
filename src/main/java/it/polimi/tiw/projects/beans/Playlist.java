@@ -1,10 +1,11 @@
 package it.polimi.tiw.projects.beans;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 
-public class Playlist {
+public class Playlist implements Serializable {
 
 	private int idPlaylist;
 	private String name;

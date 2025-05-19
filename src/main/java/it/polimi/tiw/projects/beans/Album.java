@@ -1,8 +1,9 @@
 package it.polimi.tiw.projects.beans;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public class Album {
+public class Album implements Serializable {
 
 	private int idAlbum;
 	private String name;

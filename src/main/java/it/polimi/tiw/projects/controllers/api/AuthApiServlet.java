@@ -33,7 +33,7 @@ import jakarta.servlet.http.HttpSession;
 public class AuthApiServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(AuthApiServlet.class);
-    private Connection connection;
+    private transient Connection connection;
 
     public AuthApiServlet() {
         super();
