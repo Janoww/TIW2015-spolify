@@ -6,7 +6,7 @@ This document outlines the design for a web-based music playlist management appl
 
 **Technology Stack:**
 
-- **Frontend:** HTML, CSS, JavaScript (Vanilla JS or a simple framework/library)
+- **Frontend:** HTML, CSS, JavaScript (Vanilla JS)
 - **Backend:** Java Servlets (running on Apache Tomcat 10.1)
 - **Database:** MySQL
 - **API Format:** RESTful APIs exchanging JSON data
@@ -20,13 +20,13 @@ The application follows a standard client-server SPA architecture:
 - **DAO Layer:** Java classes responsible for interacting with the MySQL database (CRUD operations).
 - **Database:** MySQL stores user data, song metadata, album information, and playlist structures.
 
-(See Component Diagram: component_diagram.puml)
+(See Component Diagram: [component_diagram.puml](/design/component_diagram.puml))
 
 ## 3. Database Schema
 
 The database consists of the following tables:
 
-(See ERD: erd.puml)
+(See ERD: [erd.puml](/design/erd.puml))
 
 - **User:** Stores user credentials and basic information.
   - `idUser` (PK, BINARY(16), NOT NULL)
@@ -39,7 +39,7 @@ The database consists of the following tables:
   - `name` (VARCHAR(100), NOT NULL) - _Unique per user_
   - `year` (INT, NOT NULL)
   - `artist` (VARCHAR(100), NOT NULL)
-  - `image` (VARCHAR(255)) - _Path to the album cover image_
+  - `image` (VARCHAR(255)) - _Optional Album cover image_
   - `idUser` (FK, BINARY(16), NOT NULL - References User.idUser)
 - **Song:** Stores song metadata and file paths. Each song belongs to an album and is associated with a user.
   - `idSong` (PK, INT, Auto-Increment, NOT NULL)
@@ -47,7 +47,7 @@ The database consists of the following tables:
   - `idAlbum` (FK, INT, NOT NULL - References Album.idAlbum)
   - `year` (INT, NOT NULL) - _Year of the song, potentially different from album year_
   - `genre` (VARCHAR(100))
-  - `audioFile` (VARCHAR(255), NOT NULL - _Path to the audio file_)
+  - `audioFile` (VARCHAR(255), NOT NULL - _Audio filename_)
   - `idUser` (FK, BINARY(16), NOT NULL - References User.idUser)
 - **playlist_metadata:** Stores playlist metadata. Each playlist is created by a user.
   - `idPlaylist` (PK, INT, Auto-Increment, NOT NULL)
@@ -64,9 +64,9 @@ The database consists of the following tables:
 The backend will expose the following RESTful endpoints:
 
 - **Authentication:**
-  - `POST /login`: Authenticates user. Request: `{username, password}`. Response: Success/failure, user info. Sets HTTP session.
-  - `POST /signup`: Registers a new user. Request: `{username, password, name, surname}`. Response: Success/failure.
-  - `POST /logout`: Invalidates user session. Response: Success/failure.
+  - `POST /api/v1/auth/login`: Authenticates user. Request: `{username, password}`. Response: Success/failure, user info. Sets HTTP session.
+  - `POST /api/v1/users`: Registers a new user. Request: `{username, password, name, surname}`. Response: Success/failure.
+  - `POST /api/v1/auth/logout`: Invalidates user session. Response: Success/failure.
 - **Home Page Data:**
   - `GET /home`: Fetches data for the home view after login. Response: `{ playlists: [...], songs: [...] }` (user's playlists sorted by date desc, user's songs sorted by artist/album year).
 - **Songs:**
