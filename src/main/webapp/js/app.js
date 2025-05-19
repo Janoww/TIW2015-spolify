@@ -9,7 +9,7 @@ async function checkUserSessionAndInitialize() {
         return;
     }
 
-    const delayPromise = new Promise(resolve => setTimeout(resolve, 1000));
+    const delayPromise = new Promise(resolve => setTimeout(resolve, 300));
     const sessionCheckPromise = fetch('api/v1/auth/me', {
         method: 'GET',
         headers: {
