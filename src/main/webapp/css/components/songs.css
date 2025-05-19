@@ -1,32 +1,50 @@
+.song-grid {
+    grid-template-columns: 1fr 1fr;
+}
+
+.songs {
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .song-list {
+    border: 1px solid #9B7EBD;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 15px;
     overflow-y: auto;
+    flex-grow: 1;
     padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
     max-height: 60vh;
 }
 
 .song-item {
     margin: 5px;
     display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: center;
     border: 2px solid #3B1E54;
-    border-radius: 30px;
+    border-radius: 15px;
     padding: 10px;
     background-color: #D4BEE4;
-    height: 9vh;
+    color: #3B1E54;
+    cursor: pointer;
 }
 
 .song-item:hover {
-    background-color: #9B7EBD;
-    cursor: pointer;
+    background-color: #EEEEEE;
 }
 
 .song-item img {
     aspect-ratio: 1 / 1;
     object-fit: cover;
-    border-radius: 100%;
-    height: 5vh;
+    border-radius: 50%;
+    width: 40px;
+    margin-right: 10px;
 }
 
 .song-metadata {
@@ -37,6 +55,18 @@
 }
 
 .song-metadata p {
+    flex-grow: 1;
     color: #3B1E54;
     text-align: left;
+}
+
+.song-checkbox {
+    margin-right: 10px;
+    accent-color: #3B1E54;
+}
+
+@media (max-width: 768px) {
+    .song-grid {
+        grid-template-columns: 1fr;
+    }
 }

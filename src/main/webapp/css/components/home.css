@@ -1,0 +1,28 @@
+/* Styles for the home page layout */
+
+.home-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+@media (max-width:1200px) {
+    .home-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .home-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 30px;
+    color: #3B1E54;
+    /* Highlight color */
+    font-size: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+}
