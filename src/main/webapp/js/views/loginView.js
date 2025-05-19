@@ -3,6 +3,8 @@ function createFormField(labelText, inputType, inputId, inputName, required = tr
     const fieldDiv = document.createElement('div');
     fieldDiv.className = 'form-field';
 
+    const inputDiv = document.createElement('div');
+
     const label = document.createElement('label');
     label.setAttribute('for', inputId);
     label.textContent = labelText;
@@ -15,8 +17,9 @@ function createFormField(labelText, inputType, inputId, inputName, required = tr
         input.required = true;
     }
 
-    fieldDiv.appendChild(label);
-    fieldDiv.appendChild(input);
+    inputDiv.appendChild(label);
+    inputDiv.appendChild(input);
+    fieldDiv.appendChild(inputDiv)
     const errorSpan = document.createElement('span');
     errorSpan.className = 'error-message';
     errorSpan.id = `${inputId}-error`;
