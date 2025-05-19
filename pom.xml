@@ -145,6 +145,13 @@
       <version>5.13.0-M2</version>
       <scope>test</scope>
     </dependency>
+    
+	<!-- https://mvnrepository.com/artifact/jakarta.validation/jakarta.validation-api -->
+	<dependency>
+	    <groupId>jakarta.validation</groupId>
+	    <artifactId>jakarta.validation-api</artifactId>
+	    <version>3.1.1</version>
+	</dependency>
 
   </dependencies>
 

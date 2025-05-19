@@ -119,6 +119,60 @@
     <url-pattern>/OpenSong</url-pattern>
   </servlet-mapping>
   
+    <servlet>
+	 <servlet-name>Logout</servlet-name>
+	 <servlet-class>it.polimi.tiw.projects.controllers.Logout</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Logout</servlet-name>
+    <url-pattern>/Logout</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Filters -->
+
+  <filter>
+  	<filter-name>Checker</filter-name>
+  	<filter-class>it.polimi.tiw.projects.filters.Checker</filter-class>
+  </filter>
+  <filter-mapping>
+        <filter-name>Checker</filter-name>
+        <url-pattern>/Home</url-pattern>
+        <url-pattern>/NewSong</url-pattern>
+        <url-pattern>/NewPlaylist</url-pattern>
+        <url-pattern>/GetPlaylistDetails</url-pattern>
+        <url-pattern>/AddSongToPL</url-pattern>
+        <url-pattern>/GetSong</url-pattern>
+   		<url-pattern>/GetImage</url-pattern>
+    	<url-pattern>/OpenSong</url-pattern>
+  </filter-mapping>
+
+  <!-- Exception handling -->
+  <error-page>
+    <exception-type>java.lang.Throwable</exception-type>
+    <location>/errorPages/500.html</location>
+  </error-page>
+  
+  <!-- Validation Parameters -->
+  <context-param>
+    <param-name>regex.username</param-name>
+    <param-value>^[a-zA-Z0-9_]{3,100}$</param-value>
+  </context-param>
+  <context-param>
+    <param-name>regex.name</param-name>
+    <param-value>^[a-zA-Z\s'-]{3,100}$</param-value>
+  </context-param>
+  <context-param>
+    <param-name>validation.password.minLength</param-name>
+    <param-value>4</param-value>
+  </context-param>
+  <context-param>
+    <param-name>validation.password.maxLength</param-name>
+    <param-value>100</param-value>
+  </context-param>
+  <context-param>
+    <param-name>regex.title</param-name>
+    <param-value>^[a-zA-Z0-9\s'-_]{1,100}$</param-value>
+  </context-param>
   
   
   <welcome-file-list>

@@ -7,6 +7,13 @@
 	<title th:text="${swa.song.title}">Waka Waka</title>
 </head>
 <body>
+
+<div >
+	<a th:href="@{/GetPlaylistDetails(playlistId=${playlistId})}">Back</a>
+	<a th:href="@{/Home}">Home</a>
+	<a th:href=@{/Logout}>Logout</a>	
+</div>
+
 <h1>Song details:</h1>
 		
 <table>
@@ -35,14 +42,11 @@
 </div>
 
 <div>
-<audio controls>
-	<source th:src="@{/GetSong(song=${swa.song.audioFile})}" type="audio/*" >
-</audio>
+<audio controls th:src="@{/GetSong(audioName=${swa.song.audioFile})}">Sorry your browser doesn't support embedded audio</audio>
 </div>
 
-<div >
-	<a th:href="@{/GetPlaylistDetails(playlistId=${playlistId})}">Back</a>
-</div>
+
+
 
 
 

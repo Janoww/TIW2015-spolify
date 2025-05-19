@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,19 +43,14 @@ public class AudioGetter extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		AudioDAO audioDAO = (AudioDAO) getServletContext().getAttribute("audioDAO");
 		SongDAO songDAO = new SongDAO(connection);
-		
-		// If the user is not logged in (not present in session) redirect to the login
-		String loginPath = getServletContext().getContextPath() + "/index.html";
-		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
-			resp.sendRedirect(loginPath);
-			return;
-		}
+
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 		
 		String audioName = req.getParameter("audioName");
 		
 		//Check Parameter, if the image is not fount nothing happen
 		if (audioName == null || audioName.isEmpty()) {
+			logger.warn("audioName is Empty or null");
 			return;
 		}
 		
@@ -68,7 +64,7 @@ public class AudioGetter extends HttpServlet {
 			
 			//TODO if we could add a method in SongDAO "boolean userOwnsAudio(UUID userId, String audoName);" it would be an optimized query
 		} catch (DAOException e) {
-			logger.error(e.getMessage());
+			logger.error("Database error {}", e.getMessage(), e);
 		}
 		
 		FileData audioFileData = null;
@@ -83,8 +79,10 @@ public class AudioGetter extends HttpServlet {
 		}
 		
 		if (audioFileData == null || audioFileData.getContent() == null) {
+			logger.warn("The audio file is null or empty");
 			return;
 		}
+		logger.info("Retrieved the audioFileData for audio {}: ", audioFileData.getFilename());
 		
 		//Set headers for browsers
 		resp.setContentType(audioFileData.getMimeType());
@@ -112,6 +110,15 @@ public class AudioGetter extends HttpServlet {
             }
         }
 
+	}
+	
+	@Override
+	public void destroy() {
+		try {
+			ConnectionHandler.closeConnection(connection);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 		
 }

@@ -8,6 +8,12 @@
 </head>
 
 <body>
+
+	<div >
+		<a th:href="@{/Home}">Home</a>
+		<a th:href=@{/Logout}>Logout</a>
+	</div>
+	
 	<h1 th:text="${playlist.name}">Hit-Estive-2015</h1>
 
 
@@ -23,9 +29,6 @@
 						</a>
 						
 						<p th:text="${swa.song.title}">We No Speak Americano</p>
-						<audio controls>
-							<source th:src="${swa.song.audioFile}" type="audio/mpeg">
-						</audio>
 					</div>
 				</td>
 				<td th:remove="all">
@@ -47,7 +50,7 @@
 	<pt th:text="${errorOpeningSong}"></pt>
 
 	<div th:if="${page > 0}">
-		<form method="get" action="/GetPlaylistDetails">
+		<form method="get" action="GetPlaylistDetails">
 			<input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
 			<input type="hidden" name="page" th:value="${page - 1}" />
 			<button type="submit">PRECEDENTI</button>
@@ -55,7 +58,7 @@
 	</div>
 
 
-	<div th:if="${page < totPages}">
+	<div th:if="${page < totPages - 1}">
 		<form method="get" th:action="GetPlaylistDetails">
 			<input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
 			<input type="hidden" name="page" th:value="${page + 1}" />
@@ -101,7 +104,7 @@
 				<input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
 				<p> <input type="submit" value="Add Playlist"> </p>
 			</div>
-			<div th:if="${songs == null || songs.size() == 0"> To add to a playlist you need to upload a new songs</div>
+			<div th:if="${songs == null || songs.size() == 0}"> To add to a playlist you need to upload a new songs</div>
 			<p th:text=" ${errorAddSongMsg}"></p>
 		</fieldset>
 

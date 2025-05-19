@@ -21,6 +21,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
+
 
 public class AddSongToPL extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(AddSongToPL.class);
@@ -41,20 +43,13 @@ public class AddSongToPL extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException, ServletException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
-		
-		
-		// If the user is not logged in (not present in session) redirect to the login
-		String loginPath = getServletContext().getContextPath() + "/index.html";
-		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
-			resp.sendRedirect(loginPath);
-			return;
-		}
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 
 		// Check parameter
 		String checkResult = areParametersOk(req);
 
 		if (checkResult != null) {
+			logger.info("Parameters are not ok: {}", checkResult);
 			req.setAttribute("errorAddSongMsg", checkResult);
 			req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
 			return;
@@ -64,7 +59,7 @@ public class AddSongToPL extends HttpServlet {
 
 		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect"))
 				.map(Integer::parseInt).collect(Collectors.toList());
-		Integer playlistId = Integer.parseInt(req.getParameter("playlistID"));
+		Integer playlistId = Integer.parseInt(req.getParameter("playlistId"));
 
 		try {
 			for (Integer id : songIDs) {
@@ -88,7 +83,7 @@ public class AddSongToPL extends HttpServlet {
 					return;
 				}
 				default: {
-					e.printStackTrace();
+					logger.error("Unknown error", e);
 					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 							"Error in the database");
 					return;
@@ -96,8 +91,13 @@ public class AddSongToPL extends HttpServlet {
 			}
 		}
 
-		String path = getServletContext().getContextPath() + "/GetPlaylistDetails";
+		String path = getServletContext().getContextPath() + "/GetPlaylistDetails?playlistId=" + playlistId;
 		resp.sendRedirect(path);
+	}
+	
+	@Override
+	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+		this.doPost(req, resp);
 	}
 
 	@Override
@@ -136,7 +136,8 @@ public class AddSongToPL extends HttpServlet {
 		} catch (NumberFormatException e) {
 			return "One or more selected songs have invalid IDs.";
 		}
-
+		
+		logger.info("All the parameters are valid");
 		return null;
 	}
 }

@@ -58,12 +58,6 @@ public class GetPlaylistDetails extends HttpServlet {
 		SongDAO songDAO = new SongDAO(connection);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 
-		// If the user is not logged in (not present in session) redirect to the login
-		String loginPath = getServletContext().getContextPath() + "/index.html";
-		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
-			resp.sendRedirect(loginPath);
-			return;
-		}
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 
 		// Get and check params
@@ -126,11 +120,16 @@ public class GetPlaylistDetails extends HttpServlet {
 		} catch (NumberFormatException e) {
 			page = 0;
 		}
-
+		
 		int totPages = (songWithAlbumOrdered.size() + 4) / 5;
+		
+		if(page > totPages -1) {
+			page = totPages -1;
+		}
 
 		List<SongWithAlbum> songWithAlbumDisplayed =
 				songWithAlbumOrdered.stream().skip(page * 5).limit(5).toList();
+
 
 		// We need the list of not added songs for the form
 
@@ -145,11 +144,12 @@ public class GetPlaylistDetails extends HttpServlet {
 		}
 
 		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
+		
 
 		ctx.setVariable("playlist", myPlaylist);
 		ctx.setVariable("songWithAlbum", songWithAlbumDisplayed);
 		ctx.setVariable("page", page);
-		ctx.setVariable("totalPages", totPages);
+		ctx.setVariable("totPages", totPages);
 		ctx.setVariable("songs", unusedSongs);
 		ctx.setVariable("errorAddSongMsg", req.getParameter("errorAddSongMsg"));
 

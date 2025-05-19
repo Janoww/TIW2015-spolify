@@ -50,13 +50,7 @@ public class GoToHome extends HttpServlet {
 		logger.debug("Loading HOME");
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		SongDAO songDAO = new SongDAO(connection);
-		
-		// If the user is not logged in (not present in session) redirect to the login
-		String loginPath = getServletContext().getContextPath() + "/index.html";
-		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
-			resp.sendRedirect(loginPath);
-			return;
-		}
+
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 	
 
@@ -108,8 +102,6 @@ public class GoToHome extends HttpServlet {
 
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		User user = (User) req.getSession().getAttribute("user");
-		logger.debug("UUID user: " + user.getIdUser());
 		this.doGet(req, resp);
 	}
 

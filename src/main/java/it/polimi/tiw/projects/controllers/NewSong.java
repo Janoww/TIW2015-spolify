@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import it.polimi.tiw.projects.dao.ImageDAO;
 import it.polimi.tiw.projects.dao.PlaylistDAO;
 import it.polimi.tiw.projects.dao.SongDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import it.polimi.tiw.projects.listeners.AppContextListener;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import it.polimi.tiw.projects.utils.Genre;
 import jakarta.servlet.ServletContext;
@@ -27,6 +29,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
+import jakarta.validation.constraints.NotNull;
 
 
 @MultipartConfig
@@ -53,17 +56,16 @@ public class NewSong extends HttpServlet {
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 
 		// Check Parameters
-
-		String checkResult = areParametersOk(req);
+		String checkResult = areParametersOk(req, getServletContext());
 
 		if (checkResult != null) {
 			req.setAttribute("errorNewSongMsg", checkResult);
-			logger.debug("ParametersNotOk: " + checkResult);
+			logger.warn("ParametersNotOk: " + checkResult);
 			req.getRequestDispatcher("/Home").forward(req, resp);
 			return;
 		}
 
-		logger.debug("Parameters are ok");
+		logger.info("Parameters are ok");
 
 		// Retrieve parameters
 		String title = req.getParameter("sTitle").strip();
@@ -106,8 +108,8 @@ public class NewSong extends HttpServlet {
 			if (album != null && (!(album.getYear() == year)
 					|| !album.getArtist().equalsIgnoreCase(artist))) {
 				// If an album with that name already exists but the information don't match
-				req.setAttribute("errorNewSongMsg", "An album named " + album.getName()
-						+ " already exists, " + "it is from " + year + " by: " + album.getArtist());
+				req.setAttribute("errorNewSongMsg", "An album named \"" + album.getName()
+						+ "\" already exists, it is from the year " + year + " by \"" + album.getArtist() + "\"");
 
 				req.getRequestDispatcher("/Home").forward(req, resp);
 				return;
@@ -156,6 +158,7 @@ public class NewSong extends HttpServlet {
 
 			}
 
+			//TODO check if inputstream is closed
 			// Create a new album if it doesn't exist
 			if (album == null) {
 				try {
@@ -227,23 +230,31 @@ public class NewSong extends HttpServlet {
 				.orElse(null);
 	}
 
-	private static String areParametersOk(HttpServletRequest req) {
+	private static String areParametersOk(HttpServletRequest req, ServletContext servletContext) {
+
+		Pattern titlePattern = (Pattern) servletContext.getAttribute(AppContextListener.TITLE_REGEX_PATTERN);
+		
 		try {
 			String title = req.getParameter("sTitle");
 			if (title == null || (title = title.strip()).isEmpty()) {
-				return "You have to choose a title: ";
+				return "You have to choose a title";
+			}
+			if(!isValid(title, titlePattern)) {
+				return "Invalid title format. Use letters, numbers, spaces, hyphens, or apostrophes (1-100 characters).";
 			}
 
 			String albumName = req.getParameter("sAlbum");
 			if (albumName == null || (albumName = albumName.strip()).isEmpty()) {
 				return "You have to specify the album name";
 			}
+			if(!isValid(title, titlePattern)) {
+				return "Invalid album name format. Use letters, numbers, spaces, hyphens, or apostrophes (1-100 characters).";
+			}
 
 			String yearString = req.getParameter("sYear");
 			if (yearString == null || (yearString = yearString.strip()).isEmpty()) {
 				return "You have to specify the album's year of release";
 			}
-
 			try {
 				Integer.parseInt(yearString);
 			} catch (NumberFormatException e) {
@@ -254,12 +265,14 @@ public class NewSong extends HttpServlet {
 			if (artist == null || (artist = artist.strip()).isEmpty()) {
 				return "You have to specify the name of the artist";
 			}
+			if(!isValid(title, titlePattern)) {
+				return "Invalid artis name format. Use letters, numbers, spaces, hyphens, or apostrophes (1-100 characters).";
+			}
 
 			String genreName = req.getParameter("sGenre");
 			if (genreName == null || (genreName = genreName.strip()).isEmpty()) {
 				return "You must choose a genre from the predefined ones";
 			}
-
 			try {
 				Genre.valueOf(genreName);
 			} catch (IllegalArgumentException e) {
@@ -289,5 +302,12 @@ public class NewSong extends HttpServlet {
 		}
 
 		return null; // all good
+	}
+	
+	private static boolean isValid ( @NotNull String parameter, @NotNull Pattern pattern) {
+		if (!pattern.matcher(parameter).matches()) {
+			return false;
+		}
+		return true;
 	}
 }

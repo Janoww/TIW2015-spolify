@@ -49,6 +49,7 @@ public class CheckLogin extends HttpServlet {
 
 		// Checking if the parameters are empty
 		if (username == null || password == null || username.isEmpty() || password.isEmpty()) {
+			logger.warn("Missing credential value");
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing credential value");
 			return;
 		}
@@ -59,6 +60,7 @@ public class CheckLogin extends HttpServlet {
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
 				case INVALID_CREDENTIALS: { // No user found with that username/password combination
+					logger.warn("Invelid credentials");
 					WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
 
 					ctx.setVariable("errorLogInMsg",
@@ -75,6 +77,8 @@ public class CheckLogin extends HttpServlet {
 
 			}
 		}
+		
+		logger.info("User {} logged in", user.getUsername());
 
 		// Assign the user to the session
 		req.getSession().setAttribute("user", user);

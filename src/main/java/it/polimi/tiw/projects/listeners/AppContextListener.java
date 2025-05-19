@@ -17,6 +17,8 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import com.mysql.cj.jdbc.AbandonedConnectionCleanupThread;
 import com.zaxxer.hikari.HikariConfig;
@@ -28,9 +30,18 @@ public class AppContextListener implements ServletContextListener {
     private static final Logger logger = LoggerFactory.getLogger(AppContextListener.class);
     private HikariDataSource dataSource;
 
+    // Keys for ServletContext attributes for validation patterns
+    public static final String USERNAME_REGEX_PATTERN = "USERNAME_REGEX_PATTERN";
+    public static final String NAME_REGEX_PATTERN = "NAME_REGEX_PATTERN";
+    public static final String TITLE_REGEX_PATTERN = "TITLE_REGEX_PATTERN";
+    public static final String PASSWORD_MIN_LENGTH = "PASSWORD_MIN_LENGTH";
+    public static final String PASSWORD_MAX_LENGTH = "PASSWORD_MAX_LENGTH";
+    
+    
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
+       
 
         // Configure HikariCP
         HikariConfig config = new HikariConfig();
@@ -86,7 +97,112 @@ public class AppContextListener implements ServletContextListener {
             logger.error("!!! FAILED TO INITIALIZE ImageDAO or AudioDAO !!!", e);
             throw new RuntimeException("Failed to initialize file storage DAOs", e);
         }
+        
+
+        // Load and compile validation patterns
+        loadAndStoreValidationPatterns(context);
+
     }
+    
+    
+    private void loadAndStoreValidationPatterns(ServletContext context) {
+        logger.info("Loading validation patterns from web.xml...");
+
+        // Username Regex
+        String usernameRegexStr = context.getInitParameter("regex.username");
+        if (usernameRegexStr != null && !usernameRegexStr.isBlank()) {
+            try {
+                Pattern usernamePattern = Pattern.compile(usernameRegexStr);
+                context.setAttribute(USERNAME_REGEX_PATTERN, usernamePattern);
+                logger.info("Loaded and compiled username regex pattern: {}", usernameRegexStr);
+            } catch (PatternSyntaxException e) {
+                logger.error("Invalid regex syntax for username pattern (regex.username): '{}'. Error: {}",
+                        usernameRegexStr, e.getMessage());
+            }
+        } else {
+            logger.warn(
+                    "Username regex pattern (regex.username) not found or empty in web.xml. Username validation might be affected.");
+        }
+
+        // Name Regex (for name and surname)
+        String nameRegexStr = context.getInitParameter("regex.name");
+        if (nameRegexStr != null && !nameRegexStr.isBlank()) {
+            try {
+                Pattern namePattern = Pattern.compile(nameRegexStr);
+                context.setAttribute(NAME_REGEX_PATTERN, namePattern);
+                logger.info("Loaded and compiled name/surname regex pattern: {}", nameRegexStr);
+            } catch (PatternSyntaxException e) {
+                logger.error("Invalid regex syntax for name pattern (regex.name): '{}'. Error: {}", nameRegexStr,
+                        e.getMessage());
+            }
+        } else {
+            logger.warn(
+                    "Name regex pattern (regex.name) not found or empty in web.xml. Name/surname validation might be affected.");
+        }
+        
+        // Title Regex (for title of songs, albums and playlists)
+        String titleRegexStr = context.getInitParameter("regex.title");
+        if(titleRegexStr != null && !titleRegexStr.isBlank()) {
+        	try {
+        		Pattern titlePattern = Pattern.compile(titleRegexStr);
+        		context.setAttribute(TITLE_REGEX_PATTERN, titlePattern);
+        		logger.info("Loaded and compiled title regex pattern: {}", titleRegexStr);
+        	} catch (PatternSyntaxException e) {
+        		logger.error("invelid regex syntax for title pattern (regex.title); '{}'. Error: {}", titleRegexStr, e.getMessage());
+        	}
+        } else {
+        	logger.warn("Title regex pattern (regex.title) not found or empty in web.xml. Title valdation might be affected");
+        }
+
+        // Password Minimum Length
+        String passwordMinLengthStr = context.getInitParameter("validation.password.minLength");
+        if (passwordMinLengthStr != null && !passwordMinLengthStr.isBlank()) {
+            try {
+                int minLength = Integer.parseInt(passwordMinLengthStr);
+                if (minLength > 0) {
+                    context.setAttribute(PASSWORD_MIN_LENGTH, minLength);
+                    logger.info("Loaded password minimum length: {}", minLength);
+                } else {
+                    logger.warn(
+                            "Password minimum length (validation.password.minLength) must be a positive integer, but was: {}. Using default or skipping length check.",
+                            passwordMinLengthStr);
+                }
+            } catch (NumberFormatException e) {
+                logger.error(
+                        "Invalid number format for password minimum length (validation.password.minLength): '{}'. Error: {}",
+                        passwordMinLengthStr, e.getMessage());
+            }
+        } else {
+            logger.warn(
+                    "Password minimum length (validation.password.minLength) not found or empty in web.xml. Password length validation might be affected.");
+        }
+
+        // Password Maximum Length
+        String passwordMaxLengthStr = context.getInitParameter("validation.password.maxLength");
+        if (passwordMaxLengthStr != null && !passwordMaxLengthStr.isBlank()) {
+            try {
+                int maxLength = Integer.parseInt(passwordMaxLengthStr);
+                if (maxLength > 0) {
+                    context.setAttribute(PASSWORD_MAX_LENGTH, maxLength);
+                    logger.info("Loaded password maximum length: {}", maxLength);
+                } else {
+                    logger.warn(
+                            "Password maximum length (validation.password.maxLength) must be a positive integer, but was: {}. Using default or skipping length check.",
+                            passwordMaxLengthStr);
+                }
+            } catch (NumberFormatException e) {
+                logger.error(
+                        "Invalid number format for password maximum length (validation.password.maxLength): '{}'. Error: {}",
+                        passwordMaxLengthStr, e.getMessage());
+            }
+        } else {
+            logger.warn(
+                    "Password maximum length (validation.password.maxLength) not found or empty in web.xml. Password length validation might be affected.");
+        }
+
+        logger.info("Validation patterns loading complete.");
+    }
+
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {

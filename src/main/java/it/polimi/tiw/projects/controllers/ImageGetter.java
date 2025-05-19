@@ -41,13 +41,7 @@ public class ImageGetter extends HttpServlet{
 	public void doGet (HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		ImageDAO imageDAO = (ImageDAO) getServletContext().getAttribute("imageDAO");
 		AlbumDAO albumDAO = new AlbumDAO(connection);
-		
-		// If the user is not logged in (not present in session) redirect to the login
-		String loginPath = getServletContext().getContextPath() + "/index.html";
-		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
-			resp.sendRedirect(loginPath);
-			return;
-		}
+
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();		
 		String imageName = req.getParameter("imageName");
 		

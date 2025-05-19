@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -16,12 +17,14 @@ import it.polimi.tiw.projects.beans.Playlist;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.PlaylistDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import it.polimi.tiw.projects.listeners.AppContextListener;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 
 public class NewPlaylist extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(NewPlaylist.class);
@@ -42,21 +45,16 @@ public class NewPlaylist extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException, ServletException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
-		
-		// If the user is not logged in (not present in session) redirect to the login
-		String loginPath = getServletContext().getContextPath() + "/index.html";
-		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
-			resp.sendRedirect(loginPath);
-			return;
-		}
+
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 		
 
 		// Check Parameters
 
-		String checkResult = areParametersOk(req);
+		String checkResult = areParametersOk(req, getServletContext());
 
 		if (checkResult != null) {
+			logger.warn("ParametersNotOk: " + checkResult);
 			req.setAttribute("errorNewPlaylistMsg", checkResult);
 			req.getRequestDispatcher("/Home").forward(req, resp);
 			return;
@@ -75,7 +73,7 @@ public class NewPlaylist extends HttpServlet {
 			List<Integer> listOfPlaylists = playlistDAO.findPlaylistIdsByUser(userId);
 			playlist = findPlaylistByName(playlistDAO, listOfPlaylists, name, userId);
 		} catch (DAOException e) {
-			e.printStackTrace();
+			logger.error("Error in database: {}", e.getMessage(), e);
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
 			return;
 		}
@@ -85,7 +83,7 @@ public class NewPlaylist extends HttpServlet {
 			try {
 				playlistDAO.createPlaylist(name, userId, songIDs);
 			} catch (SQLException e) {
-				e.printStackTrace();
+				logger.error("Error in database: {}", e.getMessage(), e);
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 						"Error in the database");
 				return;
@@ -104,7 +102,7 @@ public class NewPlaylist extends HttpServlet {
 						return;
 					}
 					default: {
-						e.printStackTrace();
+						logger.error("Error in database: {}", e.getMessage(), e);
 						resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 								"Error in the database");
 						return;
@@ -144,10 +142,16 @@ public class NewPlaylist extends HttpServlet {
 		return null;
 	}
 
-	private static String areParametersOk(HttpServletRequest req) {
+	private static String areParametersOk(HttpServletRequest req, ServletContext servletContext) {
+
+		Pattern titlePattern = (Pattern) servletContext.getAttribute(AppContextListener.TITLE_REGEX_PATTERN);
+		
 		String title = req.getParameter("pName");
 		if (title == null || (title = title.strip()).isEmpty()) {
 			return "You have to choose a name for the playlist";
+		}
+		if(!isValid(title, titlePattern)) {
+			return "Invalid title format. Use letters, numbers, spaces, hyphens, or apostrophes (1-100 characters).";
 		}
 
 		String[] selectedSongIds = req.getParameterValues("songsSelect");
@@ -166,6 +170,13 @@ public class NewPlaylist extends HttpServlet {
 		}
 
 		return null;
+	}
+	
+	private static boolean isValid ( @NotNull String parameter, @NotNull Pattern pattern) {
+		if (!pattern.matcher(parameter).matches()) {
+			return false;
+		}
+		return true;
 	}
 
 }
