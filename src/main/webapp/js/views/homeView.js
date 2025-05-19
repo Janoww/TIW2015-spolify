@@ -53,7 +53,6 @@ function createFormField({ id, labelText, inputType, name, required, options, at
 
 export function renderHomeView(appContainer) {
     appContainer.innerHTML = '';
-    document.getElementById('navbar').style.display = 'inline-block';
 
     const songsSection = document.createElement('section');
     songsSection.id = 'songs';

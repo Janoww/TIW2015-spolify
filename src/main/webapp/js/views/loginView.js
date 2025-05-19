@@ -35,6 +35,25 @@ function createTitleContainer(titleText) {
     return h1;
 }
 
+// Helper function to create a link block (div > p > text + a)
+function createLinkBlock(baseText, linkId, linkTextContent, linkHref = '#') {
+    const linkContainerDiv = document.createElement('div');
+    linkContainerDiv.className = 'link-container';
+
+    const pElement = document.createElement('p');
+    pElement.appendChild(document.createTextNode(baseText));
+
+    const linkElement = document.createElement('a');
+    linkElement.href = linkHref;
+    linkElement.id = linkId;
+    linkElement.textContent = linkTextContent;
+
+    pElement.appendChild(linkElement);
+    linkContainerDiv.appendChild(pElement);
+
+    return linkContainerDiv;
+}
+
 export function renderLoginView(appContainer) {
     appContainer.innerHTML = '';
     appContainer.style.maxWidth = '60vw';
@@ -71,21 +90,14 @@ export function renderLoginView(appContainer) {
 
     loginSection.appendChild(loginForm);
 
-    const pElement = document.createElement('p');
-    pElement.textContent = "Don't have an account? ";
-    const signupLink = document.createElement('a');
-    signupLink.href = '#';
-    signupLink.id = 'signupLink';
-    signupLink.textContent = 'Sign up';
-    pElement.appendChild(signupLink);
-    loginSection.appendChild(pElement);
+    loginSection.appendChild(createLinkBlock("Don't have an account? ", 'signupLink', 'Sign up'));
 
     appContainer.appendChild(loginSection);
 }
 
 export function renderSignupView(appContainer) {
     appContainer.innerHTML = '';
-    appContainer.style.maxWidth = '800px';
+    appContainer.style.maxWidth = '60vw';
 
     const signupSection = document.createElement('section');
     signupSection.id = 'signup-section';
@@ -119,14 +131,7 @@ export function renderSignupView(appContainer) {
 
     signupSection.appendChild(signupForm);
 
-    const pElement = document.createElement('p');
-    pElement.textContent = 'Already have an account? ';
-    const loginLink = document.createElement('a');
-    loginLink.href = '#';
-    loginLink.id = 'loginLink';
-    loginLink.textContent = 'Login';
-    pElement.appendChild(loginLink);
-    signupSection.appendChild(pElement);
+    signupSection.appendChild(createLinkBlock('Already have an account? ', 'loginLink', 'Login'));
 
     appContainer.appendChild(signupSection);
 }
