@@ -15,6 +15,9 @@ public class ConnectionHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConnectionHandler.class);
 
+	private ConnectionHandler() {
+	}
+
 	public static Connection getConnection(ServletContext context) throws UnavailableException {
 		DataSource dataSource = (DataSource) context.getAttribute("dataSource");
 		if (dataSource == null) {
@@ -28,7 +31,6 @@ public class ConnectionHandler {
 			connection = dataSource.getConnection();
 			logger.debug("Successfully obtained connection from DataSource.");
 		} catch (SQLException e) {
-			logger.error("Error getting connection from DataSource pool.", e);
 			throw new UnavailableException("Couldn't get DB connection from pool: " + e.getMessage());
 		}
 		return connection;
@@ -42,14 +44,9 @@ public class ConnectionHandler {
 	 */
 	public static void closeConnection(Connection connection) throws SQLException {
 		if (connection != null) {
-			try {
-				logger.debug("Closing connection (returning to pool).");
-				connection.close();
-				logger.debug("Connection closed successfully.");
-			} catch (SQLException e) {
-				logger.error("Error closing connection (returning to pool).", e);
-				throw e;
-			}
+			logger.debug("Closing connection (returning to pool).");
+			connection.close();
+			logger.debug("Connection closed successfully.");
 		}
 	}
 }
