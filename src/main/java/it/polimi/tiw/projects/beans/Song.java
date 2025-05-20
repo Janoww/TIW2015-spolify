@@ -3,6 +3,8 @@ package it.polimi.tiw.projects.beans;
 import java.io.Serializable;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import it.polimi.tiw.projects.utils.Genre;
 
 public class Song implements Serializable {
@@ -12,6 +14,7 @@ public class Song implements Serializable {
 	private int idAlbum;
 	private int year;
 	private Genre genre;
+	@JsonIgnore
 	private String audioFile;
 	private UUID idUser;
 

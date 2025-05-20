@@ -3,23 +3,26 @@ package it.polimi.tiw.projects.beans;
 import java.io.Serializable;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class Album implements Serializable {
 
 	private int idAlbum;
 	private String name;
 	private int year;
 	private String artist;
-	private String image;
+	@JsonIgnore
+	private String imageFile;
 	private UUID idUser;
 
 	// Getters and Setters
 
-	public String getImage() {
-		return image;
+	public String getImageFile() {
+		return imageFile;
 	}
 
-	public void setImage(String image) {
-		this.image = image;
+	public void setImageFile(String image) {
+		this.imageFile = image;
 	}
 
 	public int getIdAlbum() {
