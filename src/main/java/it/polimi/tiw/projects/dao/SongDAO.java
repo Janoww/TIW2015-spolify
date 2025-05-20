@@ -237,7 +237,7 @@ public class SongDAO {
 		queryBuilder.append(")"); // Close the IN clause parenthesis
 
 		String query = queryBuilder.toString();
-		logger.trace("Executing query: {}", query); // Log the dynamically built query for debugging
+		logger.trace("Executing query: {}", query);
 
 		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
 			// Set the user ID parameter (index 1)
@@ -263,17 +263,10 @@ public class SongDAO {
 				}
 				logger.debug("Found {} songs matching IDs {} for user ID: {}", songs.size(), songIds, userId);
 			}
-		} catch (SQLException e) { // GENERIC_ERROR (unexpected)
-			logger.error("SQL error finding songs by IDs {} for user ID {}: {}", songIds, userId, e.getMessage(), e);
+		} catch (SQLException e) {
 			throw new DAOException("Error finding songs by IDs and user: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
-		} catch (IllegalArgumentException e) { // GENERIC_ERROR
-			logger.error("Error parsing data (e.g., Genre, UUID) for songs by IDs {} for user ID {}: {}", songIds,
-					userId, e.getMessage());
-			throw new DAOException("Error parsing song data: " + e.getMessage(), e,
-					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
-		// Return the list of found songs (may be empty if none matched)
 		return songs;
 	}
 }
