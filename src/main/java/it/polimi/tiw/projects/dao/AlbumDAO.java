@@ -5,6 +5,8 @@ import it.polimi.tiw.projects.exceptions.DAOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.drew.lang.annotations.NotNull;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +68,7 @@ public class AlbumDAO {
 					newAlbum.setName(name);
 					newAlbum.setYear(year);
 					newAlbum.setArtist(artist);
-					newAlbum.setImage(image);
+					newAlbum.setImageFile(image);
 					newAlbum.setIdUser(idUser);
 					logger.info("Album created successfully with ID: {}", newAlbum.getIdAlbum());
 				} else {
@@ -114,7 +116,7 @@ public class AlbumDAO {
 					album.setName(result.getString("name"));
 					album.setYear(result.getInt("year"));
 					album.setArtist(result.getString("artist"));
-					album.setImage(result.getString("image"));
+					album.setImageFile(result.getString("image"));
 					album.setIdUser(UUID.fromString(result.getString("idUser")));
 					logger.debug("Found album with ID: {}", idAlbum);
 				} else {
@@ -124,11 +126,9 @@ public class AlbumDAO {
 				}
 			}
 		} catch (SQLException e) {
-			logger.error("SQL error finding album by ID {}: {}", idAlbum, e.getMessage(), e);
 			throw new DAOException("Error finding album by ID: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
-		} catch (IllegalArgumentException e) { // Catch UUID parsing errors too
-			logger.warn("Invalid argument (e.g., UUID format) finding album by ID {}: {}", idAlbum, e.getMessage());
+		} catch (IllegalArgumentException e) {
 			throw new DAOException("Error finding album by ID due to invalid argument: " + e.getMessage(), e,
 					DAOException.DAOErrorType.GENERIC_ERROR);
 		}
@@ -154,7 +154,7 @@ public class AlbumDAO {
 				album.setName(result.getString("name"));
 				album.setYear(result.getInt("year"));
 				album.setArtist(result.getString("artist"));
-				album.setImage(result.getString("image"));
+				album.setImageFile(result.getString("image"));
 				album.setIdUser(UUID.fromString(result.getString("idUser")));
 				albums.add(album);
 			}
@@ -189,7 +189,7 @@ public class AlbumDAO {
 					album.setName(result.getString("name"));
 					album.setYear(result.getInt("year"));
 					album.setArtist(result.getString("artist"));
-					album.setImage(result.getString("image"));
+					album.setImageFile(result.getString("image"));
 					album.setIdUser(UUID.fromString(result.getString("idUser")));
 					userAlbums.add(album);
 				}

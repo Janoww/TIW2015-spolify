@@ -220,7 +220,7 @@ class AlbumDAOTest {
 		assertEquals(TEST_ALBUM_NAME_1, createdAlbum.getName());
 		assertEquals(TEST_ALBUM_YEAR_1, createdAlbum.getYear());
 		assertEquals(TEST_ALBUM_ARTIST_1, createdAlbum.getArtist());
-		assertNull(createdAlbum.getImage(), "Image should be null when not provided.");
+		assertNull(createdAlbum.getImageFile(), "Image should be null when not provided.");
 		assertEquals(testUserId, createdAlbum.getIdUser(), "Album user ID should match creator.");
 
 		// Verify data in DB before commit (within the same transaction)
@@ -335,7 +335,7 @@ class AlbumDAOTest {
 		assertEquals(TEST_ALBUM_NAME_1, foundAlbum.getName());
 		assertEquals(TEST_ALBUM_YEAR_1, foundAlbum.getYear());
 		assertEquals(TEST_ALBUM_ARTIST_1, foundAlbum.getArtist());
-		assertNull(foundAlbum.getImage(), "Found album image should be null.");
+		assertNull(foundAlbum.getImageFile(), "Found album image should be null.");
 		assertEquals(testUserId, foundAlbum.getIdUser(), "Found album should belong to the correct user.");
 	}
 
@@ -379,16 +379,16 @@ class AlbumDAOTest {
 		assertTrue(
 				allAlbums.stream()
 						.anyMatch(a -> a.getIdAlbum() == createdAlbumId1 && a.getName().equals(TEST_ALBUM_NAME_1)
-								&& testUserId.equals(a.getIdUser()) && TEST_ALBUM_IMAGE_1.equals(a.getImage())), // Check
-																													// image
-																													// too
+								&& testUserId.equals(a.getIdUser()) && TEST_ALBUM_IMAGE_1.equals(a.getImageFile())), // Check
+																														// image
+																														// too
 				"Test album 1 not found or incorrect data in findAllAlbums result.");
 		assertTrue(
 				allAlbums.stream()
 						.anyMatch(a -> a.getIdAlbum() == createdAlbumId2 && a.getName().equals(TEST_ALBUM_NAME_2)
-								&& testUserId.equals(a.getIdUser()) && a.getImage() == null), // Check
-																								// null
-																								// image
+								&& testUserId.equals(a.getIdUser()) && a.getImageFile() == null), // Check
+																									// null
+																									// image
 				"Test album 2 not found or incorrect data in findAllAlbums result.");
 
 		// Optional: Check sorting (if DAO guarantees it) - AlbumDAO sorts by artist,
@@ -455,7 +455,7 @@ class AlbumDAOTest {
 		assertEquals(TEST_ALBUM_NAME_UPDATED, updatedAlbum.getName());
 		assertEquals(TEST_ALBUM_YEAR_UPDATED, updatedAlbum.getYear());
 		assertEquals(TEST_ALBUM_ARTIST_UPDATED, updatedAlbum.getArtist());
-		assertEquals(TEST_ALBUM_IMAGE_UPDATED, updatedAlbum.getImage(), "Image should be updated.");
+		assertEquals(TEST_ALBUM_IMAGE_UPDATED, updatedAlbum.getImageFile(), "Image should be updated.");
 	}
 
 	@Test
@@ -479,7 +479,7 @@ class AlbumDAOTest {
 		assertEquals(TEST_ALBUM_NAME_UPDATED, updatedAlbum.getName(), "Name should be updated.");
 		assertEquals(TEST_ALBUM_YEAR_1, updatedAlbum.getYear(), "Year should remain original.");
 		assertEquals(TEST_ALBUM_ARTIST_1, updatedAlbum.getArtist(), "Artist should remain original.");
-		assertEquals(TEST_ALBUM_IMAGE_1, updatedAlbum.getImage(), "Image should remain original.");
+		assertEquals(TEST_ALBUM_IMAGE_1, updatedAlbum.getImageFile(), "Image should remain original.");
 	}
 
 	@Test
@@ -503,7 +503,7 @@ class AlbumDAOTest {
 		assertEquals(TEST_ALBUM_NAME_1, updatedAlbum.getName(), "Name should remain original.");
 		assertEquals(TEST_ALBUM_YEAR_UPDATED, updatedAlbum.getYear(), "Year should be updated.");
 		assertEquals(TEST_ALBUM_ARTIST_1, updatedAlbum.getArtist(), "Artist should remain original.");
-		assertEquals(TEST_ALBUM_IMAGE_1, updatedAlbum.getImage(), "Image should remain original.");
+		assertEquals(TEST_ALBUM_IMAGE_1, updatedAlbum.getImageFile(), "Image should remain original.");
 	}
 
 	@Test
@@ -527,7 +527,7 @@ class AlbumDAOTest {
 		assertEquals(TEST_ALBUM_NAME_1, updatedAlbum.getName(), "Name should remain original.");
 		assertEquals(TEST_ALBUM_YEAR_1, updatedAlbum.getYear(), "Year should remain original.");
 		assertEquals(TEST_ALBUM_ARTIST_UPDATED, updatedAlbum.getArtist(), "Artist should be updated.");
-		assertEquals(TEST_ALBUM_IMAGE_1, updatedAlbum.getImage(), "Image should remain original.");
+		assertEquals(TEST_ALBUM_IMAGE_1, updatedAlbum.getImageFile(), "Image should remain original.");
 	}
 
 	@Test
@@ -765,7 +765,7 @@ class AlbumDAOTest {
 					album.setName(result.getString("name"));
 					album.setYear(result.getInt("year"));
 					album.setArtist(result.getString("artist"));
-					album.setImage(result.getString("image"));
+					album.setImageFile(result.getString("image"));
 					String userIdStr = result.getString("idUser");
 					if (userIdStr != null) {
 						album.setIdUser(UUID.fromString(userIdStr));
