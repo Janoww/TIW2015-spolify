@@ -61,17 +61,44 @@ The database consists of the following tables:
 
 ## 4. API Endpoints (Servlets)
 
-The backend will expose the following RESTful endpoints:
+The backend will expose RESTful API endpoints, all prefixed with `/api/v1/`. The primary servlets and their functionalities are:
 
-- **Authentication:**
-  - `POST /api/v1/auth/login`: Authenticates user. Request: `{username, password}`. Response: Success/failure, user info. Sets HTTP session.
-  - `POST /api/v1/users`: Registers a new user. Request: `{username, password, name, surname}`. Response: Success/failure.
-  - `POST /api/v1/auth/logout`: Invalidates user session. Response: Success/failure.
+- **Authentication & User Management:**
+  - `POST /auth/login`: Authenticates an existing user.
+    - Request: JSON `{ "username": "...", "password": "..." }`.
+    - Response: On success (200 OK), returns JSON `{ "username": "...", "name": "...", "surname": "..." }` and sets an HTTP session cookie. On failure, returns an appropriate error status (e.g., 400 Bad Request for invalid input, 401 Unauthorized for incorrect credentials, 500 Internal Server Error).
+  - `POST /users`: Registers a new user.
+    - Request: JSON `{ "username": "...", "password": "...", "name": "...", "surname": "..." }`.
+    - Response: On success (201 CREATED), returns JSON `{ "username": "...", "name": "...", "surname": "..." }` and sets an HTTP session cookie. On failure (e.g., username already exists, validation errors), returns an appropriate error status (e.g., 400 Bad Request, 409 Conflict, 500 Internal Server Error).
+  - `POST /auth/logout`: Logs out the currently authenticated user.
+    - Request: No body required.
+    - Response: On success (200 OK), returns JSON `{ "message": "Logout successful." }`. Invalidates the user's HTTP session.
+  - `GET /auth/me`: Checks if the current user has an active session.
+    - Request: No body required.
+    - Response: If a session is active (200 OK), returns JSON `{ "username": "...", "name": "...", "surname": "..." }`. If no active session (401 Unauthorized).
 - **Home Page Data:**
   - `GET /home`: Fetches data for the home view after login. Response: `{ playlists: [...], songs: [...] }` (user's playlists sorted by date desc, user's songs sorted by artist/album year).
 - **Songs:**
-  - `POST /songs`: Uploads a new song and its album info. Request: Multipart form-data (song file, album image, title, genre, album title, artist, year). Response: Success/failure, new song details.
-  - `GET /songs/{songId}`: Fetches details for a specific song (for the player). Response: `{ song details }`.
+  - `GET /songs`: Fetches all songs for the authenticated user.
+    - Response: JSON array of `SongWithAlbum` objects. Each object includes full song details and associated album details.
+  - `POST /songs`: Uploads a new song. If an album with the provided `albumTitle` doesn't exist for the user, a new album is created.
+    - Request: `multipart/form-data` containing:
+      - `title` (text, required): The title of the song.
+      - `genre` (text, required): The genre of the song (must be one of the predefined values, see `GET /songs/genres`).
+      - `albumTitle` (text, required): The title of the album.
+      - `albumArtist` (text, required): The artist of the album.
+      - `albumYear` (number, required): The year of the album. This year is also used as the song's year upon creation.
+      - `audioFile` (file, required): The audio file for the song (e.g., `audio.mp3`).
+      - `albumImage` (file, optional): The cover image for the album (e.g., `cover.jpg`). This is used if a new album is being created and this part is provided.
+    - Response: JSON `SongWithAlbum` object representing the newly created song and its (potentially new) album.
+  - `GET /songs/genres`: Fetches all available song genres.
+    - Response: JSON array of objects, where each object has a `name` (e.g., "ROCK") and `description` (e.g., "Rock Music") for the genre.
+  - `GET /songs/{songId}`: Fetches details for a specific song, identified by `songId`.
+    - Response: JSON `SongWithAlbum` object containing full song details and associated album details.
+  - `GET /songs/{songId}/audio`: Fetches the audio file for a specific song.
+    - Response: The audio file stream (e.g., `audio/mpeg`, `audio/ogg`).
+  - `GET /songs/{songId}/image`: Fetches the album cover image for the album associated with a specific song.
+    - Response: The image file stream (e.g., `image/jpeg`, `image/png`).
 - **Playlists:**
   - `POST /playlists`: Creates a new playlist. Request: `{ title: "...", songIds: [...] }`. Response: Success/failure, new playlist details.
   - `GET /playlists/{playlistId}`: Fetches details and songs for a specific playlist. Response: `{ playlist details, songs: [...] }` (songs sorted by default or custom order).
