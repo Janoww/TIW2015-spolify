@@ -47,29 +47,35 @@ public class AuthApiServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
-        logger.debug("Received GET request to /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
+        String action = (pathInfo != null && pathInfo.equals("/me")) ? "CheckSession" : "Unknown";
+        logger.info("Received GET request. Path: '{}', Action: {}",
+                (pathInfo != null ? pathInfo : ""), action);
 
         if ("/me".equals(pathInfo)) {
             handleCheckSession(req, resp);
         } else {
-            logger.warn("Invalid path for GET request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
+            logger.warn("Invalid path for GET request: /api/v1/auth{}",
+                    (pathInfo != null ? pathInfo : ""));
             ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
         }
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
-        logger.debug("Received POST request to /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
+        logger.info("Received POST request. Path: '{}'", (pathInfo != null ? pathInfo : ""));
 
         if ("/login".equals(pathInfo)) {
             handleLogin(req, resp);
         } else if ("/logout".equals(pathInfo)) {
             handleLogout(req, resp);
         } else {
-            logger.warn("Invalid path for POST request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
+            logger.warn("Invalid path for POST request: /api/v1/auth{}",
+                    (pathInfo != null ? pathInfo : ""));
             ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
         }
     }
@@ -84,31 +90,40 @@ public class AuthApiServlet extends HttpServlet {
             loginDetails = new ObjectMapper().readValue(req.getReader(), LoginRequest.class);
         } catch (JsonParseException | MismatchedInputException e) {
             logger.warn("Failed to parse JSON request body for login: {}", e.getMessage());
-            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON format or missing fields.");
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                    "Invalid JSON format or missing fields.");
             return;
         }
 
-        String username = loginDetails.getUsername() != null ? loginDetails.getUsername().strip() : null;
+        String username =
+                loginDetails.getUsername() != null ? loginDetails.getUsername().strip() : null;
         String password = loginDetails.getPassword();
 
         // OWASP: Input Validation - Username and Password presence
         if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
             logger.warn("Login attempt with missing credentials for username: {}",
                     (username != null ? username : "null"));
-            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Missing username or password.");
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                    "Missing username or password.");
             return;
         }
 
         ServletContext servletContext = getServletContext();
-        Pattern usernamePattern = (Pattern) servletContext.getAttribute(AppContextListener.USERNAME_REGEX_PATTERN);
-        Integer passwordMinLength = (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MIN_LENGTH);
-        Integer passwordMaxLength = (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MAX_LENGTH);
+        Pattern usernamePattern =
+                (Pattern) servletContext.getAttribute(AppContextListener.USERNAME_REGEX_PATTERN);
+        Integer passwordMinLength =
+                (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MIN_LENGTH);
+        Integer passwordMaxLength =
+                (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MAX_LENGTH);
 
         // Input Validation - Username format
         if (usernamePattern != null) {
             if (!usernamePattern.matcher(username).matches()) {
-                logger.warn("Login attempt with invalid username format (context-configured regex): {}", username);
-                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid username format.");
+                logger.warn(
+                        "Login attempt with invalid username format (context-configured regex): {}",
+                        username);
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                        "Invalid username format.");
                 return;
             }
         } else {
@@ -128,7 +143,8 @@ public class AuthApiServlet extends HttpServlet {
             }
             // Input Validation - Password maximum length
             if (password.length() > passwordMaxLength) {
-                logger.warn("Login attempt with password too long (context-configured max length: {}) for username: {}",
+                logger.warn(
+                        "Login attempt with password too long (context-configured max length: {}) for username: {}",
                         passwordMaxLength, username);
                 ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
                         "Password must be at most " + passwordMaxLength + " characters long.");
@@ -146,10 +162,13 @@ public class AuthApiServlet extends HttpServlet {
             logger.info("User {} successfully authenticated.", username);
         } catch (DAOException e) {
             if (e.getErrorType() == DAOException.DAOErrorType.INVALID_CREDENTIALS) {
-                logger.warn("Invalid credentials attempt for username: {}. Details: {}", username, e.getMessage());
-                ResponseUtils.sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Invalid username or password.");
+                logger.warn("Invalid credentials attempt for username: {}. Details: {}", username,
+                        e.getMessage());
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_UNAUTHORIZED,
+                        "Invalid username or password.");
             } else {
-                logger.warn("DAOException during login for username: {}. ErrorType: {}", username, e.getErrorType(), e);
+                logger.warn("DAOException during login for username: {}. ErrorType: {}", username,
+                        e.getErrorType(), e);
                 ResponseUtils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                         "Login failed due to a server error.");
             }
@@ -165,10 +184,12 @@ public class AuthApiServlet extends HttpServlet {
         userResponse.put("surname", user.getSurname());
 
         ResponseUtils.sendJson(resp, HttpServletResponse.SC_OK, userResponse);
-        logger.debug("Successfully sent OK response with user details for user: {}", user.getUsername());
+        logger.debug("Successfully sent OK response with user details for user: {}",
+                user.getUsername());
     }
 
-    private void handleCheckSession(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private void handleCheckSession(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
         logger.debug("Handling check session request (/me).");
         HttpSession session = req.getSession(false);
 
@@ -182,7 +203,8 @@ public class AuthApiServlet extends HttpServlet {
                 userResponse.put("surname", user.getSurname());
 
                 ResponseUtils.sendJson(resp, HttpServletResponse.SC_OK, userResponse);
-                logger.debug("Successfully sent OK response with user details for active session: {}",
+                logger.debug(
+                        "Successfully sent OK response with user details for active session: {}",
                         user.getUsername());
                 return;
             } else {
@@ -211,7 +233,8 @@ public class AuthApiServlet extends HttpServlet {
             }
             session.invalidate();
         } else {
-            logger.debug("Logout request for a session that does not exist or is already invalidated.");
+            logger.debug(
+                    "Logout request for a session that does not exist or is already invalidated.");
         }
         Map<String, String> successResponse = new HashMap<>();
         successResponse.put("message", "Logout successful.");
