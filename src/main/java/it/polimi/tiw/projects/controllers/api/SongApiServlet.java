@@ -520,8 +520,7 @@ public class SongApiServlet extends HttpServlet {
             }
         } catch (IOException | ServletException e) {
             logger.error("Error processing uploaded audio file part for user {}: {}",
-                    (user != null ? user.getUsername() : "unknown"), // Added null check for user
-                    e.getMessage(), e);
+                    user.getUsername(), e.getMessage(), e);
             ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
                     "Error processing uploaded audio file: " + e.getMessage());
             return Optional.empty();
