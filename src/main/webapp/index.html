@@ -23,11 +23,11 @@
 	<h1>Don't have an account?</h1>
 	<form action="SignUp" method="POST" class="form-field">
 		<fieldset>
-			<p> <label for="name">Name: </label><input type="text" name="sName" id="sName" required> </p>
-			<p> <label for="surname">Surname: </label><input type="text" name="sSurname" id="sSurname" required> </p>
-			<p> <label for="username">Username: </label><input type="text" name="sUsername" id="sUsername" required>
+			<p> <label for="name">Name: </label><input type="text" name="sName" id="sName" minlength="3" maxlength="100" required> </p>
+			<p> <label for="surname">Surname: </label><input type="text" name="sSurname" id="sSurname" minlength="3" maxlength="100" required> </p>
+			<p> <label for="username">Username: </label><input type="text" name="sUsername" id="sUsername" minlength="3" maxlength="100" required>
 			</p>
-			<p> <label for="pwd">Password: </label><input type="password" name="sPwd" id="sPwd" required> </p>
+			<p> <label for="pwd">Password: </label><input type="password" name="sPwd" id="sPwd" minlength="4" maxlength="100" required> </p>
 			<input type="submit" class="styled-button" value=" Sign Up">
 			<p th:text=" ${errorSignUpMsg}"></p>
 		</fieldset>
