@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Test Page</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/components/modal.css">
+    <style>
+        /* Minimal body style for testing if not covered by global.css */
+        body {
+            font-family: sans-serif;
+            background-color: #D4BEE4;
+            /* Match global background for context */
+            margin: 0;
+            padding: 20px;
+            /* Add some padding so modal isn't against edges */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            /* Align modal to top for better viewing */
+            min-height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Reorder Playlist Modal -->
+    <div id="reorderModal" class="modal" style="display:block; position:relative; margin-top: 50px;">
+        <!-- display:block and relative for testing -->
+        <!-- Removed modal-overlay for isolated testing, or it would cover the whole test page -->
+        <div class="modal-content">
+            <span class="close-button" id="closeReorderModal">&times;</span>
+            <h2>Reorder Playlist: <span id="reorderPlaylistName">[Playlist Name Placeholder]</span></h2>
+            <p class="modal-instructions">Drag and drop songs to reorder them.</p>
+            <ul id="reorderSongList" class="song-list-reorder">
+                <!-- Placeholder song items for visual testing -->
+                <li draggable="true" data-song-id="song123" class="reorder-song-item">Song Title 1 - Artist A</li>
+                <li draggable="true" data-song-id="song456" class="reorder-song-item">Song Title 2 - Artist B</li>
+                <li draggable="true" data-song-id="song789" class="reorder-song-item">Song Title 3 - Artist C</li>
+                <li draggable="true" data-song-id="song101" class="reorder-song-item">A Very Long Song Title That Might
+                    Wrap Around To Test Text Handling - Artist D</li>
+                <li draggable="true" data-song-id="song112" class="reorder-song-item">Another Song - Artist E</li>
+            </ul>
+            <div class="modal-actions">
+                <button id="saveOrderButton" class="styled-button">Save Order</button>
+                <button id="cancelOrderButton" class="styled-button styled-button-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const reorderSongList = document.getElementById('reorderSongList');
+            let draggedItem = null;
+
+            reorderSongList.addEventListener('dragstart', (event) => {
+                if (event.target.classList.contains('reorder-song-item')) {
+                    draggedItem = event.target;
+                    event.dataTransfer.setData('text/plain', event.target.dataset.songId);
+                    setTimeout(() => {
+                        event.target.classList.add('dragging');
+                    }, 0);
+                }
+            });
+
+            reorderSongList.addEventListener('dragend', (event) => {
+                if (draggedItem && event.target.classList.contains('reorder-song-item')) {
+                    setTimeout(() => {
+                        draggedItem.classList.remove('dragging');
+                        draggedItem = null;
+                    }, 0);
+                }
+            });
+
+            reorderSongList.addEventListener('dragover', (event) => {
+                event.preventDefault(); // Necessary to allow dropping
+                const targetItem = event.target.closest('.reorder-song-item');
+                if (targetItem && targetItem !== draggedItem) {
+                    const bounding = targetItem.getBoundingClientRect();
+                    const offset = bounding.y + bounding.height / 2;
+                    if (event.clientY - offset > 0) {
+                        // Insert after target
+                        targetItem.parentNode.insertBefore(draggedItem, targetItem.nextSibling);
+                    } else {
+                        // Insert before target
+                        targetItem.parentNode.insertBefore(draggedItem, targetItem);
+                    }
+                } else if (!targetItem && draggedItem) { // If dragging over the list but not an item (e.g., empty space)
+                    reorderSongList.appendChild(draggedItem);
+                }
+            });
+
+            reorderSongList.addEventListener('drop', (event) => {
+                event.preventDefault(); // Prevent default action (open as link for some elements)
+                // The reordering is handled in dragover for immediate visual feedback.
+                // If an item was being dragged, its 'dragging' class is removed in dragend.
+            });
+
+            // Add event listeners to initially present items if they are added dynamically later
+            // For this static test page, the above listeners on the parent are sufficient.
+        });
+    </script>
+
+</body>
+
+</html>

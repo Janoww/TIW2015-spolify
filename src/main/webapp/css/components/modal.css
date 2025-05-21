@@ -1,0 +1,183 @@
+/* Styles for Modal Components */
+
+.modal {
+    display: none;
+    /* Hidden by default, set to block for testing or via JS */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1000;
+    /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+}
+
+.modal-overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #EEEEEE;
+    /* Match main background */
+    color: #3B1E54;
+    /* Match header text color */
+    margin: 10% auto;
+    /* 10% from the top and centered */
+    padding: 25px;
+    border: 1px solid #3B1E54;
+    border-radius: 20px;
+    /* Softer corners */
+    width: 80%;
+    /* Could be more or less, depending on screen size */
+    max-width: 600px;
+    /* Maximum width */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1001;
+    /* Above overlay */
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-content h2 {
+    color: #3B1E54;
+    /* Consistent with other h2 */
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.6em;
+    /* Slightly smaller than page h2 */
+    text-align: center;
+    border-bottom: 2px solid #D4BEE4;
+    /* Consistent with other h2 */
+    padding-bottom: 10px;
+}
+
+.modal-instructions {
+    font-size: 0.9em;
+    color: #9B7EBD;
+    /* Softer color for instructions */
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.close-button {
+    color: #9B7EBD;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #3B1E54;
+    text-decoration: none;
+}
+
+.song-list-reorder {
+    list-style-type: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+    max-height: 40vh;
+    /* Limit height and allow scrolling */
+    overflow-y: auto;
+    border: 1px solid #D4BEE4;
+    /* Light border around the list */
+    border-radius: 10px;
+}
+
+.reorder-song-item {
+    padding: 12px 15px;
+    margin: 5px;
+    background-color: #D4BEE4;
+    /* Match playlist item background */
+    color: #3B1E54;
+    /* Match playlist item text */
+    border: 1px solid #9B7EBD;
+    /* Slightly darker border */
+    border-radius: 8px;
+    cursor: grab;
+    /* Indicates draggable */
+    font-size: 0.95em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.reorder-song-item:hover {
+    background-color: #c8a2dc;
+    /* Consistent hover with playlist items */
+}
+
+.reorder-song-item.dragging {
+    opacity: 0.5;
+    background-color: #b08cc8;
+    border-style: dashed;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    /* Align buttons to the right */
+    gap: 10px;
+    /* Space between buttons */
+    margin-top: 20px;
+}
+
+.modal-actions .styled-button {
+    margin-top: 0;
+    /* Remove default top margin from styled-button */
+}
+
+.styled-button-secondary {
+    background-color: #b0bec5;
+    /* A more neutral secondary color */
+    color: #263238;
+}
+
+.styled-button-secondary:hover {
+    background-color: #90a4ae;
+}
+
+/* Responsive adjustments for modal */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 90%;
+        margin: 15% auto;
+        padding: 20px;
+    }
+
+    .modal-content h2 {
+        font-size: 1.4em;
+    }
+
+    .reorder-song-item {
+        padding: 10px;
+        font-size: 0.9em;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+        /* Stack buttons on smaller screens */
+    }
+
+    .modal-actions .styled-button {
+        width: 100%;
+        margin-left: 0;
+        /* Remove left margin when stacked */
+    }
+}
