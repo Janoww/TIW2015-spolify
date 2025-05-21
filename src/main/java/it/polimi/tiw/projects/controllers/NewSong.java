@@ -83,8 +83,6 @@ public class NewSong extends HttpServlet {
 		Part imagePart = req.getPart("sIcon");
 		Part audioPart = req.getPart("sFile");
 
-		InputStream imageStream = imagePart.getInputStream();
-		InputStream audioStream = audioPart.getInputStream();
 
 		logger.debug("Retrieved Parameters");
 
@@ -143,31 +141,34 @@ public class NewSong extends HttpServlet {
 				ImageDAO imageDAO = (ImageDAO) getServletContext().getAttribute("imageDAO");
 
 				try {
-					imageFileRename = imageDAO.saveImage(imageStream, imageFileName);
+					try (InputStream imageStream = imagePart.getInputStream()){
+						imageFileRename = imageDAO.saveImage(imageStream, imageFileName);
+					}
 				} catch (IllegalArgumentException e) {
 					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-							"IllegalArgumentException during image save");
-					e.printStackTrace(); //FIXME
+							"The image file you provvided may be corrupted");
+					logger.error("Problem with the imageFIle: {}", e.getMessage(), e);
 					return;
 				} catch (DAOException e) {
 					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 							"Failed to save image due to I/O error");
-					e.printStackTrace();
+					logger.error("I/O error: {}", e.getMessage(), e);
 					return;
 				}
 
 			}
 
-			//TODO check if inputstream is closed
+			Boolean isAlbumNew = false;
 			// Create a new album if it doesn't exist
 			if (album == null) {
 				try {
 					album = albumDAO.createAlbum(albumName, year, artist, imageFileRename,
 							user.getIdUser());
+					isAlbumNew = true;
 				} catch (DAOException e) {
 					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 							"Error in the database");
-					e.printStackTrace();
+					logger.error("Error creating album: {}", e.getMessage(), e);
 					return;
 				}
 			}
@@ -183,16 +184,18 @@ public class NewSong extends HttpServlet {
 
 			String audioFileRename;
 			try {
-				audioFileRename = audioDAO.saveAudio(audioStream, audioFileName);
+				try(InputStream audioStream = audioPart.getInputStream()){
+					audioFileRename = audioDAO.saveAudio(audioStream, audioFileName);
+				}
 			} catch (IllegalArgumentException e) {
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-						"IllegalArgumentException during image save");
-				e.printStackTrace();
+						"The audio file you provided may be corrupted");
+				logger.error("Audio file broken: {}", e.getMessage(), e);
 				return;
 			} catch (DAOException e) {
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 						"Failed to save image due to I/O error");
-				e.printStackTrace();
+				logger.error("Error saving the audio: {}", e.getMessage(), e);
 				return;
 			}
 
@@ -201,7 +204,15 @@ public class NewSong extends HttpServlet {
 			} catch (DAOException e) {
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 						"Error in the database");
-				e.printStackTrace();
+				logger.error("An error occurred while creating the song: {}", e.getMessage(), e);
+				//Deleting the album
+				if (isAlbumNew) {
+					try {
+						albumDAO.deleteAlbum(idAlbum, user.getIdUser());
+					} catch (DAOException e1) {
+						logger.error("While trying to delate an album because of the failed creation of the song an error occurred: {}", e1.getMessage());
+					}
+				}
 				return;
 			}
 
