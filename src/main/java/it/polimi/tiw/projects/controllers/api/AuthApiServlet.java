@@ -222,8 +222,7 @@ public class AuthApiServlet extends HttpServlet {
 
     private void handleLogout(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         logger.debug("Handling logout request.");
-        HttpSession session = req.getSession(false); // false == do not create new session if one
-                                                     // does not exist
+        HttpSession session = req.getSession(false);
         if (session != null) {
             User user = (User) session.getAttribute("user");
             if (user != null) {
