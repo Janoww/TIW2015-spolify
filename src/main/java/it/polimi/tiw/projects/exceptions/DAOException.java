@@ -9,6 +9,8 @@ public class DAOException extends Exception {
 		DUPLICATE_ENTRY, // e.g., Adding a song already in a playlist
 		ACCESS_DENIED, // e.g., Operation on resource not owned by user
 		CONSTRAINT_VIOLATION, // e.g., Other integrity constraint issues
+		AUDIO_SAVE_FAILED, // Error during audio file saving in a workflow
+		IMAGE_SAVE_FAILED, // Error during image file saving in a workflow
 		GENERIC_ERROR // For other potential DAO errors
 	}
 
