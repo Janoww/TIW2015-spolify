@@ -16,7 +16,6 @@ import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.AlbumDAO;
 import it.polimi.tiw.projects.dao.AudioDAO;
 import it.polimi.tiw.projects.dao.ImageDAO;
-import it.polimi.tiw.projects.dao.PlaylistDAO;
 import it.polimi.tiw.projects.dao.SongDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.listeners.AppContextListener;
@@ -54,6 +53,10 @@ public class NewSong extends HttpServlet {
 		logger.debug("processing the Post request");
 		SongDAO songDAO = new SongDAO(connection);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
+		AudioDAO audioDAO = (AudioDAO) getServletContext().getAttribute("audioDAO");
+		ImageDAO imageDAO = (ImageDAO) getServletContext().getAttribute("imageDAO");
+
+
 
 		// Check Parameters
 		String checkResult = areParametersOk(req, getServletContext());
@@ -94,7 +97,7 @@ public class NewSong extends HttpServlet {
 			try {
 				albums = albumDAO.findAlbumsByUser(user.getIdUser());
 			} catch (DAOException e) {
-				e.printStackTrace();
+				logger.error("Failed to retrieve thealbum by user: {}", e.getMessage(), e);
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 						"Error in the database");
 				return;
@@ -117,6 +120,7 @@ public class NewSong extends HttpServlet {
 			try {
 				if (album != null && songDAO.findSongsByUser(user.getIdUser()).stream()
 						.anyMatch(s -> s.getTitle().equals(title))) {
+					//TODO Maybe it is more efficient to create an ad hoc query to find a specific song
 					req.setAttribute("errorNewSongMsg",
 							"The song titled \"" + title + "\" of the album \"" + album.getName()
 									+ "\" have already been uploaded");
@@ -124,25 +128,26 @@ public class NewSong extends HttpServlet {
 					return;
 				}
 			} catch (DAOException e) {
-				e.printStackTrace();
+				logger.error("Error while searcing user songs: {}", e.getMessage(), e);
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 						"Error in the database");
 				return;
 			}
 
 			String imageFileRename = null;
-
+			Boolean isAlbumNew = false;
+			
 			if (album == null) {
+				isAlbumNew = true;
 				// If an album already exists the image will not be updated
 
 				String imageFileName =
 						Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
 
-				ImageDAO imageDAO = (ImageDAO) getServletContext().getAttribute("imageDAO");
-
 				try {
 					try (InputStream imageStream = imagePart.getInputStream()){
 						imageFileRename = imageDAO.saveImage(imageStream, imageFileName);
+						// If the image saving fails, nothing will be saved
 					}
 				} catch (IllegalArgumentException e) {
 					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -158,14 +163,25 @@ public class NewSong extends HttpServlet {
 
 			}
 
-			Boolean isAlbumNew = false;
+			
 			// Create a new album if it doesn't exist
 			if (album == null) {
 				try {
 					album = albumDAO.createAlbum(albumName, year, artist, imageFileRename,
 							user.getIdUser());
-					isAlbumNew = true;
 				} catch (DAOException e) {
+					//We need to delete the saved image since the album creation failed.
+					
+					try {
+						imageDAO.deleteImage(imageFileRename);
+					} catch (IllegalArgumentException e1) {
+						logger.error("Error while deleting image due to failed album creation: {}", e.getMessage(), e);
+						return;
+					} catch (DAOException e1) {
+						logger.error("Error while deleting image due to failed album creation: {}", e.getMessage(), e);
+						return;
+					}
+					
 					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 							"Error in the database");
 					logger.error("Error creating album: {}", e.getMessage(), e);
@@ -175,9 +191,6 @@ public class NewSong extends HttpServlet {
 			int idAlbum = album.getIdAlbum();
 
 			// Saving the audio file
-
-
-			AudioDAO audioDAO = (AudioDAO) getServletContext().getAttribute("audioDAO");
 
 			String audioFileName =
 					Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
@@ -205,9 +218,22 @@ public class NewSong extends HttpServlet {
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 						"Error in the database");
 				logger.error("An error occurred while creating the song: {}", e.getMessage(), e);
+				//Deleting the audio
+				
+				try {
+					audioDAO.deleteAudio(audioFileRename);
+				} catch (IllegalArgumentException e1) {
+					logger.error("Error while deleting audio due to failed song creation: {}", e.getMessage(), e);
+					return;
+				} catch (DAOException e1) {
+					logger.error("Error while deleting audio due to failed song creation: {}", e.getMessage(), e);
+					return;
+				}
+
 				//Deleting the album
 				if (isAlbumNew) {
 					try {
+						imageDAO.deleteImage(album.getImage());
 						albumDAO.deleteAlbum(idAlbum, user.getIdUser());
 					} catch (DAOException e1) {
 						logger.error("While trying to delate an album because of the failed creation of the song an error occurred: {}", e1.getMessage());
