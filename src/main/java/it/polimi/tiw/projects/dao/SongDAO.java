@@ -52,7 +52,6 @@ public class SongDAO {
 			int affectedRows = pStatement.executeUpdate();
 
 			if (affectedRows == 0) {
-				// This case might not happen with auto-increment keys but kept for robustness
 				throw new DAOException("Creating song failed, no rows affected.",
 						DAOException.DAOErrorType.GENERIC_ERROR);
 			}
