@@ -46,46 +46,37 @@ public class UserApiServlet extends HttpServlet {
         }
 
         @Override
-        protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-                        throws ServletException, IOException {
+        protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
                 logger.info("Received POST request to /api/v1/users. Action: SignUp");
                 UserDAO userDAO = new UserDAO(connection);
                 UserCreationRequest userCreationDetails;
 
                 try {
-                        userCreationDetails = new ObjectMapper().readValue(req.getReader(),
-                                        UserCreationRequest.class);
+                        userCreationDetails = new ObjectMapper().readValue(req.getReader(), UserCreationRequest.class);
                 } catch (JsonParseException | MismatchedInputException e) {
-                        logger.warn("Failed to parse JSON request body for user sign up: {}",
-                                        e.getMessage());
+                        logger.warn("Failed to parse JSON request body for user sign up: {}", e.getMessage());
                         ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
                                         "Invalid JSON format or missing fields.");
                         return;
                 } catch (IOException e) {
                         logger.warn("IOException occurred while parsing JSON request body for user sign up: {}",
                                         e.getMessage());
-                        ResponseUtils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                                        e.getMessage());
+                        ResponseUtils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
                         return;
                 }
 
-                String username = userCreationDetails.getUsername() != null
-                                ? userCreationDetails.getUsername().strip()
+                String username = userCreationDetails.getUsername() != null ? userCreationDetails.getUsername().strip()
                                 : null;
-                String name = userCreationDetails.getName() != null
-                                ? userCreationDetails.getName().strip()
-                                : null;
-                String surname = userCreationDetails.getSurname() != null
-                                ? userCreationDetails.getSurname().strip()
+                String name = userCreationDetails.getName() != null ? userCreationDetails.getName().strip() : null;
+                String surname = userCreationDetails.getSurname() != null ? userCreationDetails.getSurname().strip()
                                 : null;
                 String password = userCreationDetails.getPassword();
 
                 logger.debug("Attempting to sign up user with username: {}", username);
 
                 // Input Validation - Check for presence of all fields
-                if (name == null || name.isEmpty() || surname == null || surname.isEmpty()
-                                || username == null || username.isEmpty() || password == null
-                                || password.isEmpty()) {
+                if (name == null || name.isEmpty() || surname == null || surname.isEmpty() || username == null
+                                || username.isEmpty() || password == null || password.isEmpty()) {
                         logger.warn("Sign up attempt with missing credential values for username: {}",
                                         (username != null ? username : "null"));
                         ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
@@ -99,24 +90,20 @@ public class UserApiServlet extends HttpServlet {
 
                 User createdUser;
                 try {
-                        userDAO.createUser(username, password, name, surname);
-                        logger.info("Successfully initiated creation for user with username: {}",
-                                        username);
-
-                        createdUser = userDAO.checkCredentials(username, password);
-                        logger.debug("Successfully retrieved newly created user: {}", username);
+                        createdUser = userDAO.createUser(username, password, name, surname);
+                        logger.info("User {} created and retrieved successfully with ID: {}", createdUser.getUsername(),
+                                        createdUser.getIdUser());
 
                 } catch (DAOException e) {
                         if (e.getErrorType() == DAOException.DAOErrorType.NAME_ALREADY_EXISTS) {
-                                logger.warn("Sign up attempt for already existing username: {}. Details: {}",
-                                                username, e.getMessage());
+                                logger.warn("Sign up attempt for already existing username: {}. Details: {}", username,
+                                                e.getMessage());
                                 ResponseUtils.sendError(resp, HttpServletResponse.SC_CONFLICT,
                                                 "Username already taken");
                         } else {
                                 logger.error("DAOException during user creation for username: {}. ErrorType: {}. Details: {}",
                                                 username, e.getErrorType(), e.getMessage(), e);
-                                ResponseUtils.sendError(resp,
-                                                HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                                ResponseUtils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                                                 "Not possible to sign up due to a server error.");
                         }
                         return;
@@ -124,8 +111,8 @@ public class UserApiServlet extends HttpServlet {
 
                 // Assign the user to the session
                 req.getSession().setAttribute("user", createdUser);
-                logger.debug("User {} (ID: {}) set in session after sign up.",
-                                createdUser.getUsername(), createdUser.getIdUser());
+                logger.debug("User {} (ID: {}) set in session after sign up.", createdUser.getUsername(),
+                                createdUser.getIdUser());
 
                 // Send user details as JSON (excluding password)
                 Map<String, String> userResponse = new HashMap<>();
@@ -141,11 +128,10 @@ public class UserApiServlet extends HttpServlet {
                                 createdUser.getUsername());
         }
 
-        private boolean validateUser(HttpServletResponse resp, String username, String name,
-                        String surname, String password) {
+        private boolean validateUser(HttpServletResponse resp, String username, String name, String surname,
+                        String password) {
                 ServletContext servletContext = getServletContext();
-                Pattern namePattern = (Pattern) servletContext
-                                .getAttribute(AppContextListener.NAME_REGEX_PATTERN);
+                Pattern namePattern = (Pattern) servletContext.getAttribute(AppContextListener.NAME_REGEX_PATTERN);
                 Pattern usernamePattern = (Pattern) servletContext
                                 .getAttribute(AppContextListener.USERNAME_REGEX_PATTERN);
                 Integer passwordMinLength = (Integer) servletContext
@@ -153,61 +139,54 @@ public class UserApiServlet extends HttpServlet {
                 Integer passwordMaxLength = (Integer) servletContext
                                 .getAttribute(AppContextListener.PASSWORD_MAX_LENGTH);
 
-                if (namePattern != null) {
-                        // Input Validation - Name format
-                        if (!namePattern.matcher(name).matches()) {
-                                logger.warn("Sign up attempt with invalid name format (context-configured regex): {}",
-                                                name);
-                                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
-                                                "Invalid name format. Use letters, spaces, hyphens, or apostrophes (3-100 characters).");
-                                return false;
-                        }
-                        // Input Validation - Surname format
-                        if (!namePattern.matcher(surname).matches()) {
-                                logger.warn("Sign up attempt with invalid surname format (context-configured regex): {}",
-                                                surname);
-                                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
-                                                "Invalid surname format. Use letters, spaces, hyphens, or apostrophes (3-100 characters).");
-                                return false;
-                        }
-                } else {
-                        logger.error("Name regex pattern not available from servlet context. Name and surname validation might be incomplete.");
+                // Check for missing servlet context parameters
+                if (namePattern == null || usernamePattern == null || passwordMinLength == null
+                                || passwordMaxLength == null) {
+                        logger.error("CRITICAL: One or more servlet context validation parameters are null. namePattern: {}, usernamePattern: {}, passwordMinLength: {}, passwordMaxLength: {}. Aborting user creation.",
+                                        namePattern, usernamePattern, passwordMinLength, passwordMaxLength);
+                        ResponseUtils.sendServiceUnavailableError(resp,
+                                        "Server configuration error preventing user validation.");
+                        return false;
                 }
 
-                // Input Validation - Username format
-                if (usernamePattern != null) {
-                        if (!usernamePattern.matcher(username).matches()) {
-                                logger.warn("Sign up attempt with invalid username format (context-configured regex): {}",
-                                                username);
-                                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
-                                                "Invalid username format. Use alphanumeric characters or underscores (3-100 characters).");
-                                return false;
-                        }
-                } else {
-                        logger.error("Username regex pattern not available from servlet context. Username validation might be incomplete.");
+                // Validate Name and Surname
+                if (!namePattern.matcher(name).matches()) {
+                        logger.warn("Sign up attempt with invalid name format (context-configured regex): {}", name);
+                        ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                                        "Invalid name format. Use letters, spaces, hyphens, or apostrophes (3-100 characters).");
+                        return false;
+                }
+                if (!namePattern.matcher(surname).matches()) {
+                        logger.warn("Sign up attempt with invalid surname format (context-configured regex): {}",
+                                        surname);
+                        ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                                        "Invalid surname format. Use letters, spaces, hyphens, or apostrophes (3-100 characters).");
+                        return false;
                 }
 
-                if (passwordMinLength != null && passwordMaxLength != null) {
-                        // Input Validation - Password minimum length
-                        if (password.length() < passwordMinLength) {
-                                logger.warn("Sign up attempt with password too short (context-configured min length: {}) for username: {}",
-                                                passwordMinLength, username);
-                                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
-                                                "Password must be at least " + passwordMinLength
-                                                                + " characters long.");
-                                return false;
-                        }
-                        // Input Validation - Password maximum length
-                        if (password.length() > passwordMaxLength) {
-                                logger.warn("Sign up attempt with password too long (context-configured max length: {}) for username: {}",
-                                                passwordMaxLength, username);
-                                ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
-                                                "Password must be at most " + passwordMaxLength
-                                                                + " characters long.");
-                                return false;
-                        }
-                } else {
-                        logger.error("Password minimum length not available from servlet context. Password length validation might be incomplete.");
+                // Validate Username
+                if (!usernamePattern.matcher(username).matches()) {
+                        logger.warn("Sign up attempt with invalid username format (context-configured regex): {}",
+                                        username);
+                        ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                                        "Invalid username format. Use alphanumeric characters or underscores (3-100 characters).");
+                        return false;
+                }
+
+                // Validate Password Length
+                if (password.length() < passwordMinLength) {
+                        logger.warn("Sign up attempt with password too short (context-configured min length: {}) for username: {}",
+                                        passwordMinLength, username);
+                        ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                                        "Password must be at least " + passwordMinLength + " characters long.");
+                        return false;
+                }
+                if (password.length() > passwordMaxLength) {
+                        logger.warn("Sign up attempt with password too long (context-configured max length: {}) for username: {}",
+                                        passwordMaxLength, username);
+                        ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                                        "Password must be at most " + passwordMaxLength + " characters long.");
+                        return false;
                 }
 
                 return true;

@@ -13,7 +13,7 @@ public class ResponseUtils {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     /**
-     * Sends a JSON error response.
+     * Sends a generic JSON error response.
      *
      * @param resp         The HttpServletResponse object.
      * @param statusCode   The HTTP status code.
@@ -32,6 +32,18 @@ public class ResponseUtils {
                     "IOException while sending error response. Status: {}, Message: {}. Client may not have received the error.",
                     statusCode, errorMessage, e);
         }
+    }
+
+    /**
+     * Sends a specific "Service Unavailable" (503) JSON error response. This is
+     * typically used when critical server configurations are missing.
+     *
+     * @param resp    The HttpServletResponse object.
+     * @param message The specific error message detailing the unavailability.
+     */
+    public static void sendServiceUnavailableError(HttpServletResponse resp, String message) {
+        logger.error("Sending SC_SERVICE_UNAVAILABLE (503) response: {}", message);
+        sendError(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, message);
     }
 
     /**
