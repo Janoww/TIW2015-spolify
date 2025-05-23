@@ -41,8 +41,9 @@ public class UserDAO {
 	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#NAME_ALREADY_EXISTS})
 	 *                      or another database access error occurs
 	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
+	 * @return The newly created User object with its generated ID.
 	 */
-	public void createUser(String username, String pwd, String name, String surname) throws DAOException {
+	public User createUser(String username, String pwd, String name, String surname) throws DAOException {
 		logger.debug("Attempting to create user: username={}, name={}, surname={}", username, name, surname);
 		String insertQuery = "INSERT INTO User (idUser, username, password, name, surname) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)";
 		String checkExistence = "SELECT * FROM User WHERE username = ?";
@@ -71,6 +72,14 @@ public class UserDAO {
 								DAOException.DAOErrorType.GENERIC_ERROR);
 					}
 					logger.info("User '{}' created successfully with ID: {}", username, userId);
+
+					User newUser = new User();
+					newUser.setIdUser(userId);
+					newUser.setUsername(username);
+					newUser.setName(name);
+					newUser.setSurname(surname);
+					// Password is not set in the User bean for security
+					return newUser;
 				}
 			}
 		} catch (SQLException e) {
