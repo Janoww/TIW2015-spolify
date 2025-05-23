@@ -39,6 +39,42 @@
     <param-value>100</param-value>
   </context-param>
 
+  <!-- Standard Text Validation Parameters (for playlist name, song title, album title, album artist
+  etc.) -->
+  <context-param>
+    <param-name>regex.standardText</param-name>
+    <param-value><![CDATA[^[a-zA-Z0-9\s_!?.',-:;"&()]{1,100}$]]></param-value>
+  </context-param>
+  <context-param>
+    <param-name>validation.standardText.minLength</param-name>
+    <param-value>1</param-value>
+  </context-param>
+  <context-param>
+    <param-name>validation.standardText.maxLength</param-name>
+    <param-value>100</param-value>
+  </context-param>
+
+  <!-- Playlist Validation Parameters (regex is specific, min/max length use standard) -->
+  <context-param>
+    <param-name>regex.playlistName</param-name>
+    <param-value><![CDATA[^[a-zA-Z0-9\s_!?.',-]{1,100}$]]></param-value>
+  </context-param>
+  <!-- Note: minLength and maxLength for playlistName will now use standardText parameters -->
+
+  <!-- Song and Album Text Field Validation Parameters (will now use standardText parameters) -->
+  <!-- Note: regex, minLength and maxLength for songTitle, albumTitle, albumArtist will now use
+  standardText parameters -->
+
+  <session-config>
+    <session-timeout>30</session-timeout>
+    <cookie-config>
+      <http-only>true</http-only>
+      <!-- <secure>true</secure> --> <!-- Add when HTTPS is enabled -->
+      <!-- <same-site>Lax</same-site> --> <!-- Modern browsers default to Lax, explicit is good -->
+    </cookie-config>
+    <tracking-mode>COOKIE</tracking-mode>
+  </session-config>
+
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>
