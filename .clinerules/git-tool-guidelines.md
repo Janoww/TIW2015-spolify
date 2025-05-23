@@ -6,11 +6,12 @@ These guidelines provide rules for using Git-related MCP tools within this proje
 
 - **Full Path Requirement:**
   - When using Git tools provided by an MCP server, always provide the full path to the project repository as an argument (e.g., `/home/biscotti/GitProjects/TIW2015-spolify`).
-- **Staging Files (`git_add`):**
-  - Avoid using `git_add .` as it can incorrectly include files from the `.git` directory.
-  - Instead, first use `git_status` to review the list of changed files.
-  - Then, explicitly list the specific files to be staged with `git_add [file1] [file2] ...`.
-  - For staging deleted files, use `git add -u` (or `git add --update`) to tell Git to look at the working tree and stage changes to tracked files, including removals.
+- **Staging Files (`git_add` MCP Tool):**
+  - **Whole File Staging:** The `git_add` tool from the Git MCP server stages entire files. It cannot be used to stage only parts of a modified file (i.e., it does not support `git add -p` or hunk-based staging).
+  - **Avoid `git_add .`:** Avoid using `git_add .` as it can incorrectly include files from the `.git` directory.
+  - **Explicit Staging:** First use `git_status` to review the list of changed files. Then, explicitly list the specific files to be staged with `git_add [file1] [file2] ...`.
+  - **Staging Deleted Files:** To stage deleted files, it's recommended to use `git add -u` (or `git add --update`) via the `execute_command` tool. This ensures Git correctly stages removals of tracked files. The `git_add` MCP tool might not handle this specific scenario as directly as the CLI command.
+  - **Partial Commits (CLI Fallback):** If only specific changes within a file need to be committed (a partial commit), the standard Git command-line interface (CLI) (e.g., `git add -p`) must be used instead of the `git_add` MCP tool. This is also mentioned in the "Limitations and Fallback to Command Line" section.
 - **Commit Message Creation (`git_commit`):**
   - Before creating a commit, use `git_diff` (or `git_diff_staged` if changes are already staged) to review the modifications.
   - Use the insights from the diff to write a clear, concise, and meaningful commit message that accurately describes the changes, following the project's commit message guidelines.
