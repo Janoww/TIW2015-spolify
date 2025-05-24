@@ -29,7 +29,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet("/api/v1/users/*")
+@WebServlet("/api/v1/users")
 public class UserApiServlet extends HttpServlet {
         private static final long serialVersionUID = 1L;
         private static final Logger logger = LoggerFactory.getLogger(UserApiServlet.class);
@@ -48,7 +48,7 @@ public class UserApiServlet extends HttpServlet {
 
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-                logger.info("Received POST request to /api/v1/users. Action: SignUp");
+                logger.info("Received POST request to /api/v1/users (SignUp). PathInfo: {}", req.getPathInfo());
                 UserDAO userDAO = new UserDAO(connection);
                 UserCreationRequest userCreationDetails;
 
