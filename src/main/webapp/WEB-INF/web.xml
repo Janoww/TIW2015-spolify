@@ -24,11 +24,11 @@
   <!-- Validation Parameters -->
   <context-param>
     <param-name>regex.username</param-name>
-    <param-value>^[a-zA-Z0-9_]{3,100}$</param-value>
+    <param-value><![CDATA[^[a-zA-Z0-9_]{3,100}$]]></param-value>
   </context-param>
   <context-param>
     <param-name>regex.name</param-name>
-    <param-value>^[a-zA-Z\s'-]{3,100}$</param-value>
+    <param-value><![CDATA[ ^[a-zA-Z\s'-]{3,100}$]]></param-value>
   </context-param>
   <context-param>
     <param-name>validation.password.minLength</param-name>
@@ -54,23 +54,15 @@
     <param-value>100</param-value>
   </context-param>
 
-  <!-- Playlist Validation Parameters (regex is specific, min/max length use standard) -->
   <context-param>
     <param-name>regex.playlistName</param-name>
     <param-value><![CDATA[^[a-zA-Z0-9\s_!?.',-]{1,100}$]]></param-value>
   </context-param>
-  <!-- Note: minLength and maxLength for playlistName will now use standardText parameters -->
-
-  <!-- Song and Album Text Field Validation Parameters (will now use standardText parameters) -->
-  <!-- Note: regex, minLength and maxLength for songTitle, albumTitle, albumArtist will now use
-  standardText parameters -->
 
   <session-config>
     <session-timeout>30</session-timeout>
     <cookie-config>
       <http-only>true</http-only>
-      <!-- <secure>true</secure> --> <!-- Add when HTTPS is enabled -->
-      <!-- <same-site>Lax</same-site> --> <!-- Modern browsers default to Lax, explicit is good -->
     </cookie-config>
     <tracking-mode>COOKIE</tracking-mode>
   </session-config>
