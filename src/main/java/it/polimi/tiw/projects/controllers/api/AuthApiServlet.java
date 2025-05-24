@@ -33,6 +33,10 @@ public class AuthApiServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(AuthApiServlet.class);
     private transient Connection connection;
 
+    private enum AuthRoute {
+        LOGIN, LOGOUT, CHECK_SESSION, INVALID_ROUTE
+    }
+
     public AuthApiServlet() {
         super();
     }
@@ -44,32 +48,64 @@ public class AuthApiServlet extends HttpServlet {
         logger.info("AuthApiServlet initialized.");
     }
 
+    private AuthRoute resolveRoute(HttpServletRequest request) {
+        String method = request.getMethod();
+        String pathInfo = request.getPathInfo();
+
+        if ("GET".equalsIgnoreCase(method)) {
+            Pattern mePattern = Pattern.compile("^/me/?$");
+            if (pathInfo != null && mePattern.matcher(pathInfo).matches()) {
+                return AuthRoute.CHECK_SESSION;
+            }
+        } else if ("POST".equalsIgnoreCase(method)) {
+            Pattern loginPattern = Pattern.compile("^/login/?$");
+            if (pathInfo != null && loginPattern.matcher(pathInfo).matches()) {
+                return AuthRoute.LOGIN;
+            }
+            Pattern logoutPattern = Pattern.compile("^/logout/?$");
+            if (pathInfo != null && logoutPattern.matcher(pathInfo).matches()) {
+                return AuthRoute.LOGOUT;
+            }
+        }
+        return AuthRoute.INVALID_ROUTE;
+    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        AuthRoute route = resolveRoute(req);
         String pathInfo = req.getPathInfo();
-        String action = (pathInfo != null && pathInfo.equals("/me")) ? "CheckSession" : "Unknown";
-        logger.info("Received GET request. Path: '{}', Action: {}", (pathInfo != null ? pathInfo : ""), action);
+        logger.info("Received GET request. Path: '{}', Route: {}", (pathInfo != null ? pathInfo : "null or empty"),
+                route);
 
-        if ("/me".equals(pathInfo)) {
+        switch (route) {
+        case CHECK_SESSION:
             handleCheckSession(req, resp);
-        } else {
+            break;
+        default:
             logger.warn("Invalid path for GET request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
             ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
+            break;
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        AuthRoute route = resolveRoute(req);
         String pathInfo = req.getPathInfo();
-        logger.info("Received POST request. Path: '{}'", (pathInfo != null ? pathInfo : ""));
+        logger.info("Received POST request. Path: '{}', Route: {}", (pathInfo != null ? pathInfo : "null or empty"),
+                route);
 
-        if ("/login".equals(pathInfo)) {
+        switch (route) {
+        case LOGIN:
             handleLogin(req, resp);
-        } else if ("/logout".equals(pathInfo)) {
+            break;
+        case LOGOUT:
             handleLogout(req, resp);
-        } else {
+            break;
+        default:
             logger.warn("Invalid path for POST request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
             ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
+            break;
         }
     }
 
