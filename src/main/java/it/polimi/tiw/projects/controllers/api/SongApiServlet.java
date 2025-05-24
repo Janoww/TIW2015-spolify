@@ -44,6 +44,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @WebServlet("/api/v1/songs/*")
 @MultipartConfig(fileSizeThreshold = 1024 * 1024 * 1, // 1MB
@@ -485,8 +487,8 @@ public class SongApiServlet extends HttpServlet {
                     "POST method not allowed for this specific path or path is invalid.");
     }
 
-    private Optional<String> validateStandardTextField(String rawValue, String fieldName, HttpServletResponse response,
-            Pattern pattern, int minLength, int maxLength) {
+    private Optional<String> validateStandardTextField(@NotBlank String rawValue, @NotBlank String fieldName,
+            HttpServletResponse response, @NotNull Pattern pattern, int minLength, int maxLength) {
         String trimmedValue = rawValue.trim();
         if (trimmedValue.isEmpty() || trimmedValue.length() < minLength || trimmedValue.length() > maxLength) {
             ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,

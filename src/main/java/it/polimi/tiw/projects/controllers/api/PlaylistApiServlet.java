@@ -60,7 +60,7 @@ public class PlaylistApiServlet extends HttpServlet {
         // Load validation patterns from ServletContext
         this.playlistNamePattern = (Pattern) servletContext
                 .getAttribute(AppContextListener.PLAYLIST_NAME_REGEX_PATTERN);
-        // Playlist name uses standard min/max length
+
         this.playlistNameMinLength = (Integer) servletContext.getAttribute(AppContextListener.STANDARD_TEXT_MIN_LENGTH);
         this.playlistNameMaxLength = (Integer) servletContext.getAttribute(AppContextListener.STANDARD_TEXT_MAX_LENGTH);
 
@@ -147,7 +147,6 @@ public class PlaylistApiServlet extends HttpServlet {
             return;
         }
 
-        // Input Validation Call
         if (!isValidPlaylistRequest(playlistRequest, response)) {
             return;
         }

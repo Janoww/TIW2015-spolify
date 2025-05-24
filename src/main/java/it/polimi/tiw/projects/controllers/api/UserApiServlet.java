@@ -23,6 +23,7 @@ import it.polimi.tiw.projects.utils.ObjectMapperUtils;
 import it.polimi.tiw.projects.utils.ResponseUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -130,8 +131,8 @@ public class UserApiServlet extends HttpServlet {
                 return Optional.ofNullable(s).map(String::strip).orElse(null);
         }
 
-        private boolean validateUser(HttpServletResponse resp, String username, String name, String surname,
-                        String password) {
+        private boolean validateUser(HttpServletResponse resp, @NotBlank String username, @NotBlank String name,
+                        @NotBlank String surname, @NotBlank String password) {
                 ServletContext servletContext = getServletContext();
                 Pattern namePattern = (Pattern) servletContext.getAttribute(AppContextListener.NAME_REGEX_PATTERN);
                 Pattern usernamePattern = (Pattern) servletContext
