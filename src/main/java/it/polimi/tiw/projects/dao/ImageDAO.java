@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.UUID;
 import it.polimi.tiw.projects.beans.FileData;
 import it.polimi.tiw.projects.utils.StorageUtils;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,57 +25,54 @@ public class ImageDAO {
 
     // Map of allowed MIME types to their canonical file extensions
     // Tika detects both .jpg and .jpeg as image/jpeg
-    private static final Map<String, String> ALLOWED_MIME_TYPES_MAP =
-            Map.ofEntries(Map.entry("image/jpeg", ".jpg"), // Use
-                                                           // .jpg
-                                                           // for
-                                                           // image/jpeg
-                    Map.entry("image/png", ".png"), Map.entry("image/webp", ".webp"));
+    private static final Map<String, String> ALLOWED_MIME_TYPES_MAP = Map.ofEntries(Map.entry("image/jpeg", ".jpg"),
+            Map.entry("image/png", ".png"), Map.entry("image/webp", ".webp"));
+
     private static final int MAX_FILENAME_PREFIX_LENGTH = 190;
 
     /**
-     * Constructs an ImageDAO with a specified base storage directory. The 'image' subdirectory
-     * within this base directory will be created if it doesn't exist.
+     * Constructs an ImageDAO with a specified base storage directory. The 'image'
+     * subdirectory within this base directory will be created if it doesn't exist.
      *
-     * @param baseStorageDirectory The Path object representing the base directory (e.g., where
-     *        'image' subfolder should reside).
-     * @throws RuntimeException if the 'image' subdirectory cannot be created within the base
-     *         directory.
+     * @param baseStorageDirectory The Path object representing the base directory
+     *                             (e.g., where 'image' subfolder should reside).
+     * @throws RuntimeException if the 'image' subdirectory cannot be created within
+     *                          the base directory.
      */
-    public ImageDAO(Path baseStorageDirectory) {
+    public ImageDAO(@NotNull Path baseStorageDirectory) {
         this.imageStorageDirectory = baseStorageDirectory.resolve(IMAGE_SUBFOLDER).normalize();
 
         try {
             // Create the specific song subdirectory if it doesn't exist
             Files.createDirectories(this.imageStorageDirectory);
-            log.info("ImageDAO initialized. Image storage directory: {}",
-                    this.imageStorageDirectory);
+            log.info("ImageDAO initialized. Image storage directory: {}", this.imageStorageDirectory);
         } catch (IOException e) {
-            log.error("CRITICAL: Could not create image storage directory: {}",
-                    this.imageStorageDirectory, e);
+            log.error("CRITICAL: Could not create image storage directory: {}", this.imageStorageDirectory, e);
             throw new RuntimeException("Could not initialize image storage directory", e);
         } catch (SecurityException e) {
             log.error("CRITICAL: Security permissions prevent creating image storage directory: {}",
                     this.imageStorageDirectory, e);
-            throw new RuntimeException(
-                    "Security permissions prevent creating image storage directory", e);
+            throw new RuntimeException("Security permissions prevent creating image storage directory", e);
         }
     }
 
     /**
-     * Saves an image file from an InputStream to the configured 'image' storage directory.
-     * Validates the file content type using Tika. Generates a unique filename incorporating a
-     * sanitized version of the original filename.
+     * Saves an image file from an InputStream to the configured 'image' storage
+     * directory. Validates the file content type using Tika. Generates a unique
+     * filename incorporating a sanitized version of the original filename.
      *
-     * @param imageStream The InputStream containing the image data.
-     * @param originalFileName The original filename provided by the client (used for prefix).
-     * @return The unique filename (e.g., "filename_uuid.jpg") of the saved image file within the
-     *         'image' directory.
-     * @throws DAOException If an I/O error occurs during file operations.
-     * @throws IllegalArgumentException If the file content is not a valid/supported image format,
-     *         or if the originalFileName is invalid.
+     * @param imageStream      The InputStream containing the image data.
+     * @param originalFileName The original filename provided by the client (used
+     *                         for prefix).
+     * @return The unique filename (e.g., "filename_uuid.jpg") of the saved image
+     *         file within the 'image' directory.
+     * @throws DAOException             If an I/O error occurs during file
+     *                                  operations.
+     * @throws IllegalArgumentException If the file content is not a valid/supported
+     *                                  image format, or if the originalFileName is
+     *                                  invalid.
      */
-    public String saveImage(InputStream imageStream, String originalFileName)
+    public String saveImage(@NotNull InputStream imageStream, @NotBlank String originalFileName)
             throws DAOException, IllegalArgumentException {
         log.info("Attempting to save image with original filename: {}", originalFileName);
         if (originalFileName == null || originalFileName.isBlank()) {
@@ -108,8 +107,8 @@ public class ImageDAO {
             return finalFilename;
 
         } catch (IOException e) {
-            log.error("IOException occurred during image save process for original file {}: {}",
-                    originalFileName, e.getMessage(), e);
+            log.error("IOException occurred during image save process for original file {}: {}", originalFileName,
+                    e.getMessage(), e);
             // Clean up temp file on error before wrapping and re-throwing
             deleteTempFile(tempFile);
             throw new DAOException("Failed to save image due to I/O error: " + e.getMessage(), e,
@@ -123,18 +122,19 @@ public class ImageDAO {
     }
 
     /**
-     * Validates the image file content using Apache Tika and determines the appropriate file
-     * extension based on the detected MIME type.
+     * Validates the image file content using Apache Tika and determines the
+     * appropriate file extension based on the detected MIME type.
      *
      * @param imageFile Path to the temporary image file to validate.
-     * @return The canonical file extension (e.g., ".jpg", ".png") corresponding to the detected and
-     *         allowed MIME type.
-     * @throws IllegalArgumentException if the file is not detected as a supported image format
-     *         based on the ALLOWED_MIME_TYPES_MAP.
-     * @throws IOException if an I/O error occurs reading the file during detection.
+     * @return The canonical file extension (e.g., ".jpg", ".png") corresponding to
+     *         the detected and allowed MIME type.
+     * @throws IllegalArgumentException if the file is not detected as a supported
+     *                                  image format based on the
+     *                                  ALLOWED_MIME_TYPES_MAP.
+     * @throws IOException              if an I/O error occurs reading the file
+     *                                  during detection.
      */
-    private String validateAndGetExtension(Path imageFile)
-            throws IllegalArgumentException, IOException {
+    private String validateAndGetExtension(@NotNull Path imageFile) throws IllegalArgumentException, IOException {
         Tika tika = new Tika();
         String mimeType = null;
         try {
@@ -143,37 +143,30 @@ public class ImageDAO {
 
             // Basic check
             if (mimeType == null || !mimeType.startsWith("image/")) {
-                log.warn("Image validation failed for {}: Detected MIME type '{}' is not image.",
-                        imageFile, mimeType);
+                log.warn("Image validation failed for {}: Detected MIME type '{}' is not image.", imageFile, mimeType);
                 throw new IllegalArgumentException(
-                        "The uploaded file is not recognized as a valid image format (detected type: "
-                                + mimeType + ").");
+                        "The uploaded file is not recognized as a valid image format (detected type: " + mimeType
+                                + ").");
             }
 
             // Specific check for allowed mimetypes
             String targetExtension = ALLOWED_MIME_TYPES_MAP.get(mimeType.toLowerCase());
             if (targetExtension == null) {
-                log.warn(
-                        "Image validation failed for {}: Detected image MIME type '{}' is not supported.",
-                        imageFile, mimeType);
+                log.warn("Image validation failed for {}: Detected image MIME type '{}' is not supported.", imageFile,
+                        mimeType);
                 throw new IllegalArgumentException("The detected image type (" + mimeType
-                        + ") is not supported. Allowed types map to extensions: "
-                        + ALLOWED_MIME_TYPES_MAP.values());
+                        + ") is not supported. Allowed types map to extensions: " + ALLOWED_MIME_TYPES_MAP.values());
             }
 
-            log.debug("Detected MIME type '{}' is supported and maps to extension '{}'.", mimeType,
-                    targetExtension);
+            log.debug("Detected MIME type '{}' is supported and maps to extension '{}'.", mimeType, targetExtension);
             return targetExtension;
 
         } catch (IOException e) {
-            log.error("IOException during Tika image validation for {}: {}", imageFile,
-                    e.getMessage(), e);
+            log.error("IOException during Tika image validation for {}: {}", imageFile, e.getMessage(), e);
             throw e;
         } catch (Exception e) {
-            log.error("Unexpected error during image validation for {}: {}", imageFile,
-                    e.getMessage(), e);
-            throw new IllegalArgumentException(
-                    "An unexpected error occurred during image file validation.", e);
+            log.error("Unexpected error during image validation for {}: {}", imageFile, e.getMessage(), e);
+            throw new IllegalArgumentException("An unexpected error occurred during image file validation.", e);
         }
     }
 
@@ -188,22 +181,23 @@ public class ImageDAO {
                 Files.deleteIfExists(tempFile);
                 log.debug("Deleted temporary file: {}", tempFile);
             } catch (IOException suppress) {
-                log.error("Failed to delete temporary file {} during cleanup: {}", tempFile,
-                        suppress.getMessage(), suppress);
+                log.error("Failed to delete temporary file {} during cleanup: {}", tempFile, suppress.getMessage(),
+                        suppress);
             }
         }
     }
 
     /**
-     * Generates a unique filename based on the original filename and a UUID, using the provided
-     * target extension. Sanitizes and truncates the original filename prefix.
+     * Generates a unique filename based on the original filename and a UUID, using
+     * the provided target extension. Sanitizes and truncates the original filename
+     * prefix.
      *
      * @param originalFileName The original filename (used to derive the base name).
-     * @param targetExtension The validated file extension determined by MIME type (including the
-     *        dot).
+     * @param targetExtension  The validated file extension determined by MIME type
+     *                         (including the dot).
      * @return A unique filename string.
      */
-    private String generateUniqueFilename(String originalFileName, String targetExtension) {
+    private String generateUniqueFilename(@NotBlank String originalFileName, @NotBlank String targetExtension) {
         String baseName;
         int lastDotIndex = originalFileName.lastIndexOf('.');
         // Extract base name robustly, handling cases with and without extensions
@@ -224,7 +218,7 @@ public class ImageDAO {
         // Ensure it doesn't end with an underscore if truncated or sanitized that way
         sanitizedBaseName = sanitizedBaseName.replaceAll("_+$", "");
         if (sanitizedBaseName.isEmpty()) {
-            sanitizedBaseName = "image";
+            sanitizedBaseName = IMAGE_SUBFOLDER;
         }
 
         String uuid = UUID.randomUUID().toString();
@@ -232,16 +226,18 @@ public class ImageDAO {
     }
 
     /**
-     * Deletes an image file from the configured 'image' storage directory based on its filename.
+     * Deletes an image file from the configured 'image' storage directory based on
+     * its filename.
      *
-     * @param filename The filename of the file to delete (e.g., "filename_uuid.jpg"). Must not
-     *        contain path separators.
-     * @throws DAOException If the file is not found after validation, or if an I/O error occurs
-     *         during deletion.
-     * @throws IllegalArgumentException If the provided filename is null, blank, contains path
-     *         separators ('/' or '\'), or attempts path traversal ('..').
+     * @param filename The filename of the file to delete (e.g.,
+     *                 "filename_uuid.jpg"). Must not contain path separators.
+     * @throws DAOException             If the file is not found after validation,
+     *                                  or if an I/O error occurs during deletion.
+     * @throws IllegalArgumentException If the provided filename is null, blank,
+     *                                  contains path separators ('/' or '\'), or
+     *                                  attempts path traversal ('..').
      */
-    public void deleteImage(String filename) throws DAOException, IllegalArgumentException {
+    public void deleteImage(@NotBlank String filename) throws DAOException, IllegalArgumentException {
         log.info("Attempting to delete image file with filename: {}", filename);
 
         // Validate filename for early exit
@@ -258,8 +254,7 @@ public class ImageDAO {
 
         try {
             // Validate, resolve, and check existence using utility
-            Path fileRealPath =
-                    StorageUtils.validateAndResolveSecurePath(filename, this.imageStorageDirectory);
+            Path fileRealPath = StorageUtils.validateAndResolveSecurePath(filename, this.imageStorageDirectory);
             log.debug("Path validated for deletion: {}", fileRealPath);
 
             // Delete the file
@@ -272,23 +267,18 @@ public class ImageDAO {
                         fileRealPath);
             }
         } catch (DAOException | IllegalArgumentException e) {
-            log.warn("Validation or access error during image deletion for {}: {}", filename,
-                    e.getMessage());
+            log.warn("Validation or access error during image deletion for {}: {}", filename, e.getMessage());
             throw e;
         } catch (IOException e) {
-            log.error("IOException occurred during image file deletion for {}: {}", filename,
-                    e.getMessage(), e);
+            log.error("IOException occurred during image file deletion for {}: {}", filename, e.getMessage(), e);
             throw new DAOException("Failed to delete image due to I/O error: " + e.getMessage(), e,
                     DAOErrorType.GENERIC_ERROR);
         } catch (SecurityException e) {
-            log.error("SecurityException occurred during image file deletion for {}: {}", filename,
-                    e.getMessage(), e);
-            throw new DAOException(
-                    "Failed to delete image due to security restrictions: " + e.getMessage(), e,
+            log.error("SecurityException occurred during image file deletion for {}: {}", filename, e.getMessage(), e);
+            throw new DAOException("Failed to delete image due to security restrictions: " + e.getMessage(), e,
                     DAOErrorType.GENERIC_ERROR);
         } catch (Exception e) {
-            log.error("Unexpected error during image deletion for filename {}: {}", filename,
-                    e.getMessage(), e);
+            log.error("Unexpected error during image deletion for filename {}: {}", filename, e.getMessage(), e);
             throw new DAOException("An unexpected error occurred during image deletion.", e,
                     DAOErrorType.GENERIC_ERROR);
         }
@@ -297,47 +287,36 @@ public class ImageDAO {
     /**
      * Retrieves an image file's data and metadata.
      *
-     * @param filename The unique filename of the image (e.g., "filename_uuid.jpg") stored in the
-     *        image directory.
+     * @param filename The unique filename of the image (e.g., "filename_uuid.jpg")
+     *                 stored in the image directory.
      * @return A FileData object containing the image's content stream and metadata.
-     * @throws DAOException If the file is not found, cannot be accessed, or an I/O error occurs.
-     * @throws IllegalArgumentException If the filename is invalid (null, blank, or contains path
-     *         traversal).
+     * @throws DAOException             If the file is not found, cannot be
+     *                                  accessed, or an I/O error occurs.
+     * @throws IllegalArgumentException If the filename is invalid (null, blank, or
+     *                                  contains path traversal).
      */
-    public FileData getImage(String filename) throws DAOException, IllegalArgumentException {
+    public FileData getImage(@NotBlank String filename) throws DAOException, IllegalArgumentException {
         log.info("Attempting to retrieve image file with filename: {}", filename);
-
         try {
-            // Validate, resolve, and check existence using utility
-            Path fileRealPath =
-                    StorageUtils.validateAndResolveSecurePath(filename, this.imageStorageDirectory);
+            Path fileRealPath = StorageUtils.validateAndResolveSecurePath(filename, this.imageStorageDirectory);
             log.debug("Path validated for retrieval: {}", fileRealPath);
 
-            // Get metadata and open stream
-            String mimeType = new Tika().detect(fileRealPath);
-            long size = Files.size(fileRealPath);
-            InputStream contentStream = Files.newInputStream(fileRealPath);
-
-            log.info("Successfully prepared FileData for image: {}", filename);
-            return new FileData(contentStream, filename, mimeType, size);
+            return FileData.createFromFile(fileRealPath, filename);
 
         } catch (DAOException | IllegalArgumentException e) {
-            log.warn("Validation or access error during image retrieval for {}: {}", filename,
-                    e.getMessage());
+            log.warn("Validation or access error during image retrieval for {}: {}", filename, e.getMessage());
             throw e;
         } catch (IOException e) {
-            log.error("IOException occurred during image metadata/content retrieval for {}: {}",
-                    filename, e.getMessage(), e);
-            throw new DAOException("Failed to retrieve image metadata or content due to I/O error: "
-                    + e.getMessage(), e, DAOErrorType.GENERIC_ERROR);
-        } catch (SecurityException e) {
-            log.error(
-                    "SecurityException occurred during image metadata/content retrieval for {}: {}",
-                    filename, e.getMessage(), e);
-            throw new DAOException(
-                    "Failed to retrieve image metadata or content due to security restrictions: "
-                            + e.getMessage(),
+            log.error("IOException occurred during FileData creation for image file {}: {}", filename, e.getMessage(),
+                    e);
+            throw new DAOException("Failed to retrieve image metadata or content due to I/O error: " + e.getMessage(),
                     e, DAOErrorType.GENERIC_ERROR);
+        } catch (SecurityException e) {
+            log.error("SecurityException occurred during image metadata/content retrieval for {}: {}", filename,
+                    e.getMessage(), e);
+            throw new DAOException(
+                    "Failed to retrieve image metadata or content due to security restrictions: " + e.getMessage(), e,
+                    DAOErrorType.GENERIC_ERROR);
         }
     }
 }

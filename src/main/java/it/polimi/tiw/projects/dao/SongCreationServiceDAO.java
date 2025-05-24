@@ -17,6 +17,8 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public class SongCreationServiceDAO {
     private static final Logger logger = LoggerFactory.getLogger(SongCreationServiceDAO.class);
@@ -39,8 +41,8 @@ public class SongCreationServiceDAO {
         }
     }
 
-    public SongCreationServiceDAO(Connection connection, AlbumDAO albumDAO, SongDAO songDAO,
-            ImageDAO imageDAO, AudioDAO audioDAO) {
+    public SongCreationServiceDAO(@NotNull Connection connection, @NotNull AlbumDAO albumDAO, @NotNull SongDAO songDAO,
+            @NotNull ImageDAO imageDAO, @NotNull AudioDAO audioDAO) {
         this.connection = connection;
         this.albumDAO = albumDAO;
         this.songDAO = songDAO;
@@ -48,17 +50,17 @@ public class SongCreationServiceDAO {
         this.audioDAO = audioDAO;
     }
 
-    private String saveAudioFile(User user, SongCreationParameters params) throws DAOException {
+    private String saveAudioFile(@NotNull User user, @NotNull SongCreationParameters params) throws DAOException {
         String audioFileStorageName;
         try {
-            String originalAudioFileName = Paths
-                    .get(params.getAudioFilePart().getSubmittedFileName()).getFileName().toString();
+            String originalAudioFileName = Paths.get(params.getAudioFilePart().getSubmittedFileName()).getFileName()
+                    .toString();
 
             try (InputStream audioContent = params.getAudioFilePart().getInputStream()) {
                 audioFileStorageName = audioDAO.saveAudio(audioContent, originalAudioFileName);
             }
-            logger.info("Audio file {} saved as {} for user {}", originalAudioFileName,
-                    audioFileStorageName, user.getUsername());
+            logger.info("Audio file {} saved as {} for user {}", originalAudioFileName, audioFileStorageName,
+                    user.getUsername());
             return audioFileStorageName;
         } catch (IOException e) {
             throw new DAOException("Failed to process audio file: " + e.getMessage(), e,
@@ -69,19 +71,17 @@ public class SongCreationServiceDAO {
         }
     }
 
-    private String saveAlbumImageFile(User user, String albumTitle, Part imageFilePart)
+    private String saveAlbumImageFile(@NotNull User user, @NotBlank String albumTitle, Part imageFilePart)
             throws DAOException {
         String imageFileStorageName = null;
         if (imageFilePart != null && imageFilePart.getSize() > 0) {
             try {
-                String originalImageFileName =
-                        Paths.get(imageFilePart.getSubmittedFileName()).getFileName().toString();
+                String originalImageFileName = Paths.get(imageFilePart.getSubmittedFileName()).getFileName().toString();
                 try (InputStream imageContent = imageFilePart.getInputStream()) {
                     imageFileStorageName = imageDAO.saveImage(imageContent, originalImageFileName);
                 }
-                logger.info("Image file {} saved as {} for new album {} by user {}",
-                        originalImageFileName, imageFileStorageName, albumTitle,
-                        user.getUsername());
+                logger.info("Image file {} saved as {} for new album {} by user {}", originalImageFileName,
+                        imageFileStorageName, albumTitle, user.getUsername());
             } catch (IOException e) {
                 throw new DAOException("Failed to process album image file: " + e.getMessage(), e,
                         DAOException.DAOErrorType.IMAGE_SAVE_FAILED);
@@ -93,15 +93,14 @@ public class SongCreationServiceDAO {
         return imageFileStorageName;
     }
 
-    private AlbumData handleAlbumProcessing(User user, SongCreationParameters params,
+    private AlbumData handleAlbumProcessing(@NotNull User user, @NotNull SongCreationParameters params,
             Part imageFilePart) throws DAOException {
         Album album;
         String imageFileStorageName = null;
         boolean newAlbumCreated = false;
 
         List<Album> userAlbums = albumDAO.findAlbumsByUser(user.getIdUser());
-        album = userAlbums.stream()
-                .filter(x -> x.getName().equalsIgnoreCase(params.getAlbumTitle())).findFirst()
+        album = userAlbums.stream().filter(x -> x.getName().equalsIgnoreCase(params.getAlbumTitle())).findFirst()
                 .orElse(null);
 
         if (album == null) {
@@ -111,28 +110,27 @@ public class SongCreationServiceDAO {
 
             imageFileStorageName = saveAlbumImageFile(user, params.getAlbumTitle(), imageFilePart);
 
-            album = albumDAO.createAlbum(params.getAlbumTitle(), params.getAlbumYear(),
-                    params.getAlbumArtist(), imageFileStorageName, user.getIdUser());
-            logger.info("New album '{}' (ID: {}) created for user {}", album.getName(),
-                    album.getIdAlbum(), user.getUsername());
+            album = albumDAO.createAlbum(params.getAlbumTitle(), params.getAlbumYear(), params.getAlbumArtist(),
+                    imageFileStorageName, user.getIdUser());
+            logger.info("New album '{}' (ID: {}) created for user {}", album.getName(), album.getIdAlbum(),
+                    user.getUsername());
         } else {
-            logger.info("Found existing album '{}' (ID: {}) for user {}.", album.getName(),
-                    album.getIdAlbum(), user.getUsername());
+            logger.info("Found existing album '{}' (ID: {}) for user {}.", album.getName(), album.getIdAlbum(),
+                    user.getUsername());
         }
         return new AlbumData(album, imageFileStorageName, newAlbumCreated);
     }
 
-    private Song saveSongDetails(User user, SongCreationParameters params, int albumId,
-            String audioFileStorageName) throws DAOException {
-        Song createdSong = songDAO.createSong(params.getSongTitle(), albumId, params.getAlbumYear(),
-                params.getGenre(), audioFileStorageName, user.getIdUser());
-        logger.info("Song '{}' (ID: {}) created and associated with album ID {} for user {}",
-                createdSong.getTitle(), createdSong.getIdSong(), albumId, user.getUsername());
+    private Song saveSongDetails(@NotNull User user, @NotNull SongCreationParameters params, int albumId,
+            @NotBlank String audioFileStorageName) throws DAOException {
+        Song createdSong = songDAO.createSong(params.getSongTitle(), albumId, params.getAlbumYear(), params.getGenre(),
+                audioFileStorageName, user.getIdUser());
+        logger.info("Song '{}' (ID: {}) created and associated with album ID {} for user {}", createdSong.getTitle(),
+                createdSong.getIdSong(), albumId, user.getUsername());
         return createdSong;
     }
 
-    private void performCleanupOnFailure(String audioFileStorageName, AlbumData albumInfo,
-            String username) {
+    private void performCleanupOnFailure(String audioFileStorageName, AlbumData albumInfo, @NotBlank String username) {
         if (audioFileStorageName != null) {
             try {
                 logger.warn("Attempting to delete audio file {} after failed workflow for user {}",
@@ -141,12 +139,11 @@ public class SongCreationServiceDAO {
                 logger.info("Successfully deleted audio file {} after failed workflow for user {}.",
                         audioFileStorageName, username);
             } catch (DAOException | IllegalArgumentException dae) {
-                logger.error("Failed to delete audio file {} during cleanup for user {}: {}",
-                        audioFileStorageName, username, dae.getMessage(), dae);
+                logger.error("Failed to delete audio file {} during cleanup for user {}: {}", audioFileStorageName,
+                        username, dae.getMessage(), dae);
             }
         }
-        if (albumInfo != null && albumInfo.newAlbumCreated
-                && albumInfo.imageFileStorageName != null) {
+        if (albumInfo != null && albumInfo.newAlbumCreated && albumInfo.imageFileStorageName != null) {
             try {
                 logger.warn("Attempting to delete image file {} after failed workflow for user {}",
                         albumInfo.imageFileStorageName, username);
@@ -160,7 +157,7 @@ public class SongCreationServiceDAO {
         }
     }
 
-    public SongWithAlbum createSongWorkflow(User user, SongCreationParameters params,
+    public SongWithAlbum createSongWorkflow(@NotNull User user, @NotNull SongCreationParameters params,
             Part imageFilePart) throws DAOException {
 
         String audioFileStorageName = null;
@@ -169,13 +166,11 @@ public class SongCreationServiceDAO {
 
         try {
             connection.setAutoCommit(false);
-            logger.debug("Transaction started for song creation workflow by user: {}",
-                    user.getUsername());
+            logger.debug("Transaction started for song creation workflow by user: {}", user.getUsername());
 
             audioFileStorageName = saveAudioFile(user, params);
             albumInfo = handleAlbumProcessing(user, params, imageFilePart);
-            Song createdSong = saveSongDetails(user, params, albumInfo.album.getIdAlbum(),
-                    audioFileStorageName);
+            Song createdSong = saveSongDetails(user, params, albumInfo.album.getIdAlbum(), audioFileStorageName);
 
             connection.commit();
             logger.info("Transaction committed successfully for song creation workflow by user: {}",
@@ -184,8 +179,7 @@ public class SongCreationServiceDAO {
             return new SongWithAlbum(createdSong, albumInfo.album);
 
         } catch (DAOException | SQLException e) {
-            logger.error(
-                    "Error during song creation workflow for user {}. Attempting rollback. Error: {}",
+            logger.error("Error during song creation workflow for user {}. Attempting rollback. Error: {}",
                     user.getUsername(), e.getMessage(), e);
             try {
                 if (connection != null) {
@@ -193,8 +187,8 @@ public class SongCreationServiceDAO {
                     logger.info("Transaction rolled back for user {}", user.getUsername());
                 }
             } catch (SQLException exRollback) {
-                logger.error("Rollback failed for user {} after error: {}", user.getUsername(),
-                        exRollback.getMessage(), exRollback);
+                logger.error("Rollback failed for user {} after error: {}", user.getUsername(), exRollback.getMessage(),
+                        exRollback);
                 e.addSuppressed(exRollback);
             }
 
@@ -203,8 +197,7 @@ public class SongCreationServiceDAO {
             if (e instanceof DAOException daoException) {
                 throw daoException;
             } else {
-                throw new DAOException(
-                        "Database error during song creation workflow: " + e.getMessage(), e,
+                throw new DAOException("Database error during song creation workflow: " + e.getMessage(), e,
                         DAOException.DAOErrorType.GENERIC_ERROR);
             }
 
@@ -212,12 +205,11 @@ public class SongCreationServiceDAO {
             try {
                 if (connection != null) {
                     connection.setAutoCommit(true);
-                    logger.debug("Connection autoCommit reset to true for user {}",
-                            user.getUsername());
+                    logger.debug("Connection autoCommit reset to true for user {}", user.getUsername());
                 }
             } catch (SQLException exFinal) {
-                logger.error("Failed to reset autoCommit to true for user {}: {}",
-                        user.getUsername(), exFinal.getMessage(), exFinal);
+                logger.error("Failed to reset autoCommit to true for user {}: {}", user.getUsername(),
+                        exFinal.getMessage(), exFinal);
             }
         }
     }

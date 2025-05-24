@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Data Access Object for managing User data in the database. Provides methods
@@ -25,7 +27,7 @@ public class UserDAO {
 	 *
 	 * @param connection the database connection to use for DAO operations.
 	 */
-	public UserDAO(Connection connection) {
+	public UserDAO(@NotNull Connection connection) {
 		this.connection = connection;
 	}
 
@@ -43,7 +45,8 @@ public class UserDAO {
 	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 * @return The newly created User object with its generated ID.
 	 */
-	public User createUser(String username, String pwd, String name, String surname) throws DAOException {
+	public User createUser(@NotBlank String username, @NotBlank String pwd, @NotBlank String name,
+			@NotBlank String surname) throws DAOException {
 		logger.debug("Attempting to create user: username={}, name={}, surname={}", username, name, surname);
 		String insertQuery = "INSERT INTO User (idUser, username, password, name, surname) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)";
 		String checkExistence = "SELECT * FROM User WHERE username = ?";
@@ -106,7 +109,7 @@ public class UserDAO {
 	 *                      or another database access error occurs
 	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
-	public User checkCredentials(String username, String pwd) throws DAOException {
+	public User checkCredentials(@NotBlank String username, @NotBlank String pwd) throws DAOException {
 		logger.debug("Attempting to check credentials for username: {}", username);
 		String query = "SELECT BIN_TO_UUID(idUser) as idUser, username, name, surname FROM User WHERE username = ? AND password = ?";
 		try (PreparedStatement pStatement = connection.prepareStatement(query);) {
@@ -152,7 +155,8 @@ public class UserDAO {
 	 *                      or another database access error occurs
 	 *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
 	 */
-	public void modifyUser(User user, String name, String surname) throws DAOException {
+	public void modifyUser(@NotNull User user, String name, String surname) throws DAOException {
+
 		logger.debug("Attempting to modify user ID: {} with name={}, surname={}", user.getIdUser(), name, surname);
 		String query = "UPDATE User SET name = ?, surname = ? WHERE idUser = UUID_TO_BIN(?)";
 

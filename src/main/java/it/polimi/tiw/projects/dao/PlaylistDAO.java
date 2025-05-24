@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import it.polimi.tiw.projects.beans.Playlist;
 import it.polimi.tiw.projects.exceptions.DAOException;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
 
 public class PlaylistDAO {
@@ -28,7 +30,7 @@ public class PlaylistDAO {
 
 	private Connection connection;
 
-	public PlaylistDAO(Connection connection) {
+	public PlaylistDAO(@NotNull Connection connection) {
 		this.connection = connection;
 	}
 
@@ -53,7 +55,8 @@ public class PlaylistDAO {
 	 *                      database error occurs
 	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
 	 */
-	public Playlist createPlaylist(String name, UUID idUser, List<Integer> songIds) throws DAOException {
+	public Playlist createPlaylist(@NotBlank String name, @NotNull UUID idUser, @NotNull List<Integer> songIds)
+			throws DAOException {
 		logger.debug("Attempting to create playlist: name={}, userId={}, songCount={}", name, idUser,
 				songIds != null ? songIds.size() : 0);
 
@@ -116,7 +119,8 @@ public class PlaylistDAO {
 
 	// --- Helper methods for createPlaylist ---
 
-	private void checkPlaylistNameAvailability(String name, UUID idUser) throws DAOException, SQLException {
+	private void checkPlaylistNameAvailability(@NotBlank String name, @NotNull UUID idUser)
+			throws DAOException, SQLException {
 		logger.debug("Checking playlist name availability: name={}, userId={}", name, idUser);
 		try (PreparedStatement pStatementCheck = connection
 				.prepareStatement(CHECK_PLAYLIST_NAME_EXISTS_FOR_USER_QUERY)) {
@@ -154,7 +158,7 @@ public class PlaylistDAO {
 		logger.debug("All {} provided song IDs verified successfully for user {}.", songIds.size(), idUser);
 	}
 
-	private int insertNewPlaylistMetadata(String name, UUID idUser) throws SQLException {
+	private int insertNewPlaylistMetadata(@NotBlank String name, @NotNull UUID idUser) throws SQLException {
 		logger.debug("Inserting playlist metadata: name={}, userId={}", name, idUser);
 		int newPlaylistId = -1;
 		try (PreparedStatement pStatementMetadata = connection.prepareStatement(INSERT_PLAYLIST_METADATA_QUERY,
@@ -187,7 +191,7 @@ public class PlaylistDAO {
 		return newPlaylistId;
 	}
 
-	private void addSongsToNewPlaylist(int newPlaylistId, List<Integer> songIds) throws SQLException {
+	private void addSongsToNewPlaylist(int newPlaylistId, @NotNull List<Integer> songIds) throws SQLException {
 		if (songIds == null || songIds.isEmpty()) {
 			logger.debug("No songs to add to playlist ID: {}", newPlaylistId);
 			return;
@@ -207,8 +211,8 @@ public class PlaylistDAO {
 		logger.debug("Successfully added {} songs to playlist ID: {}", songIds.size(), newPlaylistId);
 	}
 
-	private DAOException translateCreatePlaylistSQLException(SQLException e, String name, UUID idUser,
-			int newPlaylistId) {
+	private DAOException translateCreatePlaylistSQLException(SQLException e, @NotBlank String name,
+			@NotNull UUID idUser, int newPlaylistId) {
 		String errorMessage = e.getMessage().toLowerCase();
 
 		if ("23000".equals(e.getSQLState())) { // Integrity constraint violation
@@ -261,7 +265,7 @@ public class PlaylistDAO {
 	 * Verifies if a playlist exists and if the specified user is authorized to
 	 * access it. Throws DAOException if not found or access is denied.
 	 */
-	private void verifyPlaylistAccessible(int playlistId, UUID userId) throws DAOException, SQLException {
+	private void verifyPlaylistAccessible(int playlistId, @NotNull UUID userId) throws DAOException, SQLException {
 		logger.debug("Verifying access for playlist ID: {} by user ID: {}", playlistId, userId);
 		String query = "SELECT BIN_TO_UUID(idUser) as ownerUUID FROM playlist_metadata WHERE idPlaylist = ?";
 		UUID ownerUUID = null;
@@ -301,7 +305,7 @@ public class PlaylistDAO {
 	 * Checks if a song with the given ID exists and is owned by the specified user.
 	 * Throws DAOException if not found or not owned.
 	 */
-	private void checkSongExistsAndOwnership(int songId, UUID idUser) throws DAOException, SQLException {
+	private void checkSongExistsAndOwnership(int songId, @NotNull UUID idUser) throws DAOException, SQLException {
 		logger.debug("Checking existence and ownership for song ID: {} by user ID: {}", songId, idUser);
 		try (PreparedStatement pStatement = connection.prepareStatement(CHECK_SONG_EXISTS_AND_BELONGS_TO_USER_QUERY)) {
 			pStatement.setInt(1, songId);
@@ -325,7 +329,7 @@ public class PlaylistDAO {
 	/**
 	 * Translates SQLExceptions occurring during addSongToPlaylist operations.
 	 */
-	private DAOException translateAddSongToPlaylistSQLException(SQLException e, int playlistId, UUID userId,
+	private DAOException translateAddSongToPlaylistSQLException(SQLException e, int playlistId, @NotNull UUID userId,
 			int songId) {
 		String errorMessage = e.getMessage().toLowerCase();
 		if ("23000".equals(e.getSQLState())) {
@@ -378,13 +382,13 @@ public class PlaylistDAO {
 	 *                      database error occurs
 	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
 	 */
-	public Playlist findPlaylistById(int playlistId, UUID userId) throws DAOException {
+	public Playlist findPlaylistById(int playlistId, @NotNull UUID userId) throws DAOException {
 		logger.debug("Attempting to find playlist ID: {} for user ID: {}", playlistId, userId);
 		Playlist playlist = null;
 		String queryMetadata = "SELECT name, birthday, BIN_TO_UUID(idUser) as userUUID FROM playlist_metadata WHERE idPlaylist = ?";
 
 		try {
-			verifyPlaylistAccessible(playlistId, userId); // This can throw DAOException or SQLException
+			verifyPlaylistAccessible(playlistId, userId);
 
 			// Fetch Full Playlist Details
 			try (PreparedStatement pStatementMetadata = connection.prepareStatement(queryMetadata)) {
@@ -460,7 +464,7 @@ public class PlaylistDAO {
 	 * @return A list of Playlist objects.
 	 * @throws DAOException if a database access error occurs.
 	 */
-	public List<Playlist> findPlaylistsByUser(UUID idUser) throws DAOException {
+	public List<Playlist> findPlaylistsByUser(@NotNull UUID idUser) throws DAOException {
 		logger.debug("Attempting to find all playlists for user ID: {}", idUser);
 		List<Playlist> allPlaylists = new ArrayList<>();
 		String query = "SELECT idPlaylist, name, birthday, BIN_TO_UUID(idUser) as userIdStr "
@@ -510,7 +514,7 @@ public class PlaylistDAO {
 	 *                      database error occurs
 	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
 	 */
-	public void deletePlaylist(int playlistId, UUID userId) throws DAOException {
+	public void deletePlaylist(int playlistId, @NotNull UUID userId) throws DAOException {
 		logger.debug("Attempting to delete playlist ID: {} by user ID: {}", playlistId, userId);
 		String deleteQuery = "DELETE FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)";
 		int affectedRows = 0;
@@ -578,7 +582,7 @@ public class PlaylistDAO {
 	 *                      database error occurs
 	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
 	 */
-	public void addSongToPlaylist(int playlistId, UUID userId, int songId) throws DAOException {
+	public void addSongToPlaylist(int playlistId, @NotNull UUID userId, int songId) throws DAOException {
 		logger.debug("Attempting to add song ID: {} to playlist ID: {} by user ID: {}", songId, playlistId, userId);
 
 		try {
@@ -624,7 +628,7 @@ public class PlaylistDAO {
 	 *                      database error occurs
 	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
 	 */
-	public boolean removeSongFromPlaylist(int playlistId, UUID userId, int songId) throws DAOException {
+	public boolean removeSongFromPlaylist(int playlistId, @NotNull UUID userId, int songId) throws DAOException {
 		logger.debug("Attempting to remove song ID: {} from playlist ID: {} by user ID: {}", songId, playlistId,
 				userId);
 		String deleteQuery = "DELETE FROM playlist_content WHERE idPlaylist = ? AND idSong = ?";
