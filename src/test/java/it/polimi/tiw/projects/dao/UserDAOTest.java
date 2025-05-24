@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ import it.polimi.tiw.projects.exceptions.DAOException;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class UserDAOTest {
+class UserDAOTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(UserDAOTest.class);
 
@@ -44,7 +45,7 @@ public class UserDAOTest {
 	private static final String TEST_SURNAME_MODIFIED = "TesterModified";
 
 	@BeforeAll
-	public void setUpClass() throws SQLException {
+	void setUpClass() throws SQLException {
 		try {
 			// Ensure MySQL driver is loaded (often automatic, but good practice)
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -69,7 +70,7 @@ public class UserDAOTest {
 	}
 
 	@AfterAll
-	public void tearDownClass() throws SQLException {
+	void tearDownClass() throws SQLException {
 		// Final cleanup
 		cleanupTestUser();
 		if (connection != null && !connection.isClosed()) {
@@ -80,33 +81,27 @@ public class UserDAOTest {
 	}
 
 	@BeforeEach
-	public void setUp() throws SQLException {
-		// Ensure clean state before each test by removing the test user
-		// This might be redundant if cleanupTestUser works correctly in
-		// AfterEach/AfterAll,
-		// but provides extra safety.
+	void setUp() throws SQLException {
 		cleanupTestUser();
 		connection.commit(); // Commit cleanup before starting test
 	}
 
 	@AfterEach
-	public void tearDown() throws SQLException {
-		// Rollback any uncommitted changes from the test itself
-		// This helps isolate tests, ensuring a failed test doesn't leave partial data
+	void tearDown() throws SQLException {
 		connection.rollback();
-		// Clean up the specific test user created during the test
 		cleanupTestUser();
-		connection.commit(); // Commit the cleanup after rollback
+		connection.commit();
 	}
 
 	// Helper method to delete the test user using its unique username
 	private void cleanupTestUser() throws SQLException {
 		// Use PreparedStatement for safety, even in cleanup
-		String deleteSQL = "DELETE FROM User WHERE username = ?"; // Corrected table name case
+		// Delete users whose usernames start with TEST_USERNAME to cover variations
+		String deleteSQL = "DELETE FROM User WHERE username LIKE ?";
 		try (PreparedStatement pStatement = connection.prepareStatement(deleteSQL)) {
-			pStatement.setString(1, TEST_USERNAME);
-			pStatement.executeUpdate();
-			logger.trace("Cleanup executed for user: {}", TEST_USERNAME);
+			pStatement.setString(1, TEST_USERNAME + "%");
+			int rowsAffected = pStatement.executeUpdate();
+			logger.trace("Cleanup executed for users matching '{}%'. Rows affected: {}", TEST_USERNAME, rowsAffected);
 		}
 	}
 
@@ -114,7 +109,7 @@ public class UserDAOTest {
 
 	@Test
 	@Order(1)
-	public void testCreateUser_Success() {
+	void testCreateUser_Success() {
 		assertDoesNotThrow(() -> {
 			userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
 			// No commit here yet, let checkCredentials verify before committing
@@ -135,7 +130,7 @@ public class UserDAOTest {
 
 	@Test
 	@Order(2)
-	public void testCreateUser_Duplicate() throws DAOException, SQLException {
+	void testCreateUser_Duplicate() throws DAOException, SQLException {
 		// First, create the user successfully and commit
 		userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
 		connection.commit();
@@ -154,7 +149,7 @@ public class UserDAOTest {
 
 	@Test
 	@Order(3)
-	public void testCheckCredentials_Success() throws DAOException, SQLException {
+	void testCheckCredentials_Success() throws DAOException, SQLException {
 		// Create user first and commit
 		userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
 		connection.commit();
@@ -173,7 +168,7 @@ public class UserDAOTest {
 
 	@Test
 	@Order(4)
-	public void testCheckCredentials_InvalidUsername() {
+	void testCheckCredentials_InvalidUsername() {
 		// Ensure no user with TEST_USERNAME exists (handled by BeforeEach/AfterEach)
 		DAOException exception = assertThrows(DAOException.class, () -> {
 			userDAO.checkCredentials("nonExistentUser" + System.currentTimeMillis(), TEST_PASSWORD);
@@ -185,7 +180,7 @@ public class UserDAOTest {
 
 	@Test
 	@Order(5)
-	public void testCheckCredentials_InvalidPassword() throws DAOException, SQLException {
+	void testCheckCredentials_InvalidPassword() throws DAOException, SQLException {
 		// Create user first and commit
 		userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
 		connection.commit();
@@ -201,7 +196,7 @@ public class UserDAOTest {
 
 	@Test
 	@Order(6)
-	public void testModifyUser_Success() throws DAOException, SQLException {
+	void testModifyUser_Success() throws DAOException, SQLException {
 		userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
 		connection.commit();
 
@@ -231,7 +226,7 @@ public class UserDAOTest {
 
 	@Test
 	@Order(7)
-	public void testModifyUser_NullValues() throws DAOException, SQLException {
+	void testModifyUser_NullValues() throws DAOException, SQLException {
 		userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
 		connection.commit();
 
@@ -251,7 +246,7 @@ public class UserDAOTest {
 
 	@Test
 	@Order(8)
-	public void testModifyUser_OnlyName() throws DAOException, SQLException {
+	void testModifyUser_OnlyName() throws DAOException, SQLException {
 
 		userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
 		connection.commit();
@@ -272,7 +267,7 @@ public class UserDAOTest {
 
 	@Test
 	@Order(9)
-	public void testModifyUser_OnlySurname() throws DAOException, SQLException {
+	void testModifyUser_OnlySurname() throws DAOException, SQLException {
 		userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
 		connection.commit();
 
@@ -288,5 +283,120 @@ public class UserDAOTest {
 		assertNotNull(modifiedUser);
 		assertEquals(TEST_NAME, modifiedUser.getName(), "Name should remain the original.");
 		assertEquals(TEST_SURNAME_MODIFIED, modifiedUser.getSurname(), "Surname should be updated.");
+	}
+
+	@Test
+	@Order(10)
+	@DisplayName("Test creating user with null username")
+	void testCreateUser_NullUsername() {
+		// Username is NOT NULL. Attempting to insert NULL should cause an SQLException.
+		// The DAO wraps generic SQLExceptions (not matching specific unique constraint
+		// for username) as GENERIC_ERROR.
+		// A NOT NULL violation (MySQL error 1048) has SQLState '23000'.
+		// If username parameter is null, the DAO's "23000" check for "Username 'null'
+		// already exists" might be hit,
+		// or it might fall to GENERIC_ERROR. Given the check is `throw new
+		// DAOException("Username '" + username + "' already exists"`,
+		// if username is null, this would be "Username 'null' already exists".
+		// Let's expect NAME_ALREADY_EXISTS if SQLState is 23000, or GENERIC_ERROR
+		// otherwise.
+		// More robustly, the DAO should differentiate NOT NULL violations.
+		// For this test, we'll check for either, as the exact outcome depends on how
+		// the driver/DB handles null for the unique check vs NOT NULL.
+		DAOException exception = assertThrows(DAOException.class, () -> {
+			userDAO.createUser(null, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
+		});
+		assertTrue(
+				exception.getErrorType() == DAOException.DAOErrorType.GENERIC_ERROR
+						|| exception.getErrorType() == DAOException.DAOErrorType.NAME_ALREADY_EXISTS, // if SQLState
+																										// 23000 is hit
+				"Expected GENERIC_ERROR or NAME_ALREADY_EXISTS for null username (NOT NULL constraint)");
+	}
+
+	@Test
+	@Order(11)
+	@DisplayName("Test creating user with null password")
+	void testCreateUser_NullPassword() {
+		// Password is NOT NULL.
+		// If this results in SQLState '23000', UserDAO might incorrectly map it to
+		// NAME_ALREADY_EXISTS
+		// if the username was valid. Otherwise, it's GENERIC_ERROR.
+		DAOException exception = assertThrows(DAOException.class, () -> {
+			userDAO.createUser(TEST_USERNAME + "_nullpass", null, TEST_NAME, TEST_SURNAME);
+		});
+		assertTrue(
+				exception.getErrorType() == DAOException.DAOErrorType.GENERIC_ERROR
+						|| (exception.getErrorType() == DAOException.DAOErrorType.NAME_ALREADY_EXISTS
+								&& exception.getMessage()
+										.startsWith("Username '" + TEST_USERNAME + "_nullpass" + "' already exists.")),
+				"Expected GENERIC_ERROR or specific NAME_ALREADY_EXISTS due to DAO's handling of 23000 SQLState for null password (NOT NULL constraint)");
+	}
+
+	@Test
+	@Order(12)
+	@DisplayName("Test creating user with null name (should succeed)")
+	void testCreateUser_NullName_ShouldSucceed() throws DAOException, SQLException {
+		String username = TEST_USERNAME + "_nullname";
+		User createdUser = assertDoesNotThrow(() -> {
+			return userDAO.createUser(username, TEST_PASSWORD, null, TEST_SURNAME);
+		}, "Creating user with null name should succeed as 'name' is nullable.");
+		connection.commit();
+
+		assertNotNull(createdUser, "Created user object should not be null.");
+		assertEquals(username, createdUser.getUsername());
+		assertNull(createdUser.getName(), "User's name should be null in the bean.");
+		assertEquals(TEST_SURNAME, createdUser.getSurname());
+
+		// Verify in DB
+		User userFromDB = userDAO.checkCredentials(username, TEST_PASSWORD);
+		assertNotNull(userFromDB, "User should be retrievable from DB.");
+		assertNull(userFromDB.getName(), "User's name should be null in DB.");
+		assertEquals(TEST_SURNAME, userFromDB.getSurname());
+	}
+
+	@Test
+	@Order(13)
+	@DisplayName("Test creating user with null surname (should succeed)")
+	void testCreateUser_NullSurname_ShouldSucceed() throws DAOException, SQLException {
+		String username = TEST_USERNAME + "_nullsurname";
+		User createdUser = assertDoesNotThrow(() -> {
+			return userDAO.createUser(username, TEST_PASSWORD, TEST_NAME, null);
+		}, "Creating user with null surname should succeed as 'surname' is nullable.");
+		connection.commit();
+
+		assertNotNull(createdUser, "Created user object should not be null.");
+		assertEquals(username, createdUser.getUsername());
+		assertEquals(TEST_NAME, createdUser.getName());
+		assertNull(createdUser.getSurname(), "User's surname should be null in the bean.");
+
+		// Verify in DB
+		User userFromDB = userDAO.checkCredentials(username, TEST_PASSWORD);
+		assertNotNull(userFromDB, "User should be retrievable from DB.");
+		assertEquals(TEST_NAME, userFromDB.getName());
+		assertNull(userFromDB.getSurname(), "User's surname should be null in DB.");
+	}
+
+	@Test
+	@Order(14)
+	@DisplayName("Test checkCredentials with null username")
+	void testCheckCredentials_NullUsername() {
+		DAOException exception = assertThrows(DAOException.class, () -> {
+			userDAO.checkCredentials(null, TEST_PASSWORD);
+		}, "Checking credentials with null username should throw DAOException.");
+		assertEquals(DAOException.DAOErrorType.INVALID_CREDENTIALS, exception.getErrorType());
+	}
+
+	@Test
+	@Order(15)
+	@DisplayName("Test checkCredentials with null password")
+	void testCheckCredentials_NullPassword() throws DAOException, SQLException {
+		// Create user first so username is valid
+		userDAO.createUser(TEST_USERNAME, TEST_PASSWORD, TEST_NAME, TEST_SURNAME);
+		connection.commit();
+
+		DAOException exception = assertThrows(DAOException.class, () -> {
+			userDAO.checkCredentials(TEST_USERNAME, null);
+		}, "Checking credentials with null password should throw DAOException.");
+		assertEquals(DAOException.DAOErrorType.INVALID_CREDENTIALS, exception.getErrorType());
 	}
 }

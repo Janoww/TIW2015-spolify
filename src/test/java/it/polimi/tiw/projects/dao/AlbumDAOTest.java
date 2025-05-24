@@ -777,4 +777,100 @@ class AlbumDAOTest {
 			}
 		}
 	}
+
+	@Test
+	@Order(20)
+	@DisplayName("Test successful album creation with an image")
+	void testCreateAlbum_Success_WithImage() throws DAOException, SQLException {
+		assertNotNull(testUserId, "Test User ID must be set before creating an album.");
+		Album createdAlbum = assertDoesNotThrow(() -> albumDAO.createAlbum(TEST_ALBUM_NAME_1, TEST_ALBUM_YEAR_1,
+				TEST_ALBUM_ARTIST_1, TEST_ALBUM_IMAGE_1, testUserId));
+
+		assertNotNull(createdAlbum, "Created album object should not be null.");
+		assertTrue(createdAlbum.getIdAlbum() > 0, "Created album ID should be positive.");
+		createdAlbumId1 = createdAlbum.getIdAlbum(); // Store ID for cleanup/verification
+
+		assertEquals(TEST_ALBUM_NAME_1, createdAlbum.getName());
+		assertEquals(TEST_ALBUM_YEAR_1, createdAlbum.getYear());
+		assertEquals(TEST_ALBUM_ARTIST_1, createdAlbum.getArtist());
+		assertEquals(TEST_ALBUM_IMAGE_1, createdAlbum.getImageFile(), "Image should be set as provided.");
+		assertEquals(testUserId, createdAlbum.getIdUser(), "Album user ID should match creator.");
+
+		connection.commit(); // Commit the transaction
+
+		Album foundAlbumAfterCommit = findAlbumByIdDirectly(createdAlbumId1);
+		assertNotNull(foundAlbumAfterCommit, "Album should be findable in DB after commit.");
+		assertEquals(TEST_ALBUM_IMAGE_1, foundAlbumAfterCommit.getImageFile());
+	}
+
+	@Test
+	@Order(21)
+	@DisplayName("Test finding an album by ID successfully (with image)")
+	void testFindAlbumById_Success_WithImage() throws DAOException, SQLException {
+		assertNotNull(testUserId, "Test User ID must be set.");
+		// Create an album (with image) and commit
+		Album originalAlbum = albumDAO.createAlbum(TEST_ALBUM_NAME_1, TEST_ALBUM_YEAR_1, TEST_ALBUM_ARTIST_1,
+				TEST_ALBUM_IMAGE_1, testUserId);
+		createdAlbumId1 = originalAlbum.getIdAlbum();
+		connection.commit();
+
+		// Find the album using the DAO
+		Album foundAlbum = assertDoesNotThrow(() -> albumDAO.findAlbumById(createdAlbumId1));
+
+		assertNotNull(foundAlbum, "Album should be found by its ID.");
+		assertEquals(createdAlbumId1, foundAlbum.getIdAlbum());
+		assertEquals(TEST_ALBUM_NAME_1, foundAlbum.getName());
+		assertEquals(TEST_ALBUM_YEAR_1, foundAlbum.getYear());
+		assertEquals(TEST_ALBUM_ARTIST_1, foundAlbum.getArtist());
+		assertEquals(TEST_ALBUM_IMAGE_1, foundAlbum.getImageFile(), "Found album image should match.");
+		assertEquals(testUserId, foundAlbum.getIdUser(), "Found album should belong to the correct user.");
+	}
+
+	@Test
+	@Order(22)
+	@DisplayName("Test partial album update (only image) by owner")
+	void testUpdateAlbum_Success_Partial_ImageOnly() throws DAOException, SQLException {
+		assertNotNull(testUserId, "Test User ID must be set.");
+		Album originalAlbum = albumDAO.createAlbum(TEST_ALBUM_NAME_1, TEST_ALBUM_YEAR_1, TEST_ALBUM_ARTIST_1,
+				TEST_ALBUM_IMAGE_1, testUserId); // Start with an image
+		createdAlbumId1 = originalAlbum.getIdAlbum();
+		connection.commit();
+
+		// Update image only
+		assertDoesNotThrow(
+				() -> albumDAO.updateAlbum(createdAlbumId1, testUserId, null, null, null, TEST_ALBUM_IMAGE_UPDATED),
+				"Successful partial image update should not throw an exception.");
+		connection.commit();
+
+		Album updatedAlbum = albumDAO.findAlbumById(createdAlbumId1);
+		assertNotNull(updatedAlbum);
+		assertEquals(TEST_ALBUM_NAME_1, updatedAlbum.getName(), "Name should remain original.");
+		assertEquals(TEST_ALBUM_YEAR_1, updatedAlbum.getYear(), "Year should remain original.");
+		assertEquals(TEST_ALBUM_ARTIST_1, updatedAlbum.getArtist(), "Artist should remain original.");
+		assertEquals(TEST_ALBUM_IMAGE_UPDATED, updatedAlbum.getImageFile(), "Image should be updated.");
+	}
+
+	@Test
+	@Order(23)
+	@DisplayName("Test partial album update (image from null to non-null) by owner")
+	void testUpdateAlbum_Success_Partial_ImageFromNullToNonNull() throws DAOException, SQLException {
+		assertNotNull(testUserId, "Test User ID must be set.");
+		Album originalAlbum = albumDAO.createAlbum(TEST_ALBUM_NAME_1, TEST_ALBUM_YEAR_1, TEST_ALBUM_ARTIST_1, null,
+				testUserId); // Start with null image
+		createdAlbumId1 = originalAlbum.getIdAlbum();
+		connection.commit();
+
+		// Update image only (from null to non-null)
+		assertDoesNotThrow(
+				() -> albumDAO.updateAlbum(createdAlbumId1, testUserId, null, null, null, TEST_ALBUM_IMAGE_1),
+				"Successful partial image update from null should not throw an exception.");
+		connection.commit();
+
+		Album updatedAlbum = albumDAO.findAlbumById(createdAlbumId1);
+		assertNotNull(updatedAlbum);
+		assertEquals(TEST_ALBUM_NAME_1, updatedAlbum.getName(), "Name should remain original.");
+		assertEquals(TEST_ALBUM_YEAR_1, updatedAlbum.getYear(), "Year should remain original.");
+		assertEquals(TEST_ALBUM_ARTIST_1, updatedAlbum.getArtist(), "Artist should remain original.");
+		assertEquals(TEST_ALBUM_IMAGE_1, updatedAlbum.getImageFile(), "Image should be updated from null.");
+	}
 }

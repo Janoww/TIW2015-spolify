@@ -297,4 +297,61 @@ class ImageDAOTest {
             imageDAO.getImage("invalid\\name.jpg");
         }, "Should throw IllegalArgumentException for filename containing '\\' in getImage");
     }
+
+    @Test
+    void saveImage_shouldThrowDAOException_whenInputStreamThrowsIOException() {
+        // Create a mock InputStream that throws IOException on read
+        InputStream mockInputStream = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException("Simulated InputStream read error for image");
+            }
+
+            @Override
+            public int read(byte[] b, int off, int len) throws IOException {
+                throw new IOException("Simulated InputStream read error for image");
+            }
+        };
+
+        DAOException exception = assertThrows(DAOException.class, () -> {
+            imageDAO.saveImage(mockInputStream, "test_io_exception.jpg");
+        }, "Should throw DAOException when InputStream has an I/O error for image save");
+
+        assertEquals(DAOException.DAOErrorType.GENERIC_ERROR, exception.getErrorType(),
+                "DAOErrorType should be GENERIC_ERROR for I/O issues during image save.");
+        assertTrue(exception.getMessage().contains("Failed to save image due to I/O error"),
+                "Exception message should indicate I/O error during image save.");
+    }
+
+    @Test
+    void saveImage_shouldTruncateAndSanitize_whenOriginalFilenameIsVeryLong() throws DAOException {
+        InputStream inputStream = getResourceStream("valid.jpg");
+        String veryLongName = "b".repeat(250) + "!@#$%^&*().jpg"; // Exceeds MAX_FILENAME_PREFIX_LENGTH
+        String filename = imageDAO.saveImage(inputStream, veryLongName);
+
+        assertNotNull(filename);
+        assertTrue(filename.endsWith(".jpg"));
+
+        String prefix = filename.substring(0, filename.lastIndexOf('_'));
+        assertTrue(prefix.length() <= 190,
+                "Image filename prefix should be truncated to MAX_FILENAME_PREFIX_LENGTH or less.");
+        assertFalse(prefix.matches(".*[!@#$%^&*()].*"),
+                "Sanitized image prefix should not contain special characters.");
+        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)),
+                "Image file should exist in temp dir");
+    }
+
+    @Test
+    void saveImage_shouldUseDefaultBaseName_whenSanitizedFilenameIsEmpty() throws DAOException {
+        InputStream inputStream = getResourceStream("valid.png");
+        String originalFilename = "!@#$%%^^&&**(()).png"; // This should sanitize to empty
+        String filename = imageDAO.saveImage(inputStream, originalFilename);
+
+        assertNotNull(filename);
+        assertTrue(filename.endsWith(".png"));
+        assertTrue(filename.startsWith("image_"),
+                "Image filename should start with 'image_' when original sanitizes to empty.");
+        assertTrue(Files.exists(tempDir.resolve(IMAGE_SUBFOLDER).resolve(filename)),
+                "Image file should exist in temp dir");
+    }
 }

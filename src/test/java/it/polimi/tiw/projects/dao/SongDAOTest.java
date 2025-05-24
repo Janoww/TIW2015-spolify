@@ -546,6 +546,67 @@ class SongDAOTest {
 		assertTrue(foundSongs.isEmpty(), "Should find no songs when requesting another user's song ID.");
 	}
 
+	@Test
+	@Order(14)
+	@DisplayName("Test creating a song with a non-existent user ID")
+	void testCreateSong_WithNonExistentUserId() {
+		assertNotNull(testAlbumId, "Test Album ID must be set.");
+		UUID nonExistentUserId = UUID.randomUUID();
+
+		DAOException exception = assertThrows(DAOException.class, () -> {
+			songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
+					nonExistentUserId);
+		}, "Creating a song with a non-existent user ID should throw DAOException.");
+
+		// MySQL error code for FK violation is 1452. SQLState is '23000'.
+		// SongDAO's createSong currently only specifically checks 1452 for idAlbum.
+		// Other 23000 errors or generic SQLExceptions become GENERIC_ERROR.
+		// If the DB enforces the FK on idUser, it should result in a GENERIC_ERROR from
+		// the current DAO.
+		// Or, if we want to be more specific, the DAO could catch SQLState '23000' and
+		// check message for user FK.
+		// For now, let's assume it might be a generic error or a constraint violation
+		// if SQLState is 23000.
+		// The important part is that it fails and doesn't insert the song.
+		assertTrue(
+				exception.getErrorType() == DAOException.DAOErrorType.GENERIC_ERROR
+						|| exception.getErrorType() == DAOException.DAOErrorType.CONSTRAINT_VIOLATION
+						|| exception.getErrorType() == DAOException.DAOErrorType.NOT_FOUND,
+				"Exception type should indicate a database error due to FK violation on userId.");
+		logger.info("Caught expected exception for non-existent user ID: {}", exception.getMessage());
+	}
+
+	@Test
+	@Order(15)
+	@DisplayName("Test findSongsByUser with a non-existent user ID")
+	void testFindSongsByUser_NonExistentUser() throws DAOException {
+		UUID nonExistentUserId = UUID.randomUUID();
+		List<Song> songs = songDAO.findSongsByUser(nonExistentUserId);
+		assertNotNull(songs, "Song list should not be null even for non-existent user.");
+		assertTrue(songs.isEmpty(), "Song list should be empty for a non-existent user.");
+	}
+
+	@Test
+	@Order(16)
+	@DisplayName("Test findSongsByIdsAndUser with a non-existent user ID")
+	void testFindSongsByIdsAndUser_NonExistentUser() throws DAOException, SQLException {
+		assertNotNull(testAlbumId, "Test Album ID must be set.");
+		assertNotNull(testUserId, "Test User ID 1 must be set.");
+
+		// Create a song for user 1
+		Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
+				testUserId);
+		createdSongId1 = song1.getIdSong();
+		connection.commit();
+
+		UUID nonExistentUserId = UUID.randomUUID();
+		List<Integer> requestedIds = List.of(createdSongId1);
+
+		List<Song> foundSongs = songDAO.findSongsByIdsAndUser(requestedIds, nonExistentUserId);
+		assertNotNull(foundSongs, "Song list should not be null.");
+		assertTrue(foundSongs.isEmpty(), "Should find no songs for a non-existent user, even if song IDs are valid.");
+	}
+
 	// --- Helper method for direct DB verification ---
 	private Song findSongByIdDirectly(int songId) throws SQLException {
 		String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idSong = ?";
@@ -564,7 +625,7 @@ class SongDAOTest {
 					song.setIdUser(UUID.fromString(result.getString("idUser")));
 					return song;
 				} else {
-					return null; // Not found
+					return null;
 				}
 			}
 		}

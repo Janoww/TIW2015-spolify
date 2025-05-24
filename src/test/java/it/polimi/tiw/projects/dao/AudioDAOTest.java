@@ -315,4 +315,58 @@ class AudioDAOTest {
             audioDAO.getAudio("invalid\\name.mp3");
         }, "Should throw IllegalArgumentException for filename containing '\\' in getAudio");
     }
+
+    @Test
+    void saveAudio_shouldThrowDAOException_whenInputStreamThrowsIOException() {
+        // Create a mock InputStream that throws IOException on read
+        InputStream mockInputStream = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException("Simulated InputStream read error");
+            }
+
+            @Override
+            public int read(byte[] b, int off, int len) throws IOException {
+                throw new IOException("Simulated InputStream read error");
+            }
+        };
+
+        DAOException exception = assertThrows(DAOException.class, () -> {
+            audioDAO.saveAudio(mockInputStream, "test_io_exception.mp3");
+        }, "Should throw DAOException when InputStream has an I/O error");
+
+        assertEquals(DAOException.DAOErrorType.GENERIC_ERROR, exception.getErrorType(),
+                "DAOErrorType should be GENERIC_ERROR for I/O issues during save.");
+        assertTrue(exception.getMessage().contains("Failed to save audio due to I/O error"),
+                "Exception message should indicate I/O error during save.");
+    }
+
+    @Test
+    void saveAudio_shouldTruncateAndSanitize_whenOriginalFilenameIsVeryLong() throws DAOException {
+        InputStream inputStream = getResourceStream("valid.mp3");
+        String veryLongName = "a".repeat(250) + "!@#$%^&*().mp3"; // Exceeds MAX_FILENAME_PREFIX_LENGTH
+        String filename = audioDAO.saveAudio(inputStream, veryLongName);
+
+        assertNotNull(filename);
+        assertTrue(filename.endsWith(".mp3"));
+
+        String prefix = filename.substring(0, filename.lastIndexOf('_'));
+        assertTrue(prefix.length() <= 190,
+                "Filename prefix should be truncated to MAX_FILENAME_PREFIX_LENGTH or less.");
+        assertFalse(prefix.matches(".*[!@#$%^&*()].*"), "Sanitized prefix should not contain special characters.");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
+    }
+
+    @Test
+    void saveAudio_shouldUseDefaultBaseName_whenSanitizedFilenameIsEmpty() throws DAOException {
+        InputStream inputStream = getResourceStream("valid.ogg");
+        String originalFilename = "!@#$%%^^&&**(()).ogg";
+        String filename = audioDAO.saveAudio(inputStream, originalFilename);
+
+        assertNotNull(filename);
+        assertTrue(filename.endsWith(".ogg"));
+        assertTrue(filename.startsWith("audio_"),
+                "Filename should start with 'audio_' when original sanitizes to empty.");
+        assertTrue(Files.exists(tempDir.resolve(AUDIO_SUBFOLDER).resolve(filename)), "File should exist in temp dir");
+    }
 }
