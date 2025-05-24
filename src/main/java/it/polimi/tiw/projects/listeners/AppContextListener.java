@@ -10,6 +10,7 @@ import jakarta.servlet.annotation.WebListener;
 
 import it.polimi.tiw.projects.dao.AudioDAO;
 import it.polimi.tiw.projects.dao.ImageDAO;
+import it.polimi.tiw.projects.dao.PlaylistOrderDAO;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -92,13 +93,16 @@ public class AppContextListener implements ServletContextListener {
         try {
             ImageDAO imageDAO = new ImageDAO(storageBasePath);
             AudioDAO audioDAO = new AudioDAO(storageBasePath);
+            PlaylistOrderDAO playlistOrderDAO = new PlaylistOrderDAO(storageBasePath);
 
             context.setAttribute("imageDAO", imageDAO);
             context.setAttribute("audioDAO", audioDAO);
+            context.setAttribute("playlistOrderDAO", playlistOrderDAO);
 
-            logger.info("ImageDAO and AudioDAO singletons created and added to ServletContext.");
+            logger.info("ImageDAO, AudioDAO and PlaylistOrderDAO singletons created and added to ServletContext.");
+
         } catch (RuntimeException e) {
-            logger.error("!!! FAILED TO INITIALIZE ImageDAO or AudioDAO !!!", e);
+            logger.error("!!! FAILED TO INITIALIZE ImageDAO, AudioDAO or PlaylistOrderDAO !!!", e);
             throw new RuntimeException("Failed to initialize file storage DAOs", e);
         }
 

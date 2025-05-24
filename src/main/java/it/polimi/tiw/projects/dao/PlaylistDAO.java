@@ -17,6 +17,7 @@ import it.polimi.tiw.projects.exceptions.DAOException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
+import it.polimi.tiw.projects.beans.AddSongsToPlaylistResult;
 
 public class PlaylistDAO {
 	private static final Logger logger = LoggerFactory.getLogger(PlaylistDAO.class);
@@ -663,4 +664,108 @@ public class PlaylistDAO {
 		return affectedRows > 0;
 	}
 
+	/**
+	 * Adds multiple songs to a specific playlist owned by a user. This operation is
+	 * transactional. If any song cannot be added due to not being found, not owned
+	 * by the user, or other critical errors (excluding duplicates), the entire
+	 * transaction will be rolled back, and an appropriate DAOException will be
+	 * thrown, resulting in an HTTP error response from the servlet. Songs that are
+	 * already in the playlist (duplicates) will be noted in the result but will not
+	 * cause a transaction failure.
+	 *
+	 * @param playlistId   The ID of the playlist to add songs to.
+	 * @param userId       The UUID of the user who must own the playlist and the
+	 *                     songs.
+	 * @param songIdsToAdd A list of song IDs to add.
+	 * @return AddSongsToPlaylistResult containing lists of successfully added and
+	 *         duplicate song IDs if the transaction is successful.
+	 * @throws DAOException if the playlist is not found, the user is not authorized
+	 *                      for the playlist, any of the songs (excluding
+	 *                      duplicates) are not found or not owned by the user, or a
+	 *                      database error occurs that forces a rollback.
+	 */
+	public AddSongsToPlaylistResult addSongsToPlaylist(int playlistId, @NotNull UUID userId,
+			@NotNull List<Integer> songIdsToAdd) throws DAOException {
+		logger.debug("Attempting to add {} songs to playlist ID: {} by user ID: {}", songIdsToAdd.size(), playlistId,
+				userId);
+		AddSongsToPlaylistResult result = new AddSongsToPlaylistResult();
+		boolean previousAutoCommit = false;
+
+		// Initial verification of playlist accessibility. If this fails, no transaction
+		// needed yet.
+		try {
+			verifyPlaylistAccessible(playlistId, userId);
+		} catch (SQLException e) {
+			logger.error("SQL error during initial verification of playlist {} for user {}: {}", playlistId, userId,
+					e.getMessage(), e);
+			throw new DAOException("Database error verifying playlist accessibility.", e, DAOErrorType.GENERIC_ERROR);
+		}
+
+		try {
+			previousAutoCommit = connection.getAutoCommit();
+			connection.setAutoCommit(false);
+
+			for (Integer songId : songIdsToAdd) {
+				if (songId == null) {
+					logger.warn("Null song ID provided in list for playlist {}, user {}", playlistId, userId);
+					throw new DAOException("Null song ID provided in the list.", DAOErrorType.CONSTRAINT_VIOLATION); // This
+																														// will
+																														// cause
+																														// rollback
+				}
+				try {
+					this.addSongToPlaylist(playlistId, userId, songId);
+					result.addSuccessfullyAddedSong(songId);
+					logger.debug("Successfully processed (and added if new) song ID {} for playlist {}.", songId,
+							playlistId);
+				} catch (DAOException e) {
+					if (e.getErrorType() == DAOErrorType.DUPLICATE_ENTRY) {
+						result.addDuplicateSong(songId);
+						logger.debug("Song ID {} is already in playlist {}, marked as duplicate.", songId, playlistId);
+					} else {
+						logger.warn(
+								"DAOException while processing song ID {} for playlist {}: {}. Transaction will be rolled back.",
+								songId, playlistId, e.getMessage());
+						throw e;
+					}
+				}
+			}
+
+			connection.commit();
+			logger.info("Transaction committed for adding songs to playlist {}. Added: {}, Duplicates: {}", playlistId,
+					result.getAddedSongIds().size(), result.getDuplicateSongIds().size());
+
+		} catch (SQLException e) {
+			logger.warn(
+					"SQL error during addSongsToPlaylist transaction for playlist {}, user {}. Rolling back. Error: {}",
+					playlistId, userId, e.getMessage(), e);
+			try {
+				connection.rollback();
+			} catch (SQLException ex) {
+				logger.error("Rollback failed: {}", ex.getMessage(), ex);
+			}
+			throw new DAOException("Database error while adding songs to playlist.", e, DAOErrorType.GENERIC_ERROR);
+		} catch (DAOException e) {
+			logger.warn(
+					"DAOException during addSongsToPlaylist transaction for playlist {}, user {}. Rolling back. Error: {}",
+					playlistId, userId, e.getMessage());
+			if (connection != null) {
+				try {
+					connection.rollback();
+				} catch (SQLException ex) {
+					logger.error("Rollback failed following DAOException: {}", ex.getMessage(), ex);
+				}
+			}
+			throw e;
+		} finally {
+			if (connection != null) {
+				try {
+					connection.setAutoCommit(previousAutoCommit);
+				} catch (SQLException e) {
+					logger.error("Failed to restore auto-commit state: {}", e.getMessage(), e);
+				}
+			}
+		}
+		return result;
+	}
 }
