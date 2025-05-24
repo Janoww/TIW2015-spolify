@@ -11,8 +11,8 @@ public class SongCreationParameters {
     private final Genre genre;
     private final Part audioFilePart;
 
-    public SongCreationParameters(String songTitle, String albumTitle, String albumArtist,
-            int albumYear, Genre genre, Part audioFilePart) {
+    public SongCreationParameters(String songTitle, String albumTitle, String albumArtist, int albumYear, Genre genre,
+            Part audioFilePart) {
         this.songTitle = songTitle;
         this.albumTitle = albumTitle;
         this.albumArtist = albumArtist;

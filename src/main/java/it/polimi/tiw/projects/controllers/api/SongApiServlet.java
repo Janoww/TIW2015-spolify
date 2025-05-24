@@ -46,8 +46,9 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
 @WebServlet("/api/v1/songs/*")
-@MultipartConfig(maxFileSize = 1024 * 1024 * 10, // 10MB
-        maxRequestSize = 1024 * 1024 * 12 // 12MB
+@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 1, // 1MB
+        maxFileSize = 1024 * 1024 * 75, // 75MB
+        maxRequestSize = 1024 * 1024 * 85 // 85MB
 )
 public class SongApiServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -484,6 +485,22 @@ public class SongApiServlet extends HttpServlet {
                     "POST method not allowed for this specific path or path is invalid.");
     }
 
+    private Optional<String> validateStandardTextField(String rawValue, String fieldName, HttpServletResponse response,
+            Pattern pattern, int minLength, int maxLength) {
+        String trimmedValue = rawValue.trim();
+        if (trimmedValue.isEmpty() || trimmedValue.length() < minLength || trimmedValue.length() > maxLength) {
+            ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
+                    fieldName + " must be between " + minLength + " and " + maxLength + " characters.");
+            return Optional.empty();
+        }
+        if (!pattern.matcher(trimmedValue).matches()) {
+            ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
+                    fieldName + " contains invalid characters.");
+            return Optional.empty();
+        }
+        return Optional.of(trimmedValue);
+    }
+
     private Optional<SongCreationParameters> parseAndValidateSongCreationParameters(HttpServletRequest request,
             HttpServletResponse response, User user) {
 
@@ -501,8 +518,7 @@ public class SongApiServlet extends HttpServlet {
             return Optional.empty();
         }
 
-        // Trim and Validate Song Title
-        String songTitle = songTitleRaw.trim();
+        // Check if context validation parameters are loaded
         if (standardTextMinLength == null || standardTextMaxLength == null || standardTextPattern == null) {
             logger.error(
                     "CRITICAL: One or more standard text validation rules not loaded from context. standardTextMinLength: {}, standardTextMaxLength: {}, standardTextPattern: {}. Aborting song creation.",
@@ -511,43 +527,16 @@ public class SongApiServlet extends HttpServlet {
                     "Server configuration error preventing song validation.");
             return Optional.empty();
         }
-        if (songTitle.isEmpty() || songTitle.length() < standardTextMinLength
-                || songTitle.length() > standardTextMaxLength) {
-            ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Song title must be between "
-                    + standardTextMinLength + " and " + standardTextMaxLength + " characters.");
-            return Optional.empty();
-        }
-        if (!standardTextPattern.matcher(songTitle).matches()) {
-            ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "Song title contains invalid characters.");
-            return Optional.empty();
-        }
 
-        // Trim and Validate Album Title
-        String albumTitle = albumTitleRaw.trim();
-        if (albumTitle.isEmpty() || albumTitle.length() < standardTextMinLength
-                || albumTitle.length() > standardTextMaxLength) {
-            ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Album title must be between "
-                    + standardTextMinLength + " and " + standardTextMaxLength + " characters.");
-            return Optional.empty();
-        }
-        if (!standardTextPattern.matcher(albumTitle).matches()) {
-            ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "Album title contains invalid characters.");
-            return Optional.empty();
-        }
+        Optional<String> songTitleOpt = validateStandardTextField(songTitleRaw, "Song title", response,
+                standardTextPattern, standardTextMinLength, standardTextMaxLength);
+        Optional<String> albumTitleOpt = validateStandardTextField(albumTitleRaw, "Album title", response,
+                standardTextPattern, standardTextMinLength, standardTextMaxLength);
+        Optional<String> albumArtistOpt = validateStandardTextField(albumArtistRaw, "Album artist", response,
+                standardTextPattern, standardTextMinLength, standardTextMaxLength);
 
-        // Trim and Validate Album Artist
-        String albumArtist = albumArtistRaw.trim();
-        if (albumArtist.isEmpty() || albumArtist.length() < standardTextMinLength
-                || albumArtist.length() > standardTextMaxLength) {
-            ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Album artist must be between "
-                    + standardTextMinLength + " and " + standardTextMaxLength + " characters.");
-            return Optional.empty();
-        }
-        if (!standardTextPattern.matcher(albumArtist).matches()) {
-            ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "Album artist contains invalid characters.");
+        List<Optional<?>> validatedFields = List.of(songTitleOpt, albumTitleOpt, albumArtistOpt);
+        if (validatedFields.stream().anyMatch(Optional::isEmpty)) {
             return Optional.empty();
         }
 
@@ -589,8 +578,8 @@ public class SongApiServlet extends HttpServlet {
             return Optional.empty();
         }
 
-        return Optional
-                .of(new SongCreationParameters(songTitle, albumTitle, albumArtist, albumYear, genre, audioFilePart));
+        return Optional.of(new SongCreationParameters(songTitleOpt.orElseThrow(), albumTitleOpt.orElseThrow(),
+                albumArtistOpt.orElseThrow(), albumYear, genre, audioFilePart));
     }
 
     private void handleCreateSong(HttpServletRequest request, HttpServletResponse response, User user) {
