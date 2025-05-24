@@ -1,11 +1,25 @@
 package it.polimi.tiw.projects.beans;
 
 import java.io.Serializable;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public class UserCreationRequest implements Serializable {
+    @NotBlank(message = "Username is required.")
+    @Pattern(regexp = "^\\w{3,100}$", message = "Invalid username format.")
     private String username;
+
+    @NotBlank(message = "Password is required.")
+    @Size(min = 4, max = 100, message = "Password must be between 4 and 100 characters.")
     private String password;
+
+    @NotBlank(message = "Name is required.")
+    @Pattern(regexp = "^[a-zA-Z\\s'-]{3,100}$", message = "Invalid name format.")
     private String name;
+
+    @NotBlank(message = "Surname is required.")
+    @Pattern(regexp = "^[a-zA-Z\\s'-]{3,100}$", message = "Invalid surname format.")
     private String surname;
 
     // Getters and Setters

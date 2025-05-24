@@ -4,13 +4,20 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+// Consider jakarta.validation.constraints.NotEmpty for songs list if it cannot be empty
 
 public class Playlist implements Serializable {
 
 	private int idPlaylist;
+	@NotBlank
 	private String name;
+	@NotNull
 	private Timestamp birthday;
+	@NotNull
 	private UUID idUser;
+	@NotNull
 	private List<Integer> songs;
 
 	// Getters and Setters

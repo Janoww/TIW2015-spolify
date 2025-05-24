@@ -4,15 +4,20 @@ import java.io.Serializable;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class Album implements Serializable {
 
 	private int idAlbum;
+	@NotBlank
 	private String name;
 	private int year;
+	@NotBlank
 	private String artist;
 	@JsonIgnore
 	private String imageFile;
+	@NotNull
 	private UUID idUser;
 
 	// Getters and Setters

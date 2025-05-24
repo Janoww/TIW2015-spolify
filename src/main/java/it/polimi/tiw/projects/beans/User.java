@@ -4,12 +4,18 @@ import java.io.Serializable;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class User implements Serializable {
 
 	@JsonIgnore
+	@NotNull
 	private UUID idUser;
+
+	@NotBlank
 	private String username;
+
 	private String name;
 	private String surname;
 

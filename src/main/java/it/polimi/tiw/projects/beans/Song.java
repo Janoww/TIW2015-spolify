@@ -4,18 +4,23 @@ import java.io.Serializable;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import it.polimi.tiw.projects.utils.Genre;
 
 public class Song implements Serializable {
 
 	private int idSong;
+	@NotBlank
 	private String title;
 	private int idAlbum;
 	private int year;
 	private Genre genre;
 	@JsonIgnore
+	@NotBlank
 	private String audioFile;
+	@NotNull
 	private UUID idUser;
 
 	// Getters and Setters
