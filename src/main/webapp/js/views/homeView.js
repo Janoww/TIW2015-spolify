@@ -72,6 +72,109 @@ function createHeaderContainer(titleText, size) {
     return h1;
 }
 
+// Helper function to create a paragraph
+function createParagraphElement(text) {
+	return document.createElement('p').textContent = text;
+}
+
+
+// Helper function to create a playlist element
+function createPlaylistArticle(playlist){
+	const article = document.createElement('article');
+	article.className = 'playlist-item';
+	
+	const divInfo = document.createElement('div');
+	divInfo.className = 'playlist-info';
+	
+	divInfo.appendChild(createHeaderContainer(playlist.name, 'h3'));
+	divInfo.appendChild(createParagraphElement('Created: ' + playlist.birthday));
+	
+	article.appendChild(divInfo);
+	
+	const divActions = document.createElement('div');
+	divActions.className = 'palylist-actions';
+	
+	const buttonView = document.createElement('button');
+	const buttonReorder = document.createElement('button');
+	
+	buttonView.className = 'styled-button view-playlist-button';
+	buttonView.dataset.playlistId = playlist.idPlaylist;
+	buttonView.textContent = 'View';
+	
+	buttonReorder.className = 'styled-button reorder-playlist-button';
+	buttonReorder.dataset.playlistId = playlist.idPlaylist;
+	buttonReorder.textContent = 'Reorder';
+	
+	divActions.appendChild(buttonView);
+	divActions.appendChild(buttonReorder);
+	
+	article.appendChild(divActions);
+
+	
+	return article;
+}
+
+function createSongArticle(songWithAlbum){
+	const article = document.createElement('article');
+	article.className = 'song-item';
+	
+	const inputEl = document.createElement('input');
+	inputEl.type = 'checkbox';
+	inputEl.id = 'song-select-' + songWithAlbum.song.idSong;
+	inputEl.name = 'selected-songs';
+	inputEl.value = 'songId' + songWithAlbum.song.idSong;
+	inputEl.className = 'song-checkbox';
+	
+	article.appendChild(inputEl);
+	
+	//TODO image
+	const img = document.createElement('img');
+	// img.src = ...
+	img.alt = songWithAlbum.song.title;
+	
+	article.appendChild(img);
+	
+	const label = document.createElement('label');
+	label.htmlFor = 'song-select-' + songWithAlbum.song.idSong;
+	label.className = 'song-metadata';
+	
+	label.appendChild(createFormField(songWithAlbum.song.title, 'h3'));
+	label.appendChild(createParagraphElement(songWithAlbum.album.artist + ' • ' + songWithAlbum.album.name));
+	
+	article.appendChild(label);
+	
+	return article;
+}
+
+// Function that adds the songs to the song list
+export function renderSongs(appContainer, songWithAlbums){
+	
+	const songListDiv = appContainer.querySelector('song-item');
+	
+	if(songWithAlbums){
+		songWithAlbums.forEach(swa => {
+			const article = createSongArticle(songWithAlbums);
+			songListDiv.appendChild(article);
+		})
+	}
+}
+
+
+// Function that adds the playlists to the myPlaylists section
+export function renderPlaylists(appContainer, playlists){
+		
+	const playlistListDiv = appContainer.querySelector('playlist-list');
+	
+	if(playlists){
+		playlists.forEach(pl => {
+			const article = createPlaylistArticle(pl);
+			playlistListDiv.appendChild(article);
+		})
+	} 
+	
+	
+}
+
 
 export function renderHomeView(appContainer) {
     appContainer.innerHTML = '';
@@ -92,7 +195,7 @@ export function renderHomeView(appContainer) {
 		const myPlaylistList = document.createElement('div');
 		myPlaylistList.className = 'playlist-list';
 		
-			// TODO dynamically populate the list
+		// The list is populated in the homeHandler by renderPlaylists()
 		
 		myPlaylistsSection.appendChild(myPlaylistList); 
 	
