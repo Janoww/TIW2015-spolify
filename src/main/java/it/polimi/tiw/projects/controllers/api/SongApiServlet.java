@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -92,26 +93,35 @@ public class SongApiServlet extends HttpServlet {
     }
 
     private SongRoute resolveGetRoute(String pathInfo) {
-        if (pathInfo == null || pathInfo.equals("/")) {
+        if (pathInfo == null || pathInfo.equals("/") || pathInfo.isEmpty()) {
             return SongRoute.GET_ALL_SONGS;
         }
 
-        String[] pathParts = pathInfo.substring(1).split("/");
-
-        if (pathParts.length == 1) {
-            if ("genres".equalsIgnoreCase(pathParts[0]))
-                return SongRoute.GET_SONG_GENRES;
-
-            return SongRoute.GET_SONG_BY_ID;
+        Pattern audioPattern = Pattern.compile("^/(\\d+)/audio/?$");
+        Matcher audioMatcher = audioPattern.matcher(pathInfo);
+        if (audioMatcher.matches()) {
+            return SongRoute.GET_SONG_AUDIO;
         }
 
-        if (pathParts.length == 2) {
-            String action = pathParts[1];
-            if ("audio".equalsIgnoreCase(action)) {
-                return SongRoute.GET_SONG_AUDIO;
-            } else if ("image".equalsIgnoreCase(action)) {
-                return SongRoute.GET_SONG_IMAGE;
-            }
+        // Regex to match /<songId>/image or /<songId>/image/
+        Pattern imagePattern = Pattern.compile("^/(\\d+)/image/?$");
+        Matcher imageMatcher = imagePattern.matcher(pathInfo);
+        if (imageMatcher.matches()) {
+            return SongRoute.GET_SONG_IMAGE;
+        }
+
+        // Regex to match /genres or /genres/
+        Pattern genresPattern = Pattern.compile("^/genres/?$");
+        Matcher genresMatcher = genresPattern.matcher(pathInfo);
+        if (genresMatcher.matches()) {
+            return SongRoute.GET_SONG_GENRES;
+        }
+
+        // Regex to match /<songId> or /<songId>/
+        Pattern byIdPattern = Pattern.compile("^/(\\d+)/?$");
+        Matcher byIdMatcher = byIdPattern.matcher(pathInfo);
+        if (byIdMatcher.matches()) {
+            return SongRoute.GET_SONG_BY_ID;
         }
 
         return SongRoute.INVALID_ROUTE;
@@ -190,11 +200,16 @@ public class SongApiServlet extends HttpServlet {
 
         SongRoute route = resolveRoute(request);
         String pathInfo = request.getPathInfo();
-        String[] pathParts = (pathInfo != null && !pathInfo.equals("/") && !pathInfo.isEmpty())
-                ? pathInfo.substring(1).split("/")
-                : new String[0];
-
         logger.info("User {} - GET request. Path: '{}', Route: {}", user.getUsername(), pathInfo, route);
+
+        String songIdStr = null;
+        if (pathInfo != null && !pathInfo.equals("/") && !pathInfo.isEmpty()) {
+            Pattern idExtractorPattern = Pattern.compile("^/(\\d+)(?:/.*)?$");
+            Matcher idMatcher = idExtractorPattern.matcher(pathInfo);
+            if (idMatcher.matches()) {
+                songIdStr = idMatcher.group(1);
+            }
+        }
 
         try {
             switch (route) {
@@ -202,13 +217,13 @@ public class SongApiServlet extends HttpServlet {
                 handleGetAllSongs(response, user);
                 break;
             case GET_SONG_BY_ID:
-                handleGetSongById(response, user, pathParts[0]);
+                handleGetSongById(response, user, songIdStr);
                 break;
             case GET_SONG_AUDIO:
-                handleGetSongAudio(response, user, pathParts[0]);
+                handleGetSongAudio(response, user, songIdStr);
                 break;
             case GET_SONG_IMAGE:
-                handleGetSongImage(response, user, pathParts[0]);
+                handleGetSongImage(response, user, songIdStr);
                 break;
             case GET_SONG_GENRES:
                 handleGetSongGenres(response, user);
