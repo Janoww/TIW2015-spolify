@@ -363,34 +363,6 @@ public class PlaylistDAO {
 	}
 
 	/**
-	 * Finds the IDs of all playlists created by a specific user.
-	 *
-	 * @param idUser The UUID of the user.
-	 * @return A list of playlist IDs.
-	 * @throws DAOException if a database access error occurs
-	 *                      ({@link DAOErrorType#GENERIC_ERROR}).
-	 */
-	public List<Integer> findPlaylistIdsByUser(UUID idUser) throws DAOException {
-		logger.debug("Attempting to find playlist IDs for user ID: {}", idUser);
-		List<Integer> playlistIds = new ArrayList<>();
-		String query = "SELECT idPlaylist FROM playlist_metadata WHERE idUser = UUID_TO_BIN(?)";
-
-		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
-			pStatement.setString(1, idUser.toString());
-			try (ResultSet resultSet = pStatement.executeQuery()) {
-				while (resultSet.next()) {
-					playlistIds.add(resultSet.getInt("idPlaylist"));
-				}
-				logger.debug("Found {} playlist IDs for user ID: {}", playlistIds.size(), idUser);
-			}
-		} catch (SQLException e) {
-			logger.error("SQL error finding playlist IDs for user ID {}: {}", idUser, e.getMessage(), e);
-			throw new DAOException("Database error finding playlist IDs by user.", e, DAOErrorType.GENERIC_ERROR);
-		}
-		return playlistIds;
-	}
-
-	/**
 	 * Finds a specific playlist by its ID, including its list of song IDs. Verifies
 	 * ownership using the provided user ID. Uses BIN_TO_UUID and UUID_TO_BIN
 	 * appropriately.
@@ -410,10 +382,9 @@ public class PlaylistDAO {
 		logger.debug("Attempting to find playlist ID: {} for user ID: {}", playlistId, userId);
 		Playlist playlist = null;
 		String queryMetadata = "SELECT name, birthday, BIN_TO_UUID(idUser) as userUUID FROM playlist_metadata WHERE idPlaylist = ?";
-		String queryContent = "SELECT idSong FROM playlist_content WHERE idPlaylist = ?";
 
 		try {
-			verifyPlaylistAccessible(playlistId, userId);
+			verifyPlaylistAccessible(playlistId, userId); // This can throw DAOException or SQLException
 
 			// Fetch Full Playlist Details
 			try (PreparedStatement pStatementMetadata = connection.prepareStatement(queryMetadata)) {
@@ -426,43 +397,103 @@ public class PlaylistDAO {
 						playlist.setBirthday(rsMetadata.getTimestamp("birthday"));
 						playlist.setIdUser(UUID.fromString(rsMetadata.getString("userUUID")));
 
-						// Fetch song IDs
-						List<Integer> songIds = new ArrayList<>();
-						try (PreparedStatement pStatementContent = connection.prepareStatement(queryContent)) {
-							pStatementContent.setInt(1, playlistId);
-							try (ResultSet rsContent = pStatementContent.executeQuery()) {
-								while (rsContent.next()) {
-									songIds.add(rsContent.getInt("idSong"));
-								}
-							}
-							logger.debug("Found {} songs for playlist ID: {}", songIds.size(), playlistId);
-						} catch (SQLException e) {
-							logger.error("SQL error fetching songs for playlist ID {}: {}", playlistId, e.getMessage(),
-									e);
-							throw new DAOException("Database error fetching songs for playlist.", e,
-									DAOErrorType.GENERIC_ERROR);
-						}
+						List<Integer> songIds = getSongIdsForPlaylist(playlistId);
 						playlist.setSongs(songIds);
+
 						logger.debug("Successfully retrieved playlist ID: {} owned by user ID: {}", playlistId, userId);
 					} else {
-						logger.error("Inconsistency: Playlist ID {} passed checks but metadata query failed.",
+						logger.error(
+								"Inconsistency: Playlist ID {} passed access checks but metadata query yielded no results.",
 								playlistId);
-						throw new DAOException("Inconsistent state retrieving playlist metadata.",
+						throw new DAOException(
+								"Inconsistent state: Playlist metadata not found after access verification for ID "
+										+ playlistId + ".",
 								DAOErrorType.GENERIC_ERROR);
 					}
 				}
-			} catch (SQLException e) {
-				logger.error("SQL error finding playlist metadata for ID {}: {}", playlistId, e.getMessage(), e);
-				throw new DAOException("Database error finding playlist by ID.", e, DAOErrorType.GENERIC_ERROR);
 			}
 		} catch (SQLException e) {
 			logger.error("SQL error during findPlaylistById for playlistID {}: {}", playlistId, e.getMessage(), e);
 			throw new DAOException("Database error while finding playlist by ID.", e, DAOErrorType.GENERIC_ERROR);
+		} catch (DAOException e) {
+			logger.warn("DAOException during findPlaylistById for playlistID {}: {}", playlistId, e.getMessage());
+			throw e; // Re-throw original DAOException
 		} catch (IllegalArgumentException e) {
-			logger.error("Error parsing UUID from database for playlist ID {}: {}", playlistId, e.getMessage());
-			throw new DAOException("Error parsing UUID from database.", e, DAOErrorType.GENERIC_ERROR);
+			logger.error("Error parsing UUID from database for playlist ID {}: {}", playlistId, e.getMessage(), e);
+			throw new DAOException("Error parsing UUID from database for playlist.", e, DAOErrorType.GENERIC_ERROR);
 		}
 		return playlist;
+	}
+
+	/**
+	 * Fetches all song IDs for a given playlist ID.
+	 *
+	 * @param playlistId The ID of the playlist.
+	 * @return A list of song IDs.
+	 * @throws SQLException if a database access error occurs.
+	 */
+	private List<Integer> getSongIdsForPlaylist(int playlistId) throws SQLException {
+		logger.debug("Fetching song IDs for playlist ID: {}", playlistId);
+		List<Integer> songIds = new ArrayList<>();
+		String query = "SELECT idSong FROM playlist_content WHERE idPlaylist = ?";
+
+		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
+			pStatement.setInt(1, playlistId);
+			try (ResultSet rs = pStatement.executeQuery()) {
+				while (rs.next()) {
+					songIds.add(rs.getInt("idSong"));
+				}
+			}
+		} catch (SQLException e) {
+			logger.error("SQL error fetching songs for playlist ID {}: {}", playlistId, e.getMessage(), e);
+			throw e; // Re-throw to be handled by the calling method
+		}
+		logger.debug("Found {} songs for playlist ID: {}", songIds.size(), playlistId);
+		return songIds;
+	}
+
+	/**
+	 * Finds all playlists created by a specific user, ordered by creation date
+	 * descending.
+	 *
+	 * @param idUser The UUID of the user.
+	 * @return A list of Playlist objects.
+	 * @throws DAOException if a database access error occurs.
+	 */
+	public List<Playlist> findPlaylistsByUser(UUID idUser) throws DAOException {
+		logger.debug("Attempting to find all playlists for user ID: {}", idUser);
+		List<Playlist> allPlaylists = new ArrayList<>();
+		String query = "SELECT idPlaylist, name, birthday, BIN_TO_UUID(idUser) as userIdStr "
+				+ "FROM playlist_metadata WHERE idUser = UUID_TO_BIN(?) ORDER BY birthday DESC";
+
+		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
+			pStatement.setString(1, idUser.toString());
+			try (ResultSet rs = pStatement.executeQuery()) {
+				while (rs.next()) {
+					Playlist playlist = new Playlist();
+					int currentPlaylistId = rs.getInt("idPlaylist");
+					playlist.setIdPlaylist(currentPlaylistId);
+					playlist.setName(rs.getString("name"));
+					playlist.setBirthday(rs.getTimestamp("birthday"));
+					playlist.setIdUser(UUID.fromString(rs.getString("userIdStr")));
+
+					// Fetch song IDs for the current playlist
+					List<Integer> songIds = getSongIdsForPlaylist(currentPlaylistId);
+					playlist.setSongs(songIds);
+
+					allPlaylists.add(playlist);
+				}
+			}
+			logger.debug("Found {} playlists for user ID: {}", allPlaylists.size(), idUser);
+		} catch (SQLException e) {
+			logger.error("SQL error finding playlists for user ID {}: {}", idUser, e.getMessage(), e);
+			throw new DAOException("Database error finding playlists by user.", e, DAOErrorType.GENERIC_ERROR);
+		} catch (IllegalArgumentException e) {
+			logger.error("Error parsing UUID from database for user ID {}: {}", idUser, e.getMessage(), e);
+			throw new DAOException("Error parsing UUID from database while fetching playlists.", e,
+					DAOErrorType.GENERIC_ERROR);
+		}
+		return allPlaylists;
 	}
 
 	/**

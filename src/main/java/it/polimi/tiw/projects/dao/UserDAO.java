@@ -65,9 +65,6 @@ public class UserDAO {
 					int affectedRows = insertStatement.executeUpdate();
 					if (affectedRows == 0) {
 						logger.error("Creating user failed, no rows affected for username: {}", username);
-						// Should not happen with a valid insert unless there's a concurrent issue
-						// or DB
-						// problem
 						throw new DAOException("Creating user failed, no rows affected.",
 								DAOException.DAOErrorType.GENERIC_ERROR);
 					}
@@ -78,7 +75,6 @@ public class UserDAO {
 					newUser.setUsername(username);
 					newUser.setName(name);
 					newUser.setSurname(surname);
-					// Password is not set in the User bean for security
 					return newUser;
 				}
 			}
