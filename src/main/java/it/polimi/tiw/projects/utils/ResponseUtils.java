@@ -10,7 +10,10 @@ import java.util.Map;
 
 public class ResponseUtils {
     private static final Logger logger = LoggerFactory.getLogger(ResponseUtils.class);
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = ObjectMapperUtils.getMapper();
+
+    private ResponseUtils() {
+    }
 
     /**
      * Sends a generic JSON error response.

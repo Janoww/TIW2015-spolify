@@ -6,11 +6,10 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.Optional;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +19,7 @@ import it.polimi.tiw.projects.dao.UserDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.listeners.AppContextListener;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
+import it.polimi.tiw.projects.utils.ObjectMapperUtils;
 import it.polimi.tiw.projects.utils.ResponseUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -52,8 +52,9 @@ public class UserApiServlet extends HttpServlet {
                 UserCreationRequest userCreationDetails;
 
                 try {
-                        userCreationDetails = new ObjectMapper().readValue(req.getReader(), UserCreationRequest.class);
-                } catch (JsonParseException | MismatchedInputException e) {
+                        userCreationDetails = ObjectMapperUtils.getMapper().readValue(req.getReader(),
+                                        UserCreationRequest.class);
+                } catch (JsonProcessingException e) {
                         logger.warn("Failed to parse JSON request body for user sign up: {}", e.getMessage());
                         ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
                                         "Invalid JSON format or missing fields.");
@@ -65,18 +66,15 @@ public class UserApiServlet extends HttpServlet {
                         return;
                 }
 
-                String username = userCreationDetails.getUsername() != null ? userCreationDetails.getUsername().strip()
-                                : null;
-                String name = userCreationDetails.getName() != null ? userCreationDetails.getName().strip() : null;
-                String surname = userCreationDetails.getSurname() != null ? userCreationDetails.getSurname().strip()
-                                : null;
+                String username = stripSafely(userCreationDetails.getUsername());
+                String name = stripSafely(userCreationDetails.getName());
+                String surname = stripSafely(userCreationDetails.getSurname());
                 String password = userCreationDetails.getPassword();
 
                 logger.debug("Attempting to sign up user with username: {}", username);
 
                 // Input Validation - Check for presence of all fields
-                if (name == null || name.isEmpty() || surname == null || surname.isEmpty() || username == null
-                                || username.isEmpty() || password == null || password.isEmpty()) {
+                if (Stream.of(name, surname, username, password).anyMatch(s -> s == null || s.isEmpty())) {
                         logger.warn("Sign up attempt with missing credential values for username: {}",
                                         (username != null ? username : "null"));
                         ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
@@ -126,6 +124,10 @@ public class UserApiServlet extends HttpServlet {
                 ResponseUtils.sendJson(resp, HttpServletResponse.SC_CREATED, userResponse);
                 logger.debug("Successfully sent CREATED response with user details for user: {}",
                                 createdUser.getUsername());
+        }
+
+        private static String stripSafely(String s) {
+                return Optional.ofNullable(s).map(String::strip).orElse(null);
         }
 
         private boolean validateUser(HttpServletResponse resp, String username, String name, String surname,

@@ -7,10 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +17,7 @@ import it.polimi.tiw.projects.dao.UserDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.listeners.AppContextListener;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
+import it.polimi.tiw.projects.utils.ObjectMapperUtils;
 import it.polimi.tiw.projects.utils.ResponseUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -81,9 +79,8 @@ public class AuthApiServlet extends HttpServlet {
         LoginRequest loginDetails;
 
         try {
-            // Assuming LoginRequest.class is appropriate for the JSON structure
-            loginDetails = new ObjectMapper().readValue(req.getReader(), LoginRequest.class);
-        } catch (JsonParseException | MismatchedInputException e) {
+            loginDetails = ObjectMapperUtils.getMapper().readValue(req.getReader(), LoginRequest.class);
+        } catch (JsonProcessingException e) {
             logger.warn("Failed to parse JSON request body for login: {}", e.getMessage());
             ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON format or missing fields.");
             return;

@@ -4,13 +4,12 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import it.polimi.tiw.projects.beans.Playlist;
 import it.polimi.tiw.projects.beans.PlaylistCreationRequest;
@@ -19,6 +18,7 @@ import it.polimi.tiw.projects.dao.PlaylistDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.listeners.AppContextListener;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
+import it.polimi.tiw.projects.utils.ObjectMapperUtils;
 import it.polimi.tiw.projects.utils.ResponseUtils;
 
 import jakarta.servlet.ServletConfig;
@@ -38,7 +38,6 @@ public class PlaylistApiServlet extends HttpServlet {
 
     private transient Connection connection;
     private transient PlaylistDAO playlistDAO;
-    private transient ObjectMapper objectMapper;
 
     // Validation parameters
     private transient Pattern playlistNamePattern;
@@ -57,8 +56,6 @@ public class PlaylistApiServlet extends HttpServlet {
         }
 
         this.playlistDAO = new PlaylistDAO(connection);
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
 
         // Load validation patterns from ServletContext
         this.playlistNamePattern = (Pattern) servletContext
@@ -87,6 +84,33 @@ public class PlaylistApiServlet extends HttpServlet {
     }
 
     @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        HttpSession session = request.getSession(false);
+        User user = (session != null) ? (User) session.getAttribute("user") : null;
+
+        if (user == null) {
+            logger.warn("Unauthorized attempt to access playlists: No user in session.");
+            ResponseUtils.sendError(response, HttpServletResponse.SC_UNAUTHORIZED, "User not authenticated.");
+            return;
+        }
+
+        try {
+            List<Playlist> playlists = playlistDAO.findPlaylistsByUser(user.getIdUser());
+            ResponseUtils.sendJson(response, HttpServletResponse.SC_OK, playlists);
+            logger.info("User {} retrieved {} playlists successfully.", user.getUsername(), playlists.size());
+        } catch (DAOException e) {
+            logger.warn("DAOException while fetching playlists for user {}: Type={}, Message={}", user.getUsername(),
+                    e.getErrorType(), e.getMessage(), e);
+            ResponseUtils.sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Error retrieving playlists: " + e.getMessage());
+        }
+    }
+
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("application/json");
@@ -109,8 +133,9 @@ public class PlaylistApiServlet extends HttpServlet {
 
         PlaylistCreationRequest playlistRequest;
         try {
-            playlistRequest = objectMapper.readValue(request.getInputStream(), PlaylistCreationRequest.class);
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            playlistRequest = ObjectMapperUtils.getMapper().readValue(request.getInputStream(),
+                    PlaylistCreationRequest.class);
+        } catch (JsonProcessingException e) {
             logger.warn("Error parsing JSON request for user {}: {}", user.getUsername(), e.getMessage());
             ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
                     "Invalid JSON format: " + e.getOriginalMessage());
@@ -197,12 +222,14 @@ public class PlaylistApiServlet extends HttpServlet {
                         "Cannot add more than 500 songs at once to a new playlist.");
                 return false;
             }
-            for (Integer songId : songIds) {
-                if (songId == null || songId <= 0) {
-                    ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                            "Invalid song ID provided: " + songId + ". All song IDs must be positive integers.");
-                    return false;
-                }
+            // Use a stream to find the first invalid songId
+            Optional<Integer> firstInvalidId = songIds.stream().filter(songId -> songId == null || songId <= 0)
+                    .findFirst();
+
+            if (firstInvalidId.isPresent()) {
+                ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid song ID provided: "
+                        + firstInvalidId.get() + ". All song IDs must be positive integers.");
+                return false;
             }
         }
         return true;
