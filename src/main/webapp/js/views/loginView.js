@@ -1,32 +1,4 @@
-// Helper function to create a form field (div, label, input)
-function createFormField(labelText, inputType, inputId, inputName, required = true) {
-    const fieldDiv = document.createElement('div');
-    fieldDiv.className = 'form-field';
-
-    const inputDiv = document.createElement('div');
-
-    const label = document.createElement('label');
-    label.setAttribute('for', inputId);
-    label.textContent = labelText;
-
-    const input = document.createElement('input');
-    input.type = inputType;
-    input.id = inputId;
-    input.name = inputName;
-    if (required) {
-        input.required = true;
-    }
-
-    inputDiv.appendChild(label);
-    inputDiv.appendChild(input);
-    fieldDiv.appendChild(inputDiv)
-    const errorSpan = document.createElement('span');
-    errorSpan.className = 'error-message';
-    errorSpan.id = `${inputId}-error`;
-    fieldDiv.appendChild(errorSpan);
-
-    return fieldDiv;
-}
+import { createFormField } from '../utils/formUtils.js';
 
 // Helper function to create a title container
 function createTitleContainer(titleText) {
@@ -54,6 +26,12 @@ function createLinkBlock(baseText, linkId, linkTextContent, linkHref = '#') {
     return linkContainerDiv;
 }
 
+/**
+ * Renders the login view within the provided application container.
+ * Clears the container, sets its max-width, and appends the login form
+ * and a link to the signup page.
+ * @param {HTMLElement} appContainer - The DOM element where the login view will be rendered.
+ */
 export function renderLoginView(appContainer) {
     appContainer.innerHTML = '';
     appContainer.style.maxWidth = '60vw';
@@ -74,8 +52,8 @@ export function renderLoginView(appContainer) {
     loginForm.id = 'loginForm';
     loginForm.noValidate = true;
 
-    loginForm.appendChild(createFormField('Username:', 'text', 'username', 'username'));
-    loginForm.appendChild(createFormField('Password:', 'password', 'password', 'password'));
+    loginForm.appendChild(createFormField('username', 'Username:', 'text', 'username', true, [], {}));
+    loginForm.appendChild(createFormField('password', 'Password:', 'password', 'password', true, [], {}));
 
     const buttonFieldDiv = document.createElement('div');
     buttonFieldDiv.className = 'form-field';
@@ -95,6 +73,12 @@ export function renderLoginView(appContainer) {
     appContainer.appendChild(loginSection);
 }
 
+/**
+ * Renders the signup view within the provided application container.
+ * Clears the container, sets its max-width, and appends the signup form
+ * and a link to the login page.
+ * @param {HTMLElement} appContainer - The DOM element where the signup view will be rendered.
+ */
 export function renderSignupView(appContainer) {
     appContainer.innerHTML = '';
     appContainer.style.maxWidth = '60vw';
@@ -114,10 +98,10 @@ export function renderSignupView(appContainer) {
     signupForm.id = 'signupForm';
     signupForm.noValidate = true;
 
-    signupForm.appendChild(createFormField('Username:', 'text', 'signupUsername', 'username'));
-    signupForm.appendChild(createFormField('Name:', 'text', 'name', 'name'));
-    signupForm.appendChild(createFormField('Surname:', 'text', 'surname', 'surname'));
-    signupForm.appendChild(createFormField('Password:', 'password', 'signupPassword', 'password'));
+    signupForm.appendChild(createFormField('signupUsername', 'Username:', 'text', 'username', true, [], {}));
+    signupForm.appendChild(createFormField('name', 'Name:', 'text', 'name', true, [], {}));
+    signupForm.appendChild(createFormField('surname', 'Surname:', 'text', 'surname', true, [], {}));
+    signupForm.appendChild(createFormField('signupPassword', 'Password:', 'password', 'password', true, [], {}));
 
     const buttonFieldDiv = document.createElement('div');
     buttonFieldDiv.className = 'form-field';
