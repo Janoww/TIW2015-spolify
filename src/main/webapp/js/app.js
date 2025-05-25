@@ -1,4 +1,4 @@
-import { initHomePage } from './handlers/homeHandler.js';
+import { initHomePage, initSongPage } from './handlers/homeHandler.js';
 import { initLoginPage, logoutUser } from './handlers/loginHandler.js';
 
 const appContainer = document.getElementById('app');
@@ -52,5 +52,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else {
         console.error("Logout button not found in the DOM on initial load.");
+    }
+    const homeButton = document.getElementById('home-button');
+    if (homeButton) {
+        homeButton.addEventListener('click', () => {
+            initHomePage(appContainer);
+        });
+    } else {
+        console.error("Home button not found in the DOM on initial load.");
+    }
+    const songButton = document.getElementById('songs-button');
+    if (songButton) {
+        songButton.addEventListener('click', () => {
+            initSongPage(appContainer);
+        });
+    } else {
+        console.error("Song button not found in the DOM on initial load.");
     }
 });
