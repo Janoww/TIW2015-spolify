@@ -7,8 +7,6 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thymeleaf.TemplateEngine;
-
 import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.FileData;
 import it.polimi.tiw.projects.beans.User;
@@ -16,7 +14,6 @@ import it.polimi.tiw.projects.dao.AlbumDAO;
 import it.polimi.tiw.projects.dao.ImageDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
-import it.polimi.tiw.projects.utils.TemplateHandler;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
