@@ -119,9 +119,6 @@ public class UserApiServlet extends HttpServlet {
                 userResponse.put("name", createdUser.getName());
                 userResponse.put("surname", createdUser.getSurname());
 
-                resp.setStatus(HttpServletResponse.SC_CREATED);
-                resp.setContentType("application/json");
-                resp.setCharacterEncoding("UTF-8");
                 ResponseUtils.sendJson(resp, HttpServletResponse.SC_CREATED, userResponse);
                 logger.debug("Successfully sent CREATED response with user details for user: {}",
                                 createdUser.getUsername());

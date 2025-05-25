@@ -148,9 +148,6 @@ public class PlaylistApiServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
@@ -229,9 +226,6 @@ public class PlaylistApiServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
@@ -273,9 +267,6 @@ public class PlaylistApiServlet extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
@@ -299,16 +290,14 @@ public class PlaylistApiServlet extends HttpServlet {
         String[] pathParts = (pathInfo != null && pathInfo.length() > 1) ? pathInfo.substring(1).split("/")
                 : new String[0];
 
-        switch (route) {
-        case UPDATE_PLAYLIST_ORDER:
-            handleUpdatePlaylistOrder(request, response, user, pathParts[0]);
-            break;
-        default:
+        if (route != PlaylistActionRoute.UPDATE_PLAYLIST_ORDER) {
             logger.warn("Invalid route for PUT request by user {}: Path='{}', Resolved='{}'", user.getUsername(),
                     pathInfo, route);
             ResponseUtils.sendError(response, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
-            break;
+            return;
         }
+
+        handleUpdatePlaylistOrder(request, response, user, pathParts[0]);
     }
 
     private Optional<Integer> parseAndValidatePlaylistId(String playlistIdStr, HttpServletResponse response,
@@ -469,8 +458,7 @@ public class PlaylistApiServlet extends HttpServlet {
         }
     }
 
-    private void handleCreatePlaylist(HttpServletRequest request, HttpServletResponse response, User user)
-            throws IOException {
+    private void handleCreatePlaylist(HttpServletRequest request, HttpServletResponse response, User user) {
         PlaylistCreationRequest playlistRequest;
         try {
             playlistRequest = ObjectMapperUtils.getMapper().readValue(request.getInputStream(),
@@ -518,7 +506,7 @@ public class PlaylistApiServlet extends HttpServlet {
     }
 
     private void handleAddSongsToPlaylist(HttpServletRequest request, HttpServletResponse response, User user,
-            String playlistIdStr) throws IOException {
+            String playlistIdStr) {
         int playlistId;
         try {
             playlistId = Integer.parseInt(playlistIdStr);
