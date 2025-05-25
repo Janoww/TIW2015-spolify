@@ -158,12 +158,25 @@ function displaySignup(appContainer) {
     }
 }
 
+/**
+ * Initializes the login page.
+ * Hides the navbar and renders the login view within the given application container.
+ * @param {HTMLElement} appContainer - The main application container element.
+ */
 export function initLoginPage(appContainer) {
     document.getElementById("navbar").style.display = "none";
     console.log("Initializing login page...")
     displayLogin(appContainer);
 }
 
+/**
+ * Logs out the current user.
+ * Sends a POST request to the logout API endpoint, clears the 'currentUser'
+ * from session storage, and then re-initializes the login page.
+ * @param {HTMLElement} appContainer - The main application container element.
+ * @returns {Promise<void>} A promise that resolves when the logout process is complete
+ *                          and the login page is re-initialized.
+ */
 export async function logoutUser(appContainer) {
     console.log("Attempting to logout user...");
     try {
