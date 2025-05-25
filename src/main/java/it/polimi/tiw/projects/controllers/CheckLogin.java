@@ -38,14 +38,12 @@ public class CheckLogin extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		UserDAO userDAO = new UserDAO(connection);
 		User user = null;
 
 		String username = req.getParameter("lUsername").strip();
 		String password = req.getParameter("lPwd").strip();
-		
 
 		// Checking if the parameters are empty
 		if (username == null || password == null || username.isEmpty() || password.isEmpty()) {
@@ -59,30 +57,28 @@ public class CheckLogin extends HttpServlet {
 			user = userDAO.checkCredentials(username, password);
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-				case INVALID_CREDENTIALS: { // No user found with that username/password combination
-					logger.warn("Invelid credentials");
-					WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
+			case INVALID_CREDENTIALS: { // No user found with that username/password combination
+				logger.warn("Invelid credentials");
+				WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
 
-					ctx.setVariable("errorLogInMsg",
-							"No user found with that username/password combination");
-					String path = "/index.html";
-					templateEngine.process(path, ctx, resp.getWriter());
-					return;
-				}
-				default: { // If another exception occurs
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-							"Not possible to log in");
-					return;
-				}
+				ctx.setVariable("errorLogInMsg", "No user found with that username/password combination");
+				String path = "/index.html";
+				templateEngine.process(path, ctx, resp.getWriter());
+				return;
+			}
+			default: { // If another exception occurs
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to log in");
+				return;
+			}
 
 			}
 		}
-		
+
 		logger.info("User {} logged in", user.getUsername());
 
 		// Assign the user to the session
 		req.getSession().setAttribute("user", user);
-		
+
 		String path = getServletContext().getContextPath() + "/Home";
 		resp.sendRedirect(path);
 

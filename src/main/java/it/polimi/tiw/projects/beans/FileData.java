@@ -15,10 +15,10 @@ public class FileData implements AutoCloseable, Serializable {
     /**
      * Constructs a FileData object.
      *
-     * @param content The InputStream providing the file's content.
+     * @param content  The InputStream providing the file's content.
      * @param filename The name of the file.
      * @param mimeType The MIME type of the file.
-     * @param size The size of the file in bytes.
+     * @param size     The size of the file in bytes.
      */
     public FileData(InputStream content, String filename, String mimeType, long size) {
         this.content = content;
@@ -44,8 +44,8 @@ public class FileData implements AutoCloseable, Serializable {
     }
 
     /**
-     * Closes the underlying InputStream. This makes FileData usable in a try-with-resources
-     * statement.
+     * Closes the underlying InputStream. This makes FileData usable in a
+     * try-with-resources statement.
      *
      * @throws IOException if an I/O error occurs when closing the stream.
      */

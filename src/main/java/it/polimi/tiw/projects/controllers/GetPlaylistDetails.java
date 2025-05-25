@@ -52,8 +52,7 @@ public class GetPlaylistDetails extends HttpServlet {
 	}
 
 	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException, ServletException {
+	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		SongDAO songDAO = new SongDAO(connection);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
@@ -76,24 +75,21 @@ public class GetPlaylistDetails extends HttpServlet {
 			myPlaylist = playlistDAO.findPlaylistById(playlistId, userId);
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-				case NOT_FOUND: {
-					req.setAttribute("errorOpeningPlaylist",
-							"The playlist you selected was not found");
-					req.getRequestDispatcher("/Home").forward(req, resp);
-					return;
-				}
-				case ACCESS_DENIED: {
-					req.setAttribute("errorOpeningPlaylist",
-							"The playlist you selected was not found");
-					req.getRequestDispatcher("/Home").forward(req, resp);
-					return;
-				}
-				default: {
-					e.printStackTrace();
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-							"An internal error occurred");
-					return;
-				}
+			case NOT_FOUND: {
+				req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
+				req.getRequestDispatcher("/Home").forward(req, resp);
+				return;
+			}
+			case ACCESS_DENIED: {
+				req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
+				req.getRequestDispatcher("/Home").forward(req, resp);
+				return;
+			}
+			default: {
+				e.printStackTrace();
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
+				return;
+			}
 			}
 		}
 
@@ -103,8 +99,7 @@ public class GetPlaylistDetails extends HttpServlet {
 			songWithAlbumOrdered = orderAllSongs(myPlaylist, songDAO, albumDAO, userId);
 		} catch (DAOException e) {
 			e.printStackTrace();
-			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-					"An internal error occurred");
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
 			return;
 		}
 
@@ -120,16 +115,14 @@ public class GetPlaylistDetails extends HttpServlet {
 		} catch (NumberFormatException e) {
 			page = 0;
 		}
-		
+
 		int totPages = (songWithAlbumOrdered.size() + 4) / 5;
-		
-		if(page > totPages -1) {
-			page = totPages -1;
+
+		if (page > totPages - 1) {
+			page = totPages - 1;
 		}
 
-		List<SongWithAlbum> songWithAlbumDisplayed =
-				songWithAlbumOrdered.stream().skip(page * 5).limit(5).toList();
-
+		List<SongWithAlbum> songWithAlbumDisplayed = songWithAlbumOrdered.stream().skip(page * 5).limit(5).toList();
 
 		// We need the list of not added songs for the form
 
@@ -138,13 +131,11 @@ public class GetPlaylistDetails extends HttpServlet {
 			unusedSongs = getUnusedSongs(myPlaylist, songDAO, userId);
 		} catch (DAOException e) {
 			e.printStackTrace();
-			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-					"An internal error occurred");
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
 			return;
 		}
 
 		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
-		
 
 		ctx.setVariable("playlist", myPlaylist);
 		ctx.setVariable("songWithAlbum", songWithAlbumDisplayed);
@@ -167,8 +158,8 @@ public class GetPlaylistDetails extends HttpServlet {
 		}
 	}
 
-	private static List<SongWithAlbum> orderAllSongs(Playlist playlist, SongDAO songDao,
-			AlbumDAO albumDao, UUID userId) throws DAOException {
+	private static List<SongWithAlbum> orderAllSongs(Playlist playlist, SongDAO songDao, AlbumDAO albumDao, UUID userId)
+			throws DAOException {
 
 		List<Integer> songsIDs = playlist.getSongs();
 		List<Song> songs = songDao.findSongsByIdsAndUser(songsIDs, userId);
@@ -189,16 +180,14 @@ public class GetPlaylistDetails extends HttpServlet {
 
 		// need to order result
 
-		result.sort(Comparator
-				.comparing((SongWithAlbum swa) -> swa.getAlbum().getArtist().toLowerCase())
+		result.sort(Comparator.comparing((SongWithAlbum swa) -> swa.getAlbum().getArtist().toLowerCase())
 				.thenComparing((SongWithAlbum swa) -> swa.getAlbum().getYear()));
 
 		return result;
 
 	}
 
-	private static List<Song> getUnusedSongs(Playlist playlist, SongDAO songDao, UUID userId)
-			throws DAOException {
+	private static List<Song> getUnusedSongs(Playlist playlist, SongDAO songDao, UUID userId) throws DAOException {
 
 		List<Song> result = songDao.findSongsByUser(userId);
 
@@ -206,9 +195,9 @@ public class GetPlaylistDetails extends HttpServlet {
 
 		List<Song> toRemove = new ArrayList<>();
 		for (Song song : result) {
-		    if (alreadyPresentSongsIDs.contains(song.getIdSong())) {
-		        toRemove.add(song);
-		    }
+			if (alreadyPresentSongsIDs.contains(song.getIdSong())) {
+				toRemove.add(song);
+			}
 		}
 		result.removeAll(toRemove);
 

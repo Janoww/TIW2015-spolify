@@ -9,11 +9,11 @@
 
 <body>
 
-	<div >
+	<div>
 		<a th:href="@{/Home}">Home</a>
 		<a th:href=@{/Logout}>Logout</a>
 	</div>
-	
+
 	<h1 th:text="${playlist.name}">Hit-Estive-2015</h1>
 
 
@@ -23,11 +23,11 @@
 			<tr>
 				<td th:each="swa : ${songWithAlbum}">
 					<div>
-					
+
 						<a th:href="@{/OpenSong(songId=${swa.song.idSong}, playlistId=${playlist.idPlaylist})}">
-						<img th:src="@{/GetImage(imageName=${swa.album.image})}" alt="Album Image" width="100" />
+							<img th:src="@{/GetImage(imageName=${swa.album.image})}" alt="Album Image" width="100" />
 						</a>
-						
+
 						<p th:text="${swa.song.title}">We No Speak Americano</p>
 					</div>
 				</td>
@@ -46,7 +46,7 @@
 			</tr>
 		</tbody>
 	</table>
-	
+
 	<pt th:text="${errorOpeningSong}"></pt>
 
 	<div th:if="${page > 0}">
@@ -104,7 +104,8 @@
 				<input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
 				<p> <input type="submit" value="Add Playlist"> </p>
 			</div>
-			<div th:if="${songs == null || songs.size() == 0}"> To add to a playlist you need to upload a new songs</div>
+			<div th:if="${songs == null || songs.size() == 0}"> To add to a playlist you need to upload a new songs
+			</div>
 			<p th:text=" ${errorAddSongMsg}"></p>
 		</fieldset>
 

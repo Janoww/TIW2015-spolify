@@ -30,7 +30,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import jakarta.validation.constraints.NotNull;
 
-
 @MultipartConfig
 public class NewSong extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(NewSong.class);
@@ -48,15 +47,12 @@ public class NewSong extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException, ServletException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
 		logger.debug("processing the Post request");
 		SongDAO songDAO = new SongDAO(connection);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 		AudioDAO audioDAO = (AudioDAO) getServletContext().getAttribute("audioDAO");
 		ImageDAO imageDAO = (ImageDAO) getServletContext().getAttribute("imageDAO");
-
-
 
 		// Check Parameters
 		String checkResult = areParametersOk(req, getServletContext());
@@ -86,7 +82,6 @@ public class NewSong extends HttpServlet {
 		Part imagePart = req.getPart("sIcon");
 		Part audioPart = req.getPart("sFile");
 
-
 		logger.debug("Retrieved Parameters");
 
 		User user = (User) req.getSession().getAttribute("user");
@@ -98,16 +93,14 @@ public class NewSong extends HttpServlet {
 				albums = albumDAO.findAlbumsByUser(user.getIdUser());
 			} catch (DAOException e) {
 				logger.error("Failed to retrieve thealbum by user: {}", e.getMessage(), e);
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-						"Error in the database");
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
 				return;
 			}
 
 			// Search if there is already an album with that name
 			Album album = findAlbum(albums, albumName);
 
-			if (album != null && (!(album.getYear() == year)
-					|| !album.getArtist().equalsIgnoreCase(artist))) {
+			if (album != null && (!(album.getYear() == year) || !album.getArtist().equalsIgnoreCase(artist))) {
 				// If an album with that name already exists but the information don't match
 				req.setAttribute("errorNewSongMsg", "An album named \"" + album.getName()
 						+ "\" already exists, it is from the year " + year + " by \"" + album.getArtist() + "\"");
@@ -120,32 +113,30 @@ public class NewSong extends HttpServlet {
 			try {
 				if (album != null && songDAO.findSongsByUser(user.getIdUser()).stream()
 						.anyMatch(s -> s.getTitle().equals(title))) {
-					//TODO Maybe it is more efficient to create an ad hoc query to find a specific song
-					req.setAttribute("errorNewSongMsg",
-							"The song titled \"" + title + "\" of the album \"" + album.getName()
-									+ "\" have already been uploaded");
+					// TODO Maybe it is more efficient to create an ad hoc query to find a specific
+					// song
+					req.setAttribute("errorNewSongMsg", "The song titled \"" + title + "\" of the album \""
+							+ album.getName() + "\" have already been uploaded");
 					req.getRequestDispatcher("/Home").forward(req, resp);
 					return;
 				}
 			} catch (DAOException e) {
 				logger.error("Error while searcing user songs: {}", e.getMessage(), e);
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-						"Error in the database");
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
 				return;
 			}
 
 			String imageFileRename = null;
 			Boolean isAlbumNew = false;
-			
+
 			if (album == null) {
 				isAlbumNew = true;
 				// If an album already exists the image will not be updated
 
-				String imageFileName =
-						Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
+				String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
 
 				try {
-					try (InputStream imageStream = imagePart.getInputStream()){
+					try (InputStream imageStream = imagePart.getInputStream()) {
 						imageFileRename = imageDAO.saveImage(imageStream, imageFileName);
 						// If the image saving fails, nothing will be saved
 					}
@@ -163,15 +154,13 @@ public class NewSong extends HttpServlet {
 
 			}
 
-			
 			// Create a new album if it doesn't exist
 			if (album == null) {
 				try {
-					album = albumDAO.createAlbum(albumName, year, artist, imageFileRename,
-							user.getIdUser());
+					album = albumDAO.createAlbum(albumName, year, artist, imageFileRename, user.getIdUser());
 				} catch (DAOException e) {
-					//We need to delete the saved image since the album creation failed.
-					
+					// We need to delete the saved image since the album creation failed.
+
 					try {
 						imageDAO.deleteImage(imageFileRename);
 					} catch (IllegalArgumentException e1) {
@@ -181,9 +170,8 @@ public class NewSong extends HttpServlet {
 						logger.error("Error while deleting image due to failed album creation: {}", e.getMessage(), e);
 						return;
 					}
-					
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-							"Error in the database");
+
+					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
 					logger.error("Error creating album: {}", e.getMessage(), e);
 					return;
 				}
@@ -192,12 +180,11 @@ public class NewSong extends HttpServlet {
 
 			// Saving the audio file
 
-			String audioFileName =
-					Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
+			String audioFileName = Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
 
 			String audioFileRename;
 			try {
-				try(InputStream audioStream = audioPart.getInputStream()){
+				try (InputStream audioStream = audioPart.getInputStream()) {
 					audioFileRename = audioDAO.saveAudio(audioStream, audioFileName);
 				}
 			} catch (IllegalArgumentException e) {
@@ -206,8 +193,7 @@ public class NewSong extends HttpServlet {
 				logger.error("Audio file broken: {}", e.getMessage(), e);
 				return;
 			} catch (DAOException e) {
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-						"Failed to save image due to I/O error");
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to save image due to I/O error");
 				logger.error("Error saving the audio: {}", e.getMessage(), e);
 				return;
 			}
@@ -215,11 +201,10 @@ public class NewSong extends HttpServlet {
 			try {
 				songDAO.createSong(title, idAlbum, year, genre, audioFileRename, user.getIdUser());
 			} catch (DAOException e) {
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-						"Error in the database");
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
 				logger.error("An error occurred while creating the song: {}", e.getMessage(), e);
-				//Deleting the audio
-				
+				// Deleting the audio
+
 				try {
 					audioDAO.deleteAudio(audioFileRename);
 				} catch (IllegalArgumentException e1) {
@@ -230,13 +215,15 @@ public class NewSong extends HttpServlet {
 					return;
 				}
 
-				//Deleting the album
+				// Deleting the album
 				if (isAlbumNew) {
 					try {
 						imageDAO.deleteImage(album.getImage());
 						albumDAO.deleteAlbum(idAlbum, user.getIdUser());
 					} catch (DAOException e1) {
-						logger.error("While trying to delate an album because of the failed creation of the song an error occurred: {}", e1.getMessage());
+						logger.error(
+								"While trying to delate an album because of the failed creation of the song an error occurred: {}",
+								e1.getMessage());
 					}
 				}
 				return;
@@ -263,20 +250,19 @@ public class NewSong extends HttpServlet {
 	}
 
 	private static Album findAlbum(List<Album> list, String albumName) {
-		return list.stream().filter(a -> a.getName().equalsIgnoreCase(albumName)).findFirst()
-				.orElse(null);
+		return list.stream().filter(a -> a.getName().equalsIgnoreCase(albumName)).findFirst().orElse(null);
 	}
 
 	private static String areParametersOk(HttpServletRequest req, ServletContext servletContext) {
 
 		Pattern titlePattern = (Pattern) servletContext.getAttribute(AppContextListener.TITLE_REGEX_PATTERN);
-		
+
 		try {
 			String title = req.getParameter("sTitle");
 			if (title == null || (title = title.strip()).isEmpty()) {
 				return "You have to choose a title";
 			}
-			if(!isValid(title, titlePattern)) {
+			if (!isValid(title, titlePattern)) {
 				return "Invalid title format. Use letters, numbers, spaces, hyphens, or apostrophes (1-100 characters).";
 			}
 
@@ -284,7 +270,7 @@ public class NewSong extends HttpServlet {
 			if (albumName == null || (albumName = albumName.strip()).isEmpty()) {
 				return "You have to specify the album name";
 			}
-			if(!isValid(title, titlePattern)) {
+			if (!isValid(title, titlePattern)) {
 				return "Invalid album name format. Use letters, numbers, spaces, hyphens, or apostrophes (1-100 characters).";
 			}
 
@@ -302,7 +288,7 @@ public class NewSong extends HttpServlet {
 			if (artist == null || (artist = artist.strip()).isEmpty()) {
 				return "You have to specify the name of the artist";
 			}
-			if(!isValid(title, titlePattern)) {
+			if (!isValid(title, titlePattern)) {
 				return "Invalid artis name format. Use letters, numbers, spaces, hyphens, or apostrophes (1-100 characters).";
 			}
 
@@ -340,8 +326,8 @@ public class NewSong extends HttpServlet {
 
 		return null; // all good
 	}
-	
-	private static boolean isValid ( @NotNull String parameter, @NotNull Pattern pattern) {
+
+	private static boolean isValid(@NotNull String parameter, @NotNull Pattern pattern) {
 		if (!pattern.matcher(parameter).matches()) {
 			return false;
 		}

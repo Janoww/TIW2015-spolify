@@ -18,10 +18,8 @@ public class ConnectionHandler {
 	public static Connection getConnection(ServletContext context) throws UnavailableException {
 		DataSource dataSource = (DataSource) context.getAttribute("dataSource");
 		if (dataSource == null) {
-			logger.error(
-					"DataSource not found in ServletContext. Check AppContextListener configuration.");
-			throw new UnavailableException(
-					"DataSource not initialized. Check AppContextListener configuration.");
+			logger.error("DataSource not found in ServletContext. Check AppContextListener configuration.");
+			throw new UnavailableException("DataSource not initialized. Check AppContextListener configuration.");
 		}
 
 		Connection connection = null;
@@ -31,8 +29,7 @@ public class ConnectionHandler {
 			logger.debug("Successfully obtained connection from DataSource.");
 		} catch (SQLException e) {
 			logger.error("Error getting connection from DataSource pool.", e);
-			throw new UnavailableException(
-					"Couldn't get DB connection from pool: " + e.getMessage());
+			throw new UnavailableException("Couldn't get DB connection from pool: " + e.getMessage());
 		}
 		return connection;
 	}

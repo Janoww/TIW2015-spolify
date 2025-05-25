@@ -42,12 +42,10 @@ public class NewPlaylist extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException, ServletException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
-		
 
 		// Check Parameters
 
@@ -64,8 +62,8 @@ public class NewPlaylist extends HttpServlet {
 
 		String name = req.getParameter("pName").strip();
 
-		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect"))
-				.map(Integer::parseInt).collect(Collectors.toList());
+		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect")).map(Integer::parseInt)
+				.collect(Collectors.toList());
 
 		Playlist playlist;
 		try {
@@ -84,35 +82,30 @@ public class NewPlaylist extends HttpServlet {
 				playlistDAO.createPlaylist(name, userId, songIDs);
 			} catch (SQLException e) {
 				logger.error("Error in database: {}", e.getMessage(), e);
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-						"Error in the database");
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
 				return;
 			} catch (DAOException e) {
 				switch (e.getErrorType()) {
-					case NOT_FOUND: {
-						req.setAttribute("errorNewPlaylistMsg",
-								"One of the song you selected was not found");
-						req.getRequestDispatcher("/Home").forward(req, resp);
-						return;
-					}
-					case DUPLICATE_ENTRY: {
-						req.setAttribute("errorNewPlaylistMsg",
-								"You selected two times the same song");
-						req.getRequestDispatcher("/Home").forward(req, resp);
-						return;
-					}
-					default: {
-						logger.error("Error in database: {}", e.getMessage(), e);
-						resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-								"Error in the database");
-						return;
-					}
+				case NOT_FOUND: {
+					req.setAttribute("errorNewPlaylistMsg", "One of the song you selected was not found");
+					req.getRequestDispatcher("/Home").forward(req, resp);
+					return;
+				}
+				case DUPLICATE_ENTRY: {
+					req.setAttribute("errorNewPlaylistMsg", "You selected two times the same song");
+					req.getRequestDispatcher("/Home").forward(req, resp);
+					return;
+				}
+				default: {
+					logger.error("Error in database: {}", e.getMessage(), e);
+					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+					return;
+				}
 				}
 			}
 		} else {
 			// A playlist with that name already exist
-			req.setAttribute("errorNewPlaylistMsg",
-					"A playlist named \"" + name + "\" already exists");
+			req.setAttribute("errorNewPlaylistMsg", "A playlist named \"" + name + "\" already exists");
 			req.getRequestDispatcher("/Home").forward(req, resp);
 			return;
 		}
@@ -131,8 +124,8 @@ public class NewPlaylist extends HttpServlet {
 		}
 	}
 
-	private Playlist findPlaylistByName(PlaylistDAO dao, List<Integer> list, String name,
-			UUID userId) throws DAOException {
+	private Playlist findPlaylistByName(PlaylistDAO dao, List<Integer> list, String name, UUID userId)
+			throws DAOException {
 		for (int id : list) {
 			Playlist playlist = dao.findPlaylistById(id, userId);
 			if (playlist.getName().equalsIgnoreCase(name)) {
@@ -145,12 +138,12 @@ public class NewPlaylist extends HttpServlet {
 	private static String areParametersOk(HttpServletRequest req, ServletContext servletContext) {
 
 		Pattern titlePattern = (Pattern) servletContext.getAttribute(AppContextListener.TITLE_REGEX_PATTERN);
-		
+
 		String title = req.getParameter("pName");
 		if (title == null || (title = title.strip()).isEmpty()) {
 			return "You have to choose a name for the playlist";
 		}
-		if(!isValid(title, titlePattern)) {
+		if (!isValid(title, titlePattern)) {
 			return "Invalid title format. Use letters, numbers, spaces, hyphens, or apostrophes (1-100 characters).";
 		}
 
@@ -171,8 +164,8 @@ public class NewPlaylist extends HttpServlet {
 
 		return null;
 	}
-	
-	private static boolean isValid ( @NotNull String parameter, @NotNull Pattern pattern) {
+
+	private static boolean isValid(@NotNull String parameter, @NotNull Pattern pattern) {
 		if (!pattern.matcher(parameter).matches()) {
 			return false;
 		}

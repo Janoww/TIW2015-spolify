@@ -36,12 +36,10 @@ public class AppContextListener implements ServletContextListener {
     public static final String TITLE_REGEX_PATTERN = "TITLE_REGEX_PATTERN";
     public static final String PASSWORD_MIN_LENGTH = "PASSWORD_MIN_LENGTH";
     public static final String PASSWORD_MAX_LENGTH = "PASSWORD_MAX_LENGTH";
-    
-    
+
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
-       
 
         // Configure HikariCP
         HikariConfig config = new HikariConfig();
@@ -79,8 +77,7 @@ public class AppContextListener implements ServletContextListener {
         String homeDirectory = System.getProperty("user.home"); // Get user's home directory
         if (homeDirectory == null) {
             logger.error("!!! FAILED TO GET USER HOME DIRECTORY (user.home property) !!!");
-            throw new RuntimeException(
-                    "Could not determine user home directory for storage setup.");
+            throw new RuntimeException("Could not determine user home directory for storage setup.");
         }
         Path storageBasePath = Paths.get(homeDirectory, "Spolify");
         logger.info("Base storage path for DAOs set to: {}", storageBasePath);
@@ -97,14 +94,12 @@ public class AppContextListener implements ServletContextListener {
             logger.error("!!! FAILED TO INITIALIZE ImageDAO or AudioDAO !!!", e);
             throw new RuntimeException("Failed to initialize file storage DAOs", e);
         }
-        
 
         // Load and compile validation patterns
         loadAndStoreValidationPatterns(context);
 
     }
-    
-    
+
     private void loadAndStoreValidationPatterns(ServletContext context) {
         logger.info("Loading validation patterns from web.xml...");
 
@@ -139,19 +134,21 @@ public class AppContextListener implements ServletContextListener {
             logger.warn(
                     "Name regex pattern (regex.name) not found or empty in web.xml. Name/surname validation might be affected.");
         }
-        
+
         // Title Regex (for title of songs, albums and playlists)
         String titleRegexStr = context.getInitParameter("regex.title");
-        if(titleRegexStr != null && !titleRegexStr.isBlank()) {
-        	try {
-        		Pattern titlePattern = Pattern.compile(titleRegexStr);
-        		context.setAttribute(TITLE_REGEX_PATTERN, titlePattern);
-        		logger.info("Loaded and compiled title regex pattern: {}", titleRegexStr);
-        	} catch (PatternSyntaxException e) {
-        		logger.error("invelid regex syntax for title pattern (regex.title); '{}'. Error: {}", titleRegexStr, e.getMessage());
-        	}
+        if (titleRegexStr != null && !titleRegexStr.isBlank()) {
+            try {
+                Pattern titlePattern = Pattern.compile(titleRegexStr);
+                context.setAttribute(TITLE_REGEX_PATTERN, titlePattern);
+                logger.info("Loaded and compiled title regex pattern: {}", titleRegexStr);
+            } catch (PatternSyntaxException e) {
+                logger.error("invelid regex syntax for title pattern (regex.title); '{}'. Error: {}", titleRegexStr,
+                        e.getMessage());
+            }
         } else {
-        	logger.warn("Title regex pattern (regex.title) not found or empty in web.xml. Title valdation might be affected");
+            logger.warn(
+                    "Title regex pattern (regex.title) not found or empty in web.xml. Title valdation might be affected");
         }
 
         // Password Minimum Length
@@ -202,7 +199,6 @@ public class AppContextListener implements ServletContextListener {
 
         logger.info("Validation patterns loading complete.");
     }
-
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {

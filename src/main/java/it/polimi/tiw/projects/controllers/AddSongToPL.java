@@ -23,7 +23,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 
-
 public class AddSongToPL extends HttpServlet {
 	private static final Logger logger = LoggerFactory.getLogger(AddSongToPL.class);
 	private static final long serialVersionUID = 1L;
@@ -40,8 +39,7 @@ public class AddSongToPL extends HttpServlet {
 	}
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException, ServletException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 
@@ -57,8 +55,8 @@ public class AddSongToPL extends HttpServlet {
 
 		// Retrieve Parameters
 
-		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect"))
-				.map(Integer::parseInt).collect(Collectors.toList());
+		List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect")).map(Integer::parseInt)
+				.collect(Collectors.toList());
 		Integer playlistId = Integer.parseInt(req.getParameter("playlistId"));
 
 		try {
@@ -67,34 +65,33 @@ public class AddSongToPL extends HttpServlet {
 			}
 		} catch (DAOException e) {
 			switch (e.getErrorType()) {
-				case NOT_FOUND: {
-					req.setAttribute("errorAddSongMsg", e.getMessage());
-					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
-					return;
-				}
-				case ACCESS_DENIED: {
-					req.setAttribute("errorAddSongMsg", "The playlist was not fount");
-					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
-					return;
-				}
-				case DUPLICATE_ENTRY: {
-					req.setAttribute("errorAddSongMsg", e.getMessage());
-					req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
-					return;
-				}
-				default: {
-					logger.error("Unknown error", e);
-					resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-							"Error in the database");
-					return;
-				}
+			case NOT_FOUND: {
+				req.setAttribute("errorAddSongMsg", e.getMessage());
+				req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
+				return;
+			}
+			case ACCESS_DENIED: {
+				req.setAttribute("errorAddSongMsg", "The playlist was not fount");
+				req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
+				return;
+			}
+			case DUPLICATE_ENTRY: {
+				req.setAttribute("errorAddSongMsg", e.getMessage());
+				req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
+				return;
+			}
+			default: {
+				logger.error("Unknown error", e);
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+				return;
+			}
 			}
 		}
 
 		String path = getServletContext().getContextPath() + "/GetPlaylistDetails?playlistId=" + playlistId;
 		resp.sendRedirect(path);
 	}
-	
+
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
 		this.doPost(req, resp);
@@ -136,7 +133,7 @@ public class AddSongToPL extends HttpServlet {
 		} catch (NumberFormatException e) {
 			return "One or more selected songs have invalid IDs.";
 		}
-		
+
 		logger.info("All the parameters are valid");
 		return null;
 	}

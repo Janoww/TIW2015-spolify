@@ -6,44 +6,46 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title th:text="${swa.song.title}">Waka Waka</title>
 </head>
+
 <body>
 
-<div >
-	<a th:href="@{/GetPlaylistDetails(playlistId=${playlistId})}">Back</a>
-	<a th:href="@{/Home}">Home</a>
-	<a th:href=@{/Logout}>Logout</a>	
-</div>
+	<div>
+		<a th:href="@{/GetPlaylistDetails(playlistId=${playlistId})}">Back</a>
+		<a th:href="@{/Home}">Home</a>
+		<a th:href=@{/Logout}>Logout</a>
+	</div>
 
-<h1>Song details:</h1>
-		
-<table>
-	<thead>
-		<tr>
-			<th>Title</th>
-			<th>Singer</th>
-			<th>Album Title</th>
-			<th>Publication Year</th>
-			<th>Genre</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td><span th:text="${swa.song.title}"></span></td>
-			<td><span th:text="${swa.album.artist}"></span></td>
-			<td><span th:text="${swa.album.name}"></span></td>
-			<td><span th:text="${swa.album.year}"></span></td>
-			<td><span th:text="${swa.song.genre}"></span></td>
-		</tr>
-	</tbody>
-</table>
+	<h1>Song details:</h1>
 
-<div>
-	<img th:src="@{/GetImage(imageName=${swa.album.image})}" alt="Album Image" width="100" />
-</div>
+	<table>
+		<thead>
+			<tr>
+				<th>Title</th>
+				<th>Singer</th>
+				<th>Album Title</th>
+				<th>Publication Year</th>
+				<th>Genre</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><span th:text="${swa.song.title}"></span></td>
+				<td><span th:text="${swa.album.artist}"></span></td>
+				<td><span th:text="${swa.album.name}"></span></td>
+				<td><span th:text="${swa.album.year}"></span></td>
+				<td><span th:text="${swa.song.genre}"></span></td>
+			</tr>
+		</tbody>
+	</table>
 
-<div>
-<audio controls th:src="@{/GetSong(audioName=${swa.song.audioFile})}">Sorry your browser doesn't support embedded audio</audio>
-</div>
+	<div>
+		<img th:src="@{/GetImage(imageName=${swa.album.image})}" alt="Album Image" width="100" />
+	</div>
+
+	<div>
+		<audio controls th:src="@{/GetSong(audioName=${swa.song.audioFile})}">Sorry your browser doesn't support
+			embedded audio</audio>
+	</div>
 
 
 
@@ -52,4 +54,5 @@
 
 
 </body>
+
 </html>

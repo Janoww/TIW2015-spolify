@@ -16,13 +16,11 @@ public class TemplateHandler {
 		// In Thymeleaf 3.1+, they introduced a new, flexible abstraction layer for web
 		// environments called WebApplication, It wraps the standard ServletContext in a
 		// higher-level abstraction that Thymeleaf understands.
-		JakartaServletWebApplication webApplication =
-				JakartaServletWebApplication.buildApplication(context);
+		JakartaServletWebApplication webApplication = JakartaServletWebApplication.buildApplication(context);
 		// We pass the webApplication to new
 		// WebApplicationTemplateResolver(webApplication) so the template resolver knows
 		// how to find and load HTML templates from your deployed web app.
-		WebApplicationTemplateResolver templateResolver =
-				new WebApplicationTemplateResolver(webApplication);
+		WebApplicationTemplateResolver templateResolver = new WebApplicationTemplateResolver(webApplication);
 		// HTML is the default mode, but we will set it anyway for better understanding
 		// of code
 		templateResolver.setTemplateMode(TemplateMode.HTML);
@@ -35,11 +33,9 @@ public class TemplateHandler {
 		return templateEngine;
 	}
 
-	public static WebContext getWebContext(HttpServletRequest req, HttpServletResponse resp,
-			ServletContext context) {
+	public static WebContext getWebContext(HttpServletRequest req, HttpServletResponse resp, ServletContext context) {
 
-		JakartaServletWebApplication webApplication =
-				JakartaServletWebApplication.buildApplication(context);
+		JakartaServletWebApplication webApplication = JakartaServletWebApplication.buildApplication(context);
 
 		// Contexts should contain all the data required for an execution of the
 		// template engine in a variables map, and also reference the locale that must

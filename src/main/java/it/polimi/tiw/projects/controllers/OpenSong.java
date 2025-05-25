@@ -16,7 +16,6 @@ import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.beans.SongWithAlbum;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.AlbumDAO;
-import it.polimi.tiw.projects.dao.PlaylistDAO;
 import it.polimi.tiw.projects.dao.SongDAO;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
@@ -39,12 +38,12 @@ public class OpenSong extends HttpServlet {
 		connection = ConnectionHandler.getConnection(context);
 		templateEngine = TemplateHandler.initializeEngine(context);
 	}
-	
+
 	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException  {
+	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
 		SongDAO songDAO = new SongDAO(connection);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
-		
+
 		// If the user is not logged in (not present in session) redirect to the login
 		String loginPath = getServletContext().getContextPath() + "/index.html";
 		if (req.getSession().isNew() || req.getSession().getAttribute("user") == null) {
@@ -52,7 +51,7 @@ public class OpenSong extends HttpServlet {
 			return;
 		}
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
-		
+
 		// Get and check params
 		Integer playlistId = null;
 		Integer songId = null;
@@ -60,12 +59,11 @@ public class OpenSong extends HttpServlet {
 			playlistId = Integer.parseInt(req.getParameter("playlistId"));
 		} catch (NumberFormatException | NullPointerException e) {
 			logger.error("Error while parsing parameter playlistId: {}", e.getMessage());
-			req.setAttribute("errorOpeningPlaylist",
-					"The server doesn't recognise your playlist, retry!");
+			req.setAttribute("errorOpeningPlaylist", "The server doesn't recognise your playlist, retry!");
 			req.getRequestDispatcher("/Home").forward(req, resp);
 			return;
 		}
-		
+
 		try {
 			songId = Integer.parseInt(req.getParameter("songId"));
 		} catch (NumberFormatException | NullPointerException e) {
@@ -74,8 +72,8 @@ public class OpenSong extends HttpServlet {
 			req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
 			return;
 		}
-		
-		//Find song and album
+
+		// Find song and album
 		Song song;
 		Album album;
 		try {
@@ -83,23 +81,22 @@ public class OpenSong extends HttpServlet {
 			album = albumDAO.findAlbumById(song.getIdAlbum());
 		} catch (DAOException e) {
 			logger.error("DAO exception: {}", e.getMessage());
-			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-					"An internal error occurred"); 
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
 			return;
 		}
-		
+
 		SongWithAlbum swa = new SongWithAlbum(song, album);
-		
+
 		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
-		
+
 		ctx.setVariable("playlistId", playlistId);
 		ctx.setVariable("swa", swa);
-		
+
 		String path = "/WEB-INF/SongInspector.html";
 		templateEngine.process(path, ctx, resp.getWriter());
-		
+
 	}
-	
+
 	@Override
 	public void destroy() {
 		try {

@@ -52,7 +52,6 @@ public class GoToHome extends HttpServlet {
 		SongDAO songDAO = new SongDAO(connection);
 
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
-	
 
 		List<Integer> playlistIDs = null;
 		List<Song> songList = null;
@@ -69,7 +68,7 @@ public class GoToHome extends HttpServlet {
 		}
 
 		// Get the list of all playlists
-		
+
 		List<Playlist> playlists = null;
 		if (playlistIDs != null && !playlistIDs.isEmpty()) {
 			playlists = playlistIDs.stream().map(id -> {
@@ -79,10 +78,7 @@ public class GoToHome extends HttpServlet {
 					logger.error(e.getMessage(), e);
 					return null;
 				}
-			})
-			.filter(Objects::nonNull)
-			.sorted(Comparator.comparing(Playlist::getBirthday).reversed())
-			.toList();
+			}).filter(Objects::nonNull).sorted(Comparator.comparing(Playlist::getBirthday).reversed()).toList();
 		}
 
 		WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());

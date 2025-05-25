@@ -4,7 +4,7 @@
   xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
   version="6.0">
   <display-name>Spolify</display-name>
-  
+
   <!-- Parameters -->
   <context-param>
     <param-name>dbUrl</param-name>
@@ -93,57 +93,57 @@
   </servlet-mapping>
 
   <servlet>
-	 <servlet-name>AudioGetter</servlet-name>
-	 <servlet-class>it.polimi.tiw.projects.controllers.AudioGetter</servlet-class>
+    <servlet-name>AudioGetter</servlet-name>
+    <servlet-class>it.polimi.tiw.projects.controllers.AudioGetter</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>AudioGetter</servlet-name>
     <url-pattern>/GetSong</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
-	 <servlet-name>ImageGetter</servlet-name>
-	 <servlet-class>it.polimi.tiw.projects.controllers.ImageGetter</servlet-class>
+    <servlet-name>ImageGetter</servlet-name>
+    <servlet-class>it.polimi.tiw.projects.controllers.ImageGetter</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ImageGetter</servlet-name>
     <url-pattern>/GetImage</url-pattern>
   </servlet-mapping>
- 
+
   <servlet>
-	 <servlet-name>OpenSong</servlet-name>
-	 <servlet-class>it.polimi.tiw.projects.controllers.OpenSong</servlet-class>
+    <servlet-name>OpenSong</servlet-name>
+    <servlet-class>it.polimi.tiw.projects.controllers.OpenSong</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>OpenSong</servlet-name>
     <url-pattern>/OpenSong</url-pattern>
   </servlet-mapping>
-  
-    <servlet>
-	 <servlet-name>Logout</servlet-name>
-	 <servlet-class>it.polimi.tiw.projects.controllers.Logout</servlet-class>
+
+  <servlet>
+    <servlet-name>Logout</servlet-name>
+    <servlet-class>it.polimi.tiw.projects.controllers.Logout</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>Logout</servlet-name>
     <url-pattern>/Logout</url-pattern>
   </servlet-mapping>
-  
+
   <!-- Filters -->
 
   <filter>
-  	<filter-name>Checker</filter-name>
-  	<filter-class>it.polimi.tiw.projects.filters.Checker</filter-class>
+    <filter-name>Checker</filter-name>
+    <filter-class>it.polimi.tiw.projects.filters.Checker</filter-class>
   </filter>
   <filter-mapping>
-        <filter-name>Checker</filter-name>
-        <url-pattern>/Home</url-pattern>
-        <url-pattern>/NewSong</url-pattern>
-        <url-pattern>/NewPlaylist</url-pattern>
-        <url-pattern>/GetPlaylistDetails</url-pattern>
-        <url-pattern>/AddSongToPL</url-pattern>
-        <url-pattern>/GetSong</url-pattern>
-   		<url-pattern>/GetImage</url-pattern>
-    	<url-pattern>/OpenSong</url-pattern>
+    <filter-name>Checker</filter-name>
+    <url-pattern>/Home</url-pattern>
+    <url-pattern>/NewSong</url-pattern>
+    <url-pattern>/NewPlaylist</url-pattern>
+    <url-pattern>/GetPlaylistDetails</url-pattern>
+    <url-pattern>/AddSongToPL</url-pattern>
+    <url-pattern>/GetSong</url-pattern>
+    <url-pattern>/GetImage</url-pattern>
+    <url-pattern>/OpenSong</url-pattern>
   </filter-mapping>
 
   <!-- Exception handling -->
@@ -151,7 +151,7 @@
     <exception-type>java.lang.Throwable</exception-type>
     <location>/errorPages/500.html</location>
   </error-page>
-  
+
   <!-- Validation Parameters -->
   <context-param>
     <param-name>regex.username</param-name>
@@ -173,8 +173,8 @@
     <param-name>regex.title</param-name>
     <param-value>^[a-zA-Z0-9\s'-_]{1,100}$</param-value>
   </context-param>
-  
-  
+
+
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>

@@ -38,38 +38,38 @@ public class AudioGetter extends HttpServlet {
 		ServletContext context = getServletContext();
 		connection = ConnectionHandler.getConnection(context);
 	}
-	
+
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		AudioDAO audioDAO = (AudioDAO) getServletContext().getAttribute("audioDAO");
 		SongDAO songDAO = new SongDAO(connection);
 
 		UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
-		
+
 		String audioName = req.getParameter("audioName");
-		
-		//Check Parameter, if the image is not fount nothing happen
+
+		// Check Parameter, if the image is not fount nothing happen
 		if (audioName == null || audioName.isEmpty()) {
 			logger.warn("audioName is Empty or null");
 			return;
 		}
-		
-		
+
 		try {
 			List<String> userSongs = songDAO.findSongsByUser(userId).stream().map(Song::getAudioFile).toList();
-			
+
 			if (!userSongs.stream().anyMatch(img -> img.equals(audioName))) {
 				return;
-			}	
-			
-			//TODO if we could add a method in SongDAO "boolean userOwnsAudio(UUID userId, String audoName);" it would be an optimized query
+			}
+
+			// TODO if we could add a method in SongDAO "boolean userOwnsAudio(UUID userId,
+			// String audoName);" it would be an optimized query
 		} catch (DAOException e) {
 			logger.error("Database error {}", e.getMessage(), e);
 		}
-		
+
 		FileData audioFileData = null;
 		try {
-			audioFileData=audioDAO.getAudio(audioName);
+			audioFileData = audioDAO.getAudio(audioName);
 		} catch (IllegalArgumentException e) {
 			logger.error("Filename {} is invalid, {}", audioName, e.getMessage());
 			return;
@@ -77,41 +77,44 @@ public class AudioGetter extends HttpServlet {
 			logger.error("The file is not found, cannot be accessed, or an I/O error occurs");
 			return;
 		}
-		
+
 		if (audioFileData == null || audioFileData.getContent() == null) {
 			logger.warn("The audio file is null or empty");
 			return;
 		}
 		logger.info("Retrieved the audioFileData for audio {}: ", audioFileData.getFilename());
-		
-		//Set headers for browsers
+
+		// Set headers for browsers
 		resp.setContentType(audioFileData.getMimeType());
 		resp.setContentLengthLong(audioFileData.getSize());
-		//inline     -> the user will watch the image immediately
-		//attachment -> the user has to do something to watch the image
-		//filename   -> used to indicate a fileName if the user wants to save the file
+		// inline -> the user will watch the image immediately
+		// attachment -> the user has to do something to watch the image
+		// filename -> used to indicate a fileName if the user wants to save the file
 		resp.setHeader("Content-Disposition", "inline; filename=\"" + audioFileData.getFilename() + "\"");
 
-		
-        // Disable caching
+		// Disable caching
 		resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        resp.setDateHeader("Expires", 0);
-        
-        // We will read the image inputStream in chunks and write it to the response output stream
-        // The try-with-resources will automatically flush and close the output stream when done
-        try (ServletOutputStream out = resp.getOutputStream()) {
-            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-            int bytesRead;
-            
-            // Read bytes from the image input stream into the buffer until the end of the stream (-1)
-            while ((bytesRead = audioFileData.getContent().read(buffer)) != -1) {
-                // Write the buffered bytes to the response output stream, sending them to the client
-                out.write(buffer, 0, bytesRead);
-            }
-        }
+		resp.setDateHeader("Expires", 0);
+
+		// We will read the image inputStream in chunks and write it to the response
+		// output stream
+		// The try-with-resources will automatically flush and close the output stream
+		// when done
+		try (ServletOutputStream out = resp.getOutputStream()) {
+			byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+			int bytesRead;
+
+			// Read bytes from the image input stream into the buffer until the end of the
+			// stream (-1)
+			while ((bytesRead = audioFileData.getContent().read(buffer)) != -1) {
+				// Write the buffered bytes to the response output stream, sending them to the
+				// client
+				out.write(buffer, 0, bytesRead);
+			}
+		}
 
 	}
-	
+
 	@Override
 	public void destroy() {
 		try {
@@ -120,8 +123,5 @@ public class AudioGetter extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
-		
-}
-	
-	
 
+}
