@@ -1,6 +1,12 @@
 import { renderHomeView, renderPlaylists, renderSongs, renderSongUploadSection } from "../views/homeView.js";
 import { renderSongsView, renderSongUploadSectionOnSongsPage, renderAllUserSongsList } from "../views/songsView.js";
 
+
+function validateForm(formId, fieldIds){
+	//TODO
+	return true;
+}
+
 /**
  * 
  * @param {HTMLElement} appContainer
@@ -43,6 +49,104 @@ export async function initHomePage(appContainer) {
 	} catch (error) {
 		console.error("Error loading or rendering songs for playlist creation:", error);
 	}
+	
+	//events
+
+	const newSongForm = document.getElementById('add-song-form-home');
+	const newPlaylistForm = document.getElementById('crate-playlist-form');
+
+	if (newPlaylistForm){
+		newPlaylistForm.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			const fieldIds = ['new-playlist-title'];
+			const selectedCheckboxes = document.querySelectorAll('input[name="selected-songs"]:checked');
+			
+			if(validateForm('create-playlist-form', fieldIds) && selectedCheckboxes.length > 0){
+				const form = event.target;
+				
+				const plName = form['new-playlist-title'].value;
+				const songIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
+				
+				const payload = {
+					name,
+					songIds
+				};
+				
+				try {
+					const res = await fetch('api/v1/playlists', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(payload)
+					});
+
+					const data = await res.json();
+					
+					if (res.ok) {
+						console.log("Playlist created:", result);
+						//TODO update playlist lits
+					} else {
+						console.error('Playlist creation failed failed:', data.error || response.statusText);
+						//TODO handle errors
+					}
+				} catch (err) {
+					console.error("Error while creating playlist:", err);
+					//TODO handle errors
+				}				
+			} else {
+				console.log('NewPlaylist form has errors.');
+				//TODO handle errors
+			}
+		})
+	}
+
+	if (newSongForm){
+		newSongForm.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			const fieldIds = ['song-title', 'album-title', 'album-artist', 'album-year', 'album-image', 'song-genre', 'song-audio'];
+			if (validateForm('add-song-form-home', fieldIds)){
+				const form = event.target;
+				const formData = new FormData();
+
+				// Text fields
+				formData.append('title', form['song-title'].value);
+				formData.append('albumTitle', form['album-title'].value);
+				formData.append('albumArtist', form['album-artist'].value);
+				formData.append('albumYear', form['album-year'].value);
+				formData.append('genre', form['song-genre'].value);
+
+				// File fields
+				formData.append('albumImage', form['album-image'].files[0]);
+				formData.append('audioFile', form['song-audio'].files[0]);
+				
+				// Submit via fetch
+				try {
+					const response = await fetch('api/v1/songs', {
+						method: 'POST',
+						body: formData,
+					});
+					
+					const data = await response.json();
+					
+					if (response.ok) {
+						console.log('Upload successful');
+						// TODO update song list
+					} else {
+						console.error('Upload failed:', data.error || response.statusText);
+						// TODO handle error messages
+					}
+				} catch (err) {
+					console.error('Error during upload:', err);
+					
+					// TODO handle general error
+				}
+			} else {
+				console.log('NewSong form has errors.');
+				// TODO handle general error
+			}
+		})
+	}	
 }
 
 export async function initSongPage(appContainer) {
@@ -80,6 +184,7 @@ export async function initSongPage(appContainer) {
 		songsError = error;
 	}
 	renderAllUserSongsList(songListContainer, allUserSongs, songsError);
+
 }
 
 async function loadPlaylists() {
