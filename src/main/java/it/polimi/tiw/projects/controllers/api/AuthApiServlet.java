@@ -77,15 +77,13 @@ public class AuthApiServlet extends HttpServlet {
         logger.info("Received GET request. Path: '{}', Route: {}", (pathInfo != null ? pathInfo : "null or empty"),
                 route);
 
-        switch (route) {
-        case CHECK_SESSION:
-            handleCheckSession(req, resp);
-            break;
-        default:
+        if (route != AuthRoute.CHECK_SESSION) {
             logger.warn("Invalid path for GET request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
             ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
-            break;
+            return;
         }
+
+        handleCheckSession(req, resp);
     }
 
     @Override
@@ -109,7 +107,7 @@ public class AuthApiServlet extends HttpServlet {
         }
     }
 
-    private void handleLogin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private void handleLogin(HttpServletRequest req, HttpServletResponse resp) {
         logger.debug("Handling login request.");
         UserDAO userDAO = new UserDAO(connection);
         LoginRequest loginDetails;
@@ -120,9 +118,13 @@ public class AuthApiServlet extends HttpServlet {
             logger.warn("Failed to parse JSON request body for login: {}", e.getMessage());
             ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON format or missing fields.");
             return;
+        } catch (IOException e) {
+            logger.warn("Failed to read request body for login: {}", e.getMessage());
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error reading request data.");
+            return;
         }
 
-        String username = loginDetails.getUsername() != null ? loginDetails.getUsername().strip() : null;
+        String username = loginDetails.getUsername();
         String password = loginDetails.getPassword();
 
         // OWASP: Input Validation - Username and Password presence
@@ -133,41 +135,15 @@ public class AuthApiServlet extends HttpServlet {
             return;
         }
 
-        ServletContext servletContext = getServletContext();
-        Pattern usernamePattern = (Pattern) servletContext.getAttribute(AppContextListener.USERNAME_REGEX_PATTERN);
-        Integer passwordMinLength = (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MIN_LENGTH);
-        Integer passwordMaxLength = (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MAX_LENGTH);
+        username = username.strip();
 
-        // Check for missing servlet context parameters
-        if (usernamePattern == null || passwordMinLength == null || passwordMaxLength == null) {
-            logger.error(
-                    "CRITICAL: One or more servlet context validation parameters are null. usernamePattern: {}, passwordMinLength: {}, passwordMaxLength: {}. Aborting login.",
-                    usernamePattern, passwordMinLength, passwordMaxLength);
-            ResponseUtils.sendServiceUnavailableError(resp, "Server configuration error preventing login validation.");
+        try {
+            validateLoginCredentials(req, username, password);
+        } catch (IllegalArgumentException e) {
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
             return;
-        }
-
-        // Username format
-        if (!usernamePattern.matcher(username).matches()) {
-            logger.warn("Login attempt with invalid username format (context-configured regex): {}", username);
-            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid username format.");
-            return;
-        }
-
-        // Password minimum length
-        if (password.length() < passwordMinLength) {
-            logger.warn("Login attempt with password too short (context-configured min length: {}) for username: {}",
-                    passwordMinLength, username);
-            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
-                    "Password must be at least " + passwordMinLength + " characters long.");
-            return;
-        }
-        // Password maximum length
-        if (password.length() > passwordMaxLength) {
-            logger.warn("Login attempt with password too long (context-configured max length: {}) for username: {}",
-                    passwordMaxLength, username);
-            ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
-                    "Password must be at most " + passwordMaxLength + " characters long.");
+        } catch (IllegalStateException e) {
+            ResponseUtils.sendServiceUnavailableError(resp, e.getMessage());
             return;
         }
 
@@ -209,7 +185,43 @@ public class AuthApiServlet extends HttpServlet {
         logger.debug("Successfully sent OK response with user details for user: {}", user.getUsername());
     }
 
-    private void handleCheckSession(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private void validateLoginCredentials(HttpServletRequest req, String username, String password)
+            throws IllegalArgumentException, IllegalStateException {
+        ServletContext servletContext = req.getServletContext();
+        Pattern usernamePattern = (Pattern) servletContext.getAttribute(AppContextListener.USERNAME_REGEX_PATTERN);
+        Integer passwordMinLength = (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MIN_LENGTH);
+        Integer passwordMaxLength = (Integer) servletContext.getAttribute(AppContextListener.PASSWORD_MAX_LENGTH);
+
+        // Check for missing servlet context parameters
+        if (usernamePattern == null || passwordMinLength == null || passwordMaxLength == null) {
+            logger.error(
+                    "CRITICAL: One or more servlet context validation parameters are null. usernamePattern: {}, passwordMinLength: {}, passwordMaxLength: {}. Aborting login.",
+                    usernamePattern, passwordMinLength, passwordMaxLength);
+            throw new IllegalStateException("Server configuration error preventing login validation.");
+        }
+
+        // Username format
+        if (!usernamePattern.matcher(username).matches()) {
+            logger.warn("Login attempt with invalid username format (context-configured regex): {}", username);
+            throw new IllegalArgumentException("Invalid username format.");
+        }
+
+        // Password minimum length
+        if (password.length() < passwordMinLength) {
+            logger.warn("Login attempt with password too short (context-configured min length: {}) for username: {}",
+                    passwordMinLength, username);
+            throw new IllegalArgumentException("Password must be at least " + passwordMinLength + " characters long.");
+        }
+
+        // Password maximum length
+        if (password.length() > passwordMaxLength) {
+            logger.warn("Login attempt with password too long (context-configured max length: {}) for username: {}",
+                    passwordMaxLength, username);
+            throw new IllegalArgumentException("Password must be at most " + passwordMaxLength + " characters long.");
+        }
+    }
+
+    private void handleCheckSession(HttpServletRequest req, HttpServletResponse resp) {
         logger.debug("Handling check session request (/me).");
         HttpSession session = req.getSession(false);
 
@@ -239,7 +251,7 @@ public class AuthApiServlet extends HttpServlet {
         logger.debug("Sent UNAUTHORIZED response for /me request.");
     }
 
-    private void handleLogout(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private void handleLogout(HttpServletRequest req, HttpServletResponse resp) {
         logger.debug("Handling logout request.");
         HttpSession session = req.getSession(false);
         if (session != null) {
