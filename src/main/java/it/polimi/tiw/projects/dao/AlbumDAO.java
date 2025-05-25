@@ -233,8 +233,59 @@ public class AlbumDAO {
 		// Build the query dynamically
 		StringBuilder queryBuilder = new StringBuilder("UPDATE Album SET ");
 		List<Object> params = new ArrayList<>();
-		boolean firstField = true;
 
+		appendUpdateFields(name, year, artist, image, queryBuilder, params);
+
+		// Check if any field was actually added for update
+		if (params.isEmpty()) {
+			logger.warn("Update attempt for album ID {} failed: No fields provided for update.", idAlbum);
+			throw new IllegalArgumentException("No fields provided for update.");
+		}
+
+		// Add authorization check
+		queryBuilder.append(" WHERE idAlbum = ? AND idUser = UUID_TO_BIN(?)");
+		params.add(idAlbum);
+		params.add(userId.toString());
+
+		String query = queryBuilder.toString();
+
+		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
+			// Set parameters dynamically
+			for (int i = 0; i < params.size(); i++) {
+				Object param = params.get(i);
+				if (param instanceof String string) {
+					pStatement.setString(i + 1, string);
+				} else if (param instanceof Integer integer) {
+					pStatement.setInt(i + 1, integer);
+				}
+			}
+
+			int affectedRows = pStatement.executeUpdate();
+			if (affectedRows == 0) {
+				logger.warn("Update failed for album ID {}: Not found or user {} not authorized.", idAlbum, userId);
+				throw new DAOException("Album with ID " + idAlbum + " not found for update or user not authorized.",
+						DAOException.DAOErrorType.NOT_FOUND);
+			}
+			logger.info("Album ID {} updated successfully by user {}", idAlbum, userId);
+		} catch (SQLException e) {
+			if ("23000".equals(e.getSQLState()) && name != null) {
+				logger.warn(
+						"Attempt to update album ID {} with existing name for user {}: name={}, userId={}. Details: {}",
+						idAlbum, userId, name, userId, e.getMessage());
+				throw new DAOException("Album name '" + name + "' already exists for this user.", e,
+						DAOException.DAOErrorType.NAME_ALREADY_EXISTS);
+			} else {
+				logger.error("SQL error updating album ID {} for user {}: SQLState={}, Message={}", idAlbum, userId,
+						e.getSQLState(), e.getMessage(), e);
+				throw new DAOException("Error updating album: " + e.getMessage(), e,
+						DAOException.DAOErrorType.GENERIC_ERROR);
+			}
+		}
+	}
+
+	private void appendUpdateFields(String name, Integer year, String artist, String image, StringBuilder queryBuilder,
+			List<Object> params) {
+		boolean firstField = true;
 		if (name != null) {
 			queryBuilder.append("name = ?");
 			params.add(name);
@@ -259,60 +310,6 @@ public class AlbumDAO {
 				queryBuilder.append(", ");
 			queryBuilder.append("image = ?");
 			params.add(image);
-			firstField = false;
-		}
-
-		// Check if any field was actually added for update
-		if (params.isEmpty()) {
-			logger.warn("Update attempt for album ID {} failed: No fields provided for update.", idAlbum);
-			throw new IllegalArgumentException("No fields provided for update.");
-		}
-
-		// Add authorization check
-		queryBuilder.append(" WHERE idAlbum = ? AND idUser = UUID_TO_BIN(?)");
-		params.add(idAlbum);
-		params.add(userId.toString());
-
-		String query = queryBuilder.toString();
-
-		try (PreparedStatement pStatement = connection.prepareStatement(query)) {
-			// Set parameters dynamically
-			for (int i = 0; i < params.size(); i++) {
-				Object param = params.get(i);
-				if (param instanceof String string) {
-					pStatement.setString(i + 1, string);
-				} else if (param instanceof Integer integer) {
-					pStatement.setInt(i + 1, integer);
-				}
-				// * Note: We don't handle setNull here because the update logic only adds
-				// * non-null parameters to the list. If a user wants to set image to NULL,
-				// * they would need a different mechanism or a specific value indicating NULL.
-				// * For now, this update only sets non-null values.
-			}
-
-			int affectedRows = pStatement.executeUpdate();
-			if (affectedRows == 0) {
-				logger.warn("Update failed for album ID {}: Not found or user {} not authorized.", idAlbum, userId);
-				// We throw NOT_FOUND here, but it could also be ACCESS_DENIED. The DB doesn't
-				// distinguish.
-				throw new DAOException("Album with ID " + idAlbum + " not found for update or user not authorized.",
-						DAOException.DAOErrorType.NOT_FOUND);
-			}
-			logger.info("Album ID {} updated successfully by user {}", idAlbum, userId);
-			// No return value needed, success is indicated by lack of exception
-		} catch (SQLException e) {
-			if ("23000".equals(e.getSQLState()) && name != null) {
-				logger.warn(
-						"Attempt to update album ID {} with existing name for user {}: name={}, userId={}. Details: {}",
-						idAlbum, userId, name, userId, e.getMessage());
-				throw new DAOException("Album name '" + name + "' already exists for this user.", e,
-						DAOException.DAOErrorType.NAME_ALREADY_EXISTS);
-			} else { // GENERIC_ERROR
-				logger.error("SQL error updating album ID {} for user {}: SQLState={}, Message={}", idAlbum, userId,
-						e.getSQLState(), e.getMessage(), e);
-				throw new DAOException("Error updating album: " + e.getMessage(), e,
-						DAOException.DAOErrorType.GENERIC_ERROR);
-			}
 		}
 	}
 

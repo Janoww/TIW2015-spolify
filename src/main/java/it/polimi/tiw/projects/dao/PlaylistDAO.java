@@ -106,16 +106,20 @@ public class PlaylistDAO {
 			throw translateCreatePlaylistSQLException(e, name, idUser, newPlaylistId);
 
 		} finally {
-			if (connection != null) {
-				try {
-					connection.setAutoCommit(previousAutoCommit);
-				} catch (SQLException e) {
-					logger.error("Failed to restore auto-commit state after playlist creation attempt: {}",
-							e.getMessage(), e);
-				}
-			}
+			restoreAutoCommitState(previousAutoCommit);
 		}
 		return this.findPlaylistById(newPlaylistId, idUser);
+	}
+
+	private void restoreAutoCommitState(boolean previousAutoCommit) {
+		if (connection != null) {
+			try {
+				connection.setAutoCommit(previousAutoCommit);
+			} catch (SQLException e) {
+				logger.error("Failed to restore auto-commit state after playlist creation attempt: {}", e.getMessage(),
+						e);
+			}
+		}
 	}
 
 	// --- Helper methods for createPlaylist ---
@@ -691,8 +695,7 @@ public class PlaylistDAO {
 		AddSongsToPlaylistResult result = new AddSongsToPlaylistResult();
 		boolean previousAutoCommit = false;
 
-		// Initial verification of playlist accessibility. If this fails, no transaction
-		// needed yet.
+		// Initial verification of playlist accessibility.
 		try {
 			verifyPlaylistAccessible(playlistId, userId);
 		} catch (SQLException e) {
@@ -705,31 +708,7 @@ public class PlaylistDAO {
 			previousAutoCommit = connection.getAutoCommit();
 			connection.setAutoCommit(false);
 
-			for (Integer songId : songIdsToAdd) {
-				if (songId == null) {
-					logger.warn("Null song ID provided in list for playlist {}, user {}", playlistId, userId);
-					throw new DAOException("Null song ID provided in the list.", DAOErrorType.CONSTRAINT_VIOLATION); // This
-																														// will
-																														// cause
-																														// rollback
-				}
-				try {
-					this.addSongToPlaylist(playlistId, userId, songId);
-					result.addSuccessfullyAddedSong(songId);
-					logger.debug("Successfully processed (and added if new) song ID {} for playlist {}.", songId,
-							playlistId);
-				} catch (DAOException e) {
-					if (e.getErrorType() == DAOErrorType.DUPLICATE_ENTRY) {
-						result.addDuplicateSong(songId);
-						logger.debug("Song ID {} is already in playlist {}, marked as duplicate.", songId, playlistId);
-					} else {
-						logger.warn(
-								"DAOException while processing song ID {} for playlist {}: {}. Transaction will be rolled back.",
-								songId, playlistId, e.getMessage());
-						throw e;
-					}
-				}
-			}
+			handleSongAddition(playlistId, userId, songIdsToAdd, result);
 
 			connection.commit();
 			logger.info("Transaction committed for adding songs to playlist {}. Added: {}, Duplicates: {}", playlistId,
@@ -767,5 +746,31 @@ public class PlaylistDAO {
 			}
 		}
 		return result;
+	}
+
+	private void handleSongAddition(int playlistId, UUID userId, List<Integer> songIdsToAdd,
+			AddSongsToPlaylistResult result) throws DAOException {
+		for (Integer songId : songIdsToAdd) {
+			if (songId == null) {
+				logger.warn("Null song ID provided in list for playlist {}, user {}", playlistId, userId);
+				throw new DAOException("Null song ID provided in the list.", DAOErrorType.CONSTRAINT_VIOLATION);
+			}
+			try {
+				this.addSongToPlaylist(playlistId, userId, songId);
+				result.addSuccessfullyAddedSong(songId);
+				logger.debug("Successfully processed (and added if new) song ID {} for playlist {}.", songId,
+						playlistId);
+			} catch (DAOException e) {
+				if (e.getErrorType() == DAOErrorType.DUPLICATE_ENTRY) {
+					result.addDuplicateSong(songId);
+					logger.debug("Song ID {} is already in playlist {}, marked as duplicate.", songId, playlistId);
+				} else {
+					logger.warn(
+							"DAOException while processing song ID {} for playlist {}: {}. Transaction will be rolled back.",
+							songId, playlistId, e.getMessage());
+					throw e;
+				}
+			}
+		}
 	}
 }
