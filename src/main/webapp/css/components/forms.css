@@ -23,11 +23,11 @@ form {
   width: 10vw;
   height: 2vh;
   border-radius: 12px;
-  padding: 5px;
-  padding-bottom: 10px;
+  padding: 3px;
   border: 1px solid #d4bee4;
   color: #9b7ebd;
   background-color: #eeeeee;
+  margin: 5px;
 }
 
 .form-field input:hover {
@@ -42,6 +42,8 @@ form {
   border-radius: 12px;
   border: 1px solid #d4bee4;
   color: #9b7ebd;
+  padding: 5px;
+  margin: 5px;
 }
 
 .form-field select:hover {
