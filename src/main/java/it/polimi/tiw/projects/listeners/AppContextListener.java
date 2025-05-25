@@ -146,8 +146,7 @@ public class AppContextListener implements ServletContextListener {
                         valueStr, e.getMessage());
             }
         } else {
-            logger.warn("{} ({}) not found or empty in web.xml. Validation for {} might be affected.",
-                    valueDescriptionForLogs, paramName, valueDescriptionForLogs.toLowerCase());
+            logger.warn("{} ({}) not found or empty in web.xml.", valueDescriptionForLogs, paramName);
         }
     }
 
