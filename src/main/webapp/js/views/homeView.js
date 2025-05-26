@@ -54,7 +54,7 @@ function createPlaylistArticle(playlist) {
 
 
 // Helper function to create a song element
-function createSongArticle(songWithAlbum){
+function createSongArticle(songWithAlbum) {
 	const article = document.createElement('article');
 	article.className = 'song-item';
 
@@ -69,11 +69,11 @@ function createSongArticle(songWithAlbum){
 
 	//TODO image
 	const img = document.createElement('img');
-	
+
 	img.src = `api/v1/songs/${songWithAlbum.song.idSong}/image`;
 	img.alt = songWithAlbum.song.title || "Song cover";
 	img.onerror = () => {
-	  img.src = 'images/image_placeholder.png';
+		img.src = 'images/image_placeholder.png';
 	};
 
 
@@ -93,10 +93,10 @@ function createSongArticle(songWithAlbum){
 
 // Function that adds the songs to the song list
 
-export function renderSongs(appContainer, songWithAlbums){	
+export function renderSongs(appContainer, songWithAlbums) {
 	const songListDiv = appContainer.querySelector('.song-list');
-	
-	if(songWithAlbums){
+
+	if (songWithAlbums) {
 		songWithAlbums.forEach(swa => {
 			const article = createSongArticle(swa);
 			songListDiv.appendChild(article);
