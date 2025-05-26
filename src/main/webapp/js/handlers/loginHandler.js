@@ -1,5 +1,6 @@
 import { renderLoginView, renderSignupView } from "../views/loginView.js";
 import { initHomePage } from "./homeHandler.js";
+import { login as apiLogin, signup as apiSignup, logout as apiLogout } from '../apiService.js';
 
 // Helper function to validate a single form field
 function validateField(inputElement, errorElementId) {
@@ -49,36 +50,17 @@ function displayLogin(appContainer) {
                 const password = event.target.password.value;
 
                 try {
-                    const response = await fetch('api/v1/auth/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ username, password })
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        console.log('Login successful:', data);
-                        sessionStorage.setItem('currentUser', JSON.stringify(data));
-                        initHomePage(appContainer);
-                    } else {
-                        console.error('Login failed:', data.error || response.statusText);
-                        const generalErrorElement = document.getElementById('login-general-error');
-                        if (generalErrorElement) {
-                            generalErrorElement.textContent = data.error || `Login failed: ${response.statusText}`;
-                        } else {
-                            alert(`Login failed: ${data.error || response.statusText}`);
-                        }
-                    }
+                    const userData = await apiLogin({ username, password });
+                    console.log('Login successful:', userData);
+                    sessionStorage.setItem('currentUser', JSON.stringify(userData));
+                    initHomePage(appContainer);
                 } catch (error) {
-                    console.error('Error during login:', error);
+                    console.error(`Login failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
                     const generalErrorElement = document.getElementById('login-general-error');
                     if (generalErrorElement) {
-                        generalErrorElement.textContent = 'An unexpected error occurred. Please try again.';
+                        generalErrorElement.textContent = error.message || 'An unexpected error occurred. Please try again.';
                     } else {
-                        alert('An unexpected error occurred during login. Please try again.');
+                        alert(error.message || 'An unexpected error occurred during login. Please try again.');
                     }
                 }
             } else {
@@ -112,36 +94,17 @@ function displaySignup(appContainer) {
                 const password = event.target.signupPassword.value;
 
                 try {
-                    const response = await fetch('api/v1/users', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ username, name, surname, password })
-                    });
-
-                    const data = await response.json();
-
-                    if (response.status === 201) {
-                        console.log('Signup successful:', data);
-                        alert('Signup successful! User: ' + data.username + '. Please log in.');
-                        displayLogin(appContainer);
-                    } else {
-                        console.error('Signup failed:', data.error || response.statusText);
-                        const generalErrorElement = document.getElementById('signup-general-error');
-                        if (generalErrorElement) {
-                            generalErrorElement.textContent = data.error || `Signup failed: ${response.statusText}`;
-                        } else {
-                            alert(`Signup failed: ${data.error || response.statusText}`);
-                        }
-                    }
+                    const newUserData = await apiSignup({ username, name, surname, password });
+                    console.log('Signup successful:', newUserData);
+                    alert('Signup successful! User: ' + newUserData.username + '. Please log in.');
+                    displayLogin(appContainer);
                 } catch (error) {
-                    console.error('Error during signup:', error);
+                    console.error(`Signup failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
                     const generalErrorElement = document.getElementById('signup-general-error');
                     if (generalErrorElement) {
-                        generalErrorElement.textContent = 'An unexpected error occurred. Please try again.';
+                        generalErrorElement.textContent = error.message || 'An unexpected error occurred. Please try again.';
                     } else {
-                        alert('An unexpected error occurred during signup. Please try again.');
+                        alert(error.message || 'An unexpected error occurred during signup. Please try again.');
                     }
                 }
             } else {
@@ -180,22 +143,14 @@ export function initLoginPage(appContainer) {
 export async function logoutUser(appContainer) {
     console.log("Attempting to logout user...");
     try {
-        const response = await fetch('api/v1/auth/logout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            console.log('Logout successful:', data.message);
+        const result = await apiLogout();
+        if (typeof result === 'object' && result.message) {
+            console.log('Logout successful:', result.message);
         } else {
-            console.warn('Logout request failed on server:', data.error || response.statusText);
+            console.log('Logout successful (non-JSON or unexpected response):', result);
         }
     } catch (error) {
-        console.error('Error during logout fetch:', error);
+        console.warn(`Logout request failed on server: Status ${error.status}, Message: ${error.message}`, error.details || '');
     } finally {
         sessionStorage.removeItem('currentUser');
         console.log('Client-side user session cleared.');

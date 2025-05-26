@@ -1,5 +1,6 @@
 import { initHomePage, initSongPage } from './handlers/homeHandler.js';
 import { initLoginPage, logoutUser } from './handlers/loginHandler.js';
+import { checkAuthStatus } from './apiService.js';
 
 const appContainer = document.getElementById('app');
 
@@ -10,33 +11,21 @@ async function checkUserSessionAndInitialize() {
     }
 
     const delayPromise = new Promise(resolve => setTimeout(resolve, 300));
-    const sessionCheckPromise = fetch('api/v1/auth/me', {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json'
-        }
-    });
 
     try {
-        const [, response] = await Promise.all([delayPromise, sessionCheckPromise]);
+        const [, userData] = await Promise.all([delayPromise, checkAuthStatus()]);
+        console.log('Active session found for user:', userData.username);
+        sessionStorage.setItem('currentUser', JSON.stringify(userData));
+        initHomePage(appContainer);
 
-        if (response.ok) {
-            const userData = await response.json();
-            console.log('Active session found for user:', userData.username);
-            sessionStorage.setItem('currentUser', JSON.stringify(userData));
-            initHomePage(appContainer);
-        } else if (response.status === 401) {
-            console.log('No active session found or user not authenticated.');
-            sessionStorage.removeItem('currentUser');
-            initLoginPage(appContainer);
-        } else {
-            // Other unexpected errors
-            console.error('Error checking session:', response.status, await response.text());
-            sessionStorage.removeItem('currentUser');
-            initLoginPage(appContainer);
-        }
     } catch (error) {
-        console.error('Network or other error during session check or delay:', error);
+        if (error.status === 401) {
+            console.log('No active session found or user not authenticated (401). Message:', error.message);
+        } else if (error.isNetworkError) {
+            console.error('Network error during session check:', error.message);
+        } else {
+            console.error(`Error checking session: Status ${error.status}, Message: ${error.message}`, error.details || '');
+        }
         sessionStorage.removeItem('currentUser');
         initLoginPage(appContainer);
     }
