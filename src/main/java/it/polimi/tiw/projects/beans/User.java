@@ -4,43 +4,43 @@ import java.util.UUID;
 
 public class User {
 
-	private UUID idUser;
-	private String username;
-	private String name;
-	private String surname;
+    private UUID idUser;
+    private String username;
+    private String name;
+    private String surname;
 
-	// Getters and Setters
+    // Getters and Setters
 
-	public UUID getIdUser() {
-		return idUser;
-	}
+    public UUID getIdUser() {
+        return idUser;
+    }
 
-	public void setIdUser(UUID idUser) {
-		this.idUser = idUser;
-	}
+    public void setIdUser(UUID idUser) {
+        this.idUser = idUser;
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    public String getUsername() {
+        return username;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getSurname() {
-		return surname;
-	}
+    public String getSurname() {
+        return surname;
+    }
 
-	public void setSurname(String surname) {
-		this.surname = surname;
-	}
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
 
 }

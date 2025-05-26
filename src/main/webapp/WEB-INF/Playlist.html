@@ -1,122 +1,122 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" type="text/css" th:href="@{/css/global.css}">
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="stylesheet" th:href="@{/css/global.css}" type="text/css">
 
-	<title th:text="${playlist.name}">Hit-Estive-2015</title>
+    <title th:text="${playlist.name}">Hit-Estive-2015</title>
 </head>
 
 <body>
 
-	<div>
-		<a th:href="@{/Home}">Home</a>
-		<a th:href=@{/Logout}>Logout</a>
-	</div>
+<div>
+    <a th:href="@{/Home}">Home</a>
+    <a th:href=@{/Logout}>Logout</a>
+</div>
 
-	<main>
-		<h1 th:text="${playlist.name}">Hit-Estive-2015</h1>
+<main>
+    <h1 th:text="${playlist.name}">Hit-Estive-2015</h1>
 
-		<table>
-			<tbody>
-				<tr>
-					<td th:each="swa : ${songWithAlbum}">
-						<div>
+    <table>
+        <tbody>
+        <tr>
+            <td th:each="swa : ${songWithAlbum}">
+                <div>
 
-							<a th:href="@{/OpenSong(songId=${swa.song.idSong}, playlistId=${playlist.idPlaylist})}">
-								<img th:src="@{/GetImage(imageName=${swa.album.image})}" alt="Album" width="100" />
-							</a>
+                    <a th:href="@{/OpenSong(songId=${swa.song.idSong}, playlistId=${playlist.idPlaylist})}">
+                        <img alt="Album" th:src="@{/GetImage(imageName=${swa.album.image})}" width="100"/>
+                    </a>
 
-							<p th:text="${swa.song.title}">We No Speak Americano</p>
-						</div>
-					</td>
-					<td th:remove="all">
-						<p>Oye Baby</p><img src="" alt="IDK">
-					</td>
-					<td th:remove="all">
-						<p>Hey Hey</p><img src="" alt="IDK">
-					</td>
-					<td th:remove="all">
-						<p>Waka Waka</p><img src="" alt="IDK">
-					</td>
-					<td th:remove="all">
-						<p>Alejandro</p><img src="" alt="IDK">
-					</td>
-				</tr>
-			</tbody>
-		</table>
+                    <p th:text="${swa.song.title}">We No Speak Americano</p>
+                </div>
+            </td>
+            <td th:remove="all">
+                <p>Oye Baby</p><img alt="IDK" src="">
+            </td>
+            <td th:remove="all">
+                <p>Hey Hey</p><img alt="IDK" src="">
+            </td>
+            <td th:remove="all">
+                <p>Waka Waka</p><img alt="IDK" src="">
+            </td>
+            <td th:remove="all">
+                <p>Alejandro</p><img alt="IDK" src="">
+            </td>
+        </tr>
+        </tbody>
+    </table>
 
-		<pt th:text="${errorOpeningSong}"></pt>
+    <pt th:text="${errorOpeningSong}"></pt>
 
-		<div th:if="${page > 0}">
-			<form method="get" action="GetPlaylistDetails">
-				<input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
-				<input type="hidden" name="page" th:value="${page - 1}" />
-				<button type="submit">PRECEDENTI</button>
-			</form>
-		</div>
-
-
-		<div th:if="${page < totPages - 1}">
-			<form method="get" th:action="GetPlaylistDetails">
-				<input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
-				<input type="hidden" name="page" th:value="${page + 1}" />
-				<button type="submit">SUCCESSIVI</button>
-			</form>
-		</div>
-
-		<form action="AddSongToPL" metod=POST>
-			<fieldset>
-				<legend>Add songs to the playlist:</legend>
-
-				<div th:if="${songs != null && songs.size() > 0}">
-					<p>Choose the songs:</p>
-					<div id="songsSelectCheckboxes" style="height: 150px; overflow-y: auto; border: 1px solid #ccc;">
-						<div th:each="song : ${songs}">
-							<input type="checkbox" name="songsSelect" th:id="'song_' + ${song.idSong}"
-								th:value="${song.idSong}" th:title="${song.title}">
-							<label th:for="'song_' + ${song.idSong}" th:text="${song.title}">Default Song</label>
-						</div>
-						<!-- Static options for preview -->
-						<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0001" value="0001"
-								title="See You Again"> <label for="song_0001">See You Again</label> </div>
-						<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0002" value="0002"
-								title="Never Gonna Give You UP"> <label for="song_0002">Never Gonna Give You UP</label>
-						</div>
-						<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0003" value="0003"
-								title="All Star"> <label for="song_0003">All Star</label> </div>
-						<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0004" value="0004"
-								title="Despacito"> <label for="song_0004">Despacito</label> </div>
-						<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0005" value="0005"
-								title="Volare"> <label for="song_0005">Volare</label> </div>
-						<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0006" value="0006"
-								title="Boom Baby"> <label for="song_0006">Boom Baby</label> </div>
-						<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0007" value="0007"
-								title="Tanti auguri a te"> <label for="song_0007">Tanti auguri a te</label> </div>
-						<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0008" value="0008"
-								title="Happy Birthday to you"> <label for="song_0008">Happy Birthday to you</label>
-						</div>
-						<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0009" value="0009"
-								title="Thriller"> <label for="song_0009">Thriller</label> </div>
-						<div th:remove="all"> <input type="checkbox" name="songsSelect" id="song_0010" value="0010"
-								title="Bando"> <label for="song_0010">Bando</label> </div>
-					</div>
-					<input type="hidden" name="playlistId" th:value="${playlist.idPlaylist}" />
-					<p> <input type="submit" value="Add Playlist"> </p>
-				</div>
-				<div th:if="${songs == null || songs.size() == 0}"> To add to a playlist you need to upload a new songs
-				</div>
-				<p th:text=" ${errorAddSongMsg}"></p>
-			</fieldset>
-
-		</form>
-	</main>
+    <div th:if="${page > 0}">
+        <form action="GetPlaylistDetails" method="get">
+            <input name="playlistId" th:value="${playlist.idPlaylist}" type="hidden"/>
+            <input name="page" th:value="${page - 1}" type="hidden"/>
+            <button type="submit">PRECEDENTI</button>
+        </form>
+    </div>
 
 
+    <div th:if="${page < totPages - 1}">
+        <form method="get" th:action="GetPlaylistDetails">
+            <input name="playlistId" th:value="${playlist.idPlaylist}" type="hidden"/>
+            <input name="page" th:value="${page + 1}" type="hidden"/>
+            <button type="submit">SUCCESSIVI</button>
+        </form>
+    </div>
 
+    <form action="AddSongToPL" method="POST">
+        <fieldset>
+            <legend>Add songs to the playlist:</legend>
 
+            <div th:if="${songs != null && songs.size() > 0}">
+                <p>Choose the songs:</p>
+                <div id="songsSelectCheckboxes" style="height: 150px; overflow-y: auto; border: 1px solid #ccc;">
+                    <div th:each="song : ${songs}">
+                        <input name="songsSelect" th:id="'song_' + ${song.idSong}" th:title="${song.title}"
+                               th:value="${song.idSong}" type="checkbox">
+                        <label th:for="'song_' + ${song.idSong}" th:text="${song.title}">Default Song</label>
+                    </div>
+                    <!-- Static options for preview -->
+                    <div th:remove="all"><input id="song_0001" name="songsSelect" title="See You Again" type="checkbox"
+                                                value="0001"> <label for="song_0001">See You Again</label>
+                    </div>
+                    <div th:remove="all"><input id="song_0002" name="songsSelect" title="Never Gonna Give You UP" type="checkbox"
+                                                value="0002"> <label for="song_0002">Never Gonna Give
+                        You UP</label>
+                    </div>
+                    <div th:remove="all"><input id="song_0003" name="songsSelect" title="All Star" type="checkbox"
+                                                value="0003"> <label for="song_0003">All Star</label></div>
+                    <div th:remove="all"><input id="song_0004" name="songsSelect" title="Despacito" type="checkbox"
+                                                value="0004"> <label for="song_0004">Despacito</label></div>
+                    <div th:remove="all"><input id="song_0005" name="songsSelect" title="Volare" type="checkbox"
+                                                value="0005"> <label for="song_0005">Volare</label></div>
+                    <div th:remove="all"><input id="song_0006" name="songsSelect" title="Boom Baby" type="checkbox"
+                                                value="0006"> <label for="song_0006">Boom Baby</label></div>
+                    <div th:remove="all"><input id="song_0007" name="songsSelect" title="Tanti auguri a te" type="checkbox"
+                                                value="0007"> <label for="song_0007">Tanti auguri a
+                        te</label></div>
+                    <div th:remove="all"><input id="song_0008" name="songsSelect" title="Happy Birthday to you" type="checkbox"
+                                                value="0008"> <label for="song_0008">Happy Birthday to
+                        you</label>
+                    </div>
+                    <div th:remove="all"><input id="song_0009" name="songsSelect" title="Thriller" type="checkbox"
+                                                value="0009"> <label for="song_0009">Thriller</label></div>
+                    <div th:remove="all"><input id="song_0010" name="songsSelect" title="Bando" type="checkbox"
+                                                value="0010"> <label for="song_0010">Bando</label></div>
+                </div>
+                <input name="playlistId" th:value="${playlist.idPlaylist}" type="hidden"/>
+                <p><input type="submit" value="Add Playlist"></p>
+            </div>
+            <div th:if="${songs == null || songs.size() == 0}"> To add to a playlist you need to upload a new songs
+            </div>
+            <p th:text=" ${errorAddSongMsg}"></p>
+        </fieldset>
+
+    </form>
+</main>
 
 
 </body>

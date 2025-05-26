@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" type="text/css" th:href="@{/css/global.css}">
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="stylesheet" th:href="@{/css/global.css}" type="text/css">
 
-	<title>Error Page</title>
+    <title>Error Page</title>
 </head>
 
 <body>
-	<main>
-		<h2>Something went wrong</h2>
-		<p>We're sorry, please try again later.</p>
-	</main>
-	<div>
-		<a th:href="@{/Home}">Home</a>
-		<a th:href=@{/Logout}>Logout</a>
-	</div>
+<main>
+    <h2>Something went wrong</h2>
+    <p>We're sorry, please try again later.</p>
+</main>
+<div>
+    <a th:href="@{/Home}">Home</a>
+    <a th:href=@{/Logout}>Logout</a>
+</div>
 </body>
 
 </body>

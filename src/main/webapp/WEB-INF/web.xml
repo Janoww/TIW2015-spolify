@@ -1,181 +1,181 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns="https://jakarta.ee/xml/ns/jakartaee"
-  xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
-  version="6.0">
-  <display-name>Spolify</display-name>
+         xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+    <display-name>Spolify</display-name>
 
-  <!-- Parameters -->
-  <context-param>
-    <param-name>dbUrl</param-name>
-    <param-value>jdbc:mysql://localhost:3306/TIW2025</param-value>
-  </context-param>
-  <context-param>
-    <param-name>dbUser</param-name>
-    <param-value>tiw</param-value>
-  </context-param>
-  <context-param>
-    <param-name>dbPassword</param-name>
-    <param-value>TIW2025</param-value>
-  </context-param>
-  <context-param>
-    <param-name>dbDriver</param-name>
-    <param-value>com.mysql.cj.jdbc.Driver</param-value>
-  </context-param>
+    <!-- Parameters -->
+    <context-param>
+        <param-name>dbUrl</param-name>
+        <param-value>jdbc:mysql://localhost:3306/TIW2025</param-value>
+    </context-param>
+    <context-param>
+        <param-name>dbUser</param-name>
+        <param-value>tiw</param-value>
+    </context-param>
+    <context-param>
+        <param-name>dbPassword</param-name>
+        <param-value>TIW2025</param-value>
+    </context-param>
+    <context-param>
+        <param-name>dbDriver</param-name>
+        <param-value>com.mysql.cj.jdbc.Driver</param-value>
+    </context-param>
 
-  <!-- Listener for initializing the connection pool, ImageDAO and AudioDAO -->
-  <listener>
-    <listener-class>it.polimi.tiw.projects.listeners.AppContextListener</listener-class>
-  </listener>
+    <!-- Listener for initializing the connection pool, ImageDAO and AudioDAO -->
+    <listener>
+        <listener-class>it.polimi.tiw.projects.listeners.AppContextListener</listener-class>
+    </listener>
 
-  <!-- Mapping -->
-  <servlet>
-    <servlet-name>CheckLogin</servlet-name>
-    <servlet-class>it.polimi.tiw.projects.controllers.CheckLogin</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>CheckLogin</servlet-name>
-    <url-pattern>/CheckLogin</url-pattern>
-  </servlet-mapping>
+    <!-- Mapping -->
+    <servlet>
+        <servlet-name>CheckLogin</servlet-name>
+        <servlet-class>it.polimi.tiw.projects.controllers.CheckLogin</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CheckLogin</servlet-name>
+        <url-pattern>/CheckLogin</url-pattern>
+    </servlet-mapping>
 
-  <servlet>
-    <servlet-name>SignUp</servlet-name>
-    <servlet-class>it.polimi.tiw.projects.controllers.SignUp</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>SignUp</servlet-name>
-    <url-pattern>/SignUp</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>SignUp</servlet-name>
+        <servlet-class>it.polimi.tiw.projects.controllers.SignUp</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SignUp</servlet-name>
+        <url-pattern>/SignUp</url-pattern>
+    </servlet-mapping>
 
-  <servlet>
-    <servlet-name>GoToHome</servlet-name>
-    <servlet-class>it.polimi.tiw.projects.controllers.GoToHome</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>GoToHome</servlet-name>
-    <url-pattern>/Home</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>GoToHome</servlet-name>
+        <servlet-class>it.polimi.tiw.projects.controllers.GoToHome</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>GoToHome</servlet-name>
+        <url-pattern>/Home</url-pattern>
+    </servlet-mapping>
 
-  <servlet>
-    <servlet-name>NewSong</servlet-name>
-    <servlet-class>it.polimi.tiw.projects.controllers.NewSong</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>NewSong</servlet-name>
-    <url-pattern>/NewSong</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>NewSong</servlet-name>
+        <servlet-class>it.polimi.tiw.projects.controllers.NewSong</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>NewSong</servlet-name>
+        <url-pattern>/NewSong</url-pattern>
+    </servlet-mapping>
 
-  <servlet>
-    <servlet-name>NewPlaylist</servlet-name>
-    <servlet-class>it.polimi.tiw.projects.controllers.NewPlaylist</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>NewPlaylist</servlet-name>
-    <url-pattern>/NewPlaylist</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>NewPlaylist</servlet-name>
+        <servlet-class>it.polimi.tiw.projects.controllers.NewPlaylist</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>NewPlaylist</servlet-name>
+        <url-pattern>/NewPlaylist</url-pattern>
+    </servlet-mapping>
 
-  <servlet>
-    <servlet-name>GetPlaylistDetails</servlet-name>
-    <servlet-class>it.polimi.tiw.projects.controllers.GetPlaylistDetails</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>GetPlaylistDetails</servlet-name>
-    <url-pattern>/GetPlaylistDetails</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>GetPlaylistDetails</servlet-name>
+        <servlet-class>it.polimi.tiw.projects.controllers.GetPlaylistDetails</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>GetPlaylistDetails</servlet-name>
+        <url-pattern>/GetPlaylistDetails</url-pattern>
+    </servlet-mapping>
 
-  <servlet>
-    <servlet-name>AddSongToPL</servlet-name>
-    <servlet-class>it.polimi.tiw.projects.controllers.AddSongToPL</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>AddSongToPL</servlet-name>
-    <url-pattern>/AddSongToPL</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>AddSongToPL</servlet-name>
+        <servlet-class>it.polimi.tiw.projects.controllers.AddSongToPL</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AddSongToPL</servlet-name>
+        <url-pattern>/AddSongToPL</url-pattern>
+    </servlet-mapping>
 
-  <servlet>
-    <servlet-name>AudioGetter</servlet-name>
-    <servlet-class>it.polimi.tiw.projects.controllers.AudioGetter</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>AudioGetter</servlet-name>
-    <url-pattern>/GetSong</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>AudioGetter</servlet-name>
+        <servlet-class>it.polimi.tiw.projects.controllers.AudioGetter</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AudioGetter</servlet-name>
+        <url-pattern>/GetSong</url-pattern>
+    </servlet-mapping>
 
-  <servlet>
-    <servlet-name>ImageGetter</servlet-name>
-    <servlet-class>it.polimi.tiw.projects.controllers.ImageGetter</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ImageGetter</servlet-name>
-    <url-pattern>/GetImage</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>ImageGetter</servlet-name>
+        <servlet-class>it.polimi.tiw.projects.controllers.ImageGetter</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ImageGetter</servlet-name>
+        <url-pattern>/GetImage</url-pattern>
+    </servlet-mapping>
 
-  <servlet>
-    <servlet-name>OpenSong</servlet-name>
-    <servlet-class>it.polimi.tiw.projects.controllers.OpenSong</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>OpenSong</servlet-name>
-    <url-pattern>/OpenSong</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>OpenSong</servlet-name>
+        <servlet-class>it.polimi.tiw.projects.controllers.OpenSong</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>OpenSong</servlet-name>
+        <url-pattern>/OpenSong</url-pattern>
+    </servlet-mapping>
 
-  <servlet>
-    <servlet-name>Logout</servlet-name>
-    <servlet-class>it.polimi.tiw.projects.controllers.Logout</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>Logout</servlet-name>
-    <url-pattern>/Logout</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>Logout</servlet-name>
+        <servlet-class>it.polimi.tiw.projects.controllers.Logout</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Logout</servlet-name>
+        <url-pattern>/Logout</url-pattern>
+    </servlet-mapping>
 
-  <!-- Filters -->
+    <!-- Filters -->
 
-  <filter>
-    <filter-name>Checker</filter-name>
-    <filter-class>it.polimi.tiw.projects.filters.Checker</filter-class>
-  </filter>
-  <filter-mapping>
-    <filter-name>Checker</filter-name>
-    <url-pattern>/Home</url-pattern>
-    <url-pattern>/NewSong</url-pattern>
-    <url-pattern>/NewPlaylist</url-pattern>
-    <url-pattern>/GetPlaylistDetails</url-pattern>
-    <url-pattern>/AddSongToPL</url-pattern>
-    <url-pattern>/GetSong</url-pattern>
-    <url-pattern>/GetImage</url-pattern>
-    <url-pattern>/OpenSong</url-pattern>
-  </filter-mapping>
+    <filter>
+        <filter-name>Checker</filter-name>
+        <filter-class>it.polimi.tiw.projects.filters.Checker</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>Checker</filter-name>
+        <url-pattern>/Home</url-pattern>
+        <url-pattern>/NewSong</url-pattern>
+        <url-pattern>/NewPlaylist</url-pattern>
+        <url-pattern>/GetPlaylistDetails</url-pattern>
+        <url-pattern>/AddSongToPL</url-pattern>
+        <url-pattern>/GetSong</url-pattern>
+        <url-pattern>/GetImage</url-pattern>
+        <url-pattern>/OpenSong</url-pattern>
+    </filter-mapping>
 
-  <!-- Exception handling -->
-  <error-page>
-    <exception-type>java.lang.Throwable</exception-type>
-    <location>/errorPages/500.html</location>
-  </error-page>
+    <!-- Exception handling -->
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/errorPages/500.html</location>
+    </error-page>
 
-  <!-- Validation Parameters -->
-  <context-param>
-    <param-name>regex.username</param-name>
-    <param-value>^[a-zA-Z0-9_]{3,100}$</param-value>
-  </context-param>
-  <context-param>
-    <param-name>regex.name</param-name>
-    <param-value>^[a-zA-Z\s'-]{3,100}$</param-value>
-  </context-param>
-  <context-param>
-    <param-name>validation.password.minLength</param-name>
-    <param-value>4</param-value>
-  </context-param>
-  <context-param>
-    <param-name>validation.password.maxLength</param-name>
-    <param-value>100</param-value>
-  </context-param>
-  <context-param>
-    <param-name>regex.title</param-name>
-    <param-value>^[a-zA-Z0-9\s'-_]{1,100}$</param-value>
-  </context-param>
+    <!-- Validation Parameters -->
+    <context-param>
+        <param-name>regex.username</param-name>
+        <param-value>^[a-zA-Z0-9_]{3,100}$</param-value>
+    </context-param>
+    <context-param>
+        <param-name>regex.name</param-name>
+        <param-value>^[a-zA-Z\s'-]{3,100}$</param-value>
+    </context-param>
+    <context-param>
+        <param-name>validation.password.minLength</param-name>
+        <param-value>4</param-value>
+    </context-param>
+    <context-param>
+        <param-name>validation.password.maxLength</param-name>
+        <param-value>100</param-value>
+    </context-param>
+    <context-param>
+        <param-name>regex.title</param-name>
+        <param-value>^[a-zA-Z0-9\s'-_]{1,100}$</param-value>
+    </context-param>
 
 
-  <welcome-file-list>
-    <welcome-file>index.html</welcome-file>
-  </welcome-file-list>
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
 </web-app>

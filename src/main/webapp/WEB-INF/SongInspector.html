@@ -1,55 +1,56 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" type="text/css" th:href="@{/css/global.css}">
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="stylesheet" th:href="@{/css/global.css}" type="text/css">
 
-	<title th:text="${swa.song.title}">Waka Waka</title>
+    <title th:text="${swa.song.title}">Waka Waka</title>
 </head>
 
 <body>
 
-	<div>
-		<a th:href="@{/GetPlaylistDetails(playlistId=${playlistId})}">Back</a>
-		<a th:href="@{/Home}">Home</a>
-		<a th:href=@{/Logout}>Logout</a>
-	</div>
+<div>
+    <a th:href="@{/GetPlaylistDetails(playlistId=${playlistId})}">Back</a>
+    <a th:href="@{/Home}">Home</a>
+    <a th:href=@{/Logout}>Logout</a>
+</div>
 
-	<main>
-		<h1>Song details:</h1>
+<main>
+    <h1>Song details:</h1>
 
-		<table>
-			<thead>
-				<tr>
-					<th>Title</th>
-					<th>Singer</th>
-					<th>Album Title</th>
-					<th>Publication Year</th>
-					<th>Genre</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td><span th:text="${swa.song.title}"></span></td>
-					<td><span th:text="${swa.album.artist}"></span></td>
-					<td><span th:text="${swa.album.name}"></span></td>
-					<td><span th:text="${swa.album.year}"></span></td>
-					<td><span th:text="${swa.song.genre}"></span></td>
-				</tr>
-			</tbody>
-		</table>
+    <table>
+        <thead>
+        <tr>
+            <th>Title</th>
+            <th>Singer</th>
+            <th>Album Title</th>
+            <th>Publication Year</th>
+            <th>Genre</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td><span th:text="${swa.song.title}"></span></td>
+            <td><span th:text="${swa.album.artist}"></span></td>
+            <td><span th:text="${swa.album.name}"></span></td>
+            <td><span th:text="${swa.album.year}"></span></td>
+            <td><span th:text="${swa.song.genre}"></span></td>
+        </tr>
+        </tbody>
+    </table>
 
-		<div>
-			<img th:src="@{/GetImage(imageName=${swa.album.image})}" alt="Album" width="100" />
-		</div>
+    <div>
+        <img alt="Album" th:src="@{/GetImage(imageName=${swa.album.image})}" width="100"/>
+    </div>
 
-		<div>
-			<audio controls th:src="@{/GetSong(audioName=${swa.song.audioFile})}">Sorry your browser doesn't support
-				embedded audio</audio>
-		</div>
-	</main>
+    <div>
+        <audio controls th:src="@{/GetSong(audioName=${swa.song.audioFile})}">Sorry your browser doesn't support
+            embedded audio
+        </audio>
+    </div>
+</main>
 
 
 </body>

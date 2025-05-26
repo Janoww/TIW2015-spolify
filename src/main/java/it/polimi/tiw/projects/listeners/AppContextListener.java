@@ -1,15 +1,16 @@
 package it.polimi.tiw.projects.listeners;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.mysql.cj.jdbc.AbandonedConnectionCleanupThread;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import it.polimi.tiw.projects.dao.AudioDAO;
+import it.polimi.tiw.projects.dao.ImageDAO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
-
-import it.polimi.tiw.projects.dao.AudioDAO;
-import it.polimi.tiw.projects.dao.ImageDAO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,15 +21,8 @@ import java.util.Enumeration;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import com.mysql.cj.jdbc.AbandonedConnectionCleanupThread;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
 @WebListener
 public class AppContextListener implements ServletContextListener {
-
-    private static final Logger logger = LoggerFactory.getLogger(AppContextListener.class);
-    private HikariDataSource dataSource;
 
     // Keys for ServletContext attributes for validation patterns
     public static final String USERNAME_REGEX_PATTERN = "USERNAME_REGEX_PATTERN";
@@ -36,6 +30,8 @@ public class AppContextListener implements ServletContextListener {
     public static final String TITLE_REGEX_PATTERN = "TITLE_REGEX_PATTERN";
     public static final String PASSWORD_MIN_LENGTH = "PASSWORD_MIN_LENGTH";
     public static final String PASSWORD_MAX_LENGTH = "PASSWORD_MAX_LENGTH";
+    private static final Logger logger = LoggerFactory.getLogger(AppContextListener.class);
+    private HikariDataSource dataSource;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {

@@ -9,7 +9,7 @@
     </appender>
 
     <root level="INFO"> <!-- Log INFO level and above -->
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT"/>
     </root>
 
     <!-- Optional: Quieten noisy libraries during tests -->

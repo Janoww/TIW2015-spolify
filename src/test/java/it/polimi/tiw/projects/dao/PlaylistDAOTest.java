@@ -1,6 +1,5 @@
 package it.polimi.tiw.projects.dao;
 
-import static org.junit.jupiter.api.Assertions.*;
 import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.Playlist;
 import it.polimi.tiw.projects.beans.Song;
@@ -8,44 +7,31 @@ import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
 import it.polimi.tiw.projects.utils.Genre;
+import org.junit.jupiter.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.junit.jupiter.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PlaylistDAOTest {
 
     private static final Logger logger = LoggerFactory.getLogger(PlaylistDAOTest.class);
-
-    private static Connection connection;
-    private static PlaylistDAO playlistDAO;
-    private static UserDAO userDAO;
-    private static SongDAO songDAO;
-    private static AlbumDAO albumDAO;
-
     // Database connection details
     private static final String DB_URL = "jdbc:mysql://localhost:3306/TIW2025";
     private static final String DB_USER = "tiw";
     private static final String DB_PASS = "TIW2025";
-
     // Test data
     private static final String TEST_USERNAME = "playlist_test_user_junit";
     private static final String TEST_PASSWORD = "password_playlist";
     private static final String TEST_NAME = "PlaylistJUnit";
     private static final String TEST_SURNAME = "Tester";
-    private static UUID testUserId;
-
     private static final String TEST_PLAYLIST_NAME = "JUnit Test Playlist";
     private static final String TEST_PLAYLIST_NAME_DUPLICATE = "JUnit Test Playlist Duplicate";
     private static final String TEST_SONG_TITLE = "JUnit Test Song";
@@ -55,8 +41,10 @@ public class PlaylistDAOTest {
     private static final String TEST_ALBUM_NAME = "JUnit Test Album";
     private static final String TEST_ALBUM_ARTIST = "JUnit Artist";
     private static final int TEST_ALBUM_YEAR = 2024;
-
-    private Integer createdPlaylistId;
+    private static Connection connection;
+    private static PlaylistDAO playlistDAO;
+    private static SongDAO songDAO;
+    private static UUID testUserId;
     private Integer createdAlbumId;
     private Integer createdSongId;
 
@@ -67,9 +55,9 @@ public class PlaylistDAOTest {
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             connection.setAutoCommit(false);
             playlistDAO = new PlaylistDAO(connection);
-            userDAO = new UserDAO(connection);
+            UserDAO userDAO = new UserDAO(connection);
             songDAO = new SongDAO(connection);
-            albumDAO = new AlbumDAO(connection);
+            AlbumDAO albumDAO = new AlbumDAO(connection);
 
             // Cleanup existing test data
             cleanupTestPlaylists();
@@ -192,6 +180,7 @@ public class PlaylistDAOTest {
         connection.commit(); // Manually commit the transaction
 
         // Verify metadata - should exist after commit
+        Integer createdPlaylistId;
         try (PreparedStatement pStatement = connection.prepareStatement(
                 "SELECT idPlaylist, birthday FROM playlist_metadata WHERE name = ? AND idUser = UUID_TO_BIN(?)")) {
             pStatement.setString(1, TEST_PLAYLIST_NAME);
@@ -201,7 +190,7 @@ public class PlaylistDAOTest {
                 assertNotNull(rs.getTimestamp("birthday"),
                         "Birthday should not be null after commit");
                 createdPlaylistId = rs.getInt("idPlaylist"); // Store the ID for later
-                                                             // use/verification
+                // use/verification
                 assertFalse(rs.next(), "Should only be one playlist with this name for this user");
             }
         }
@@ -274,7 +263,7 @@ public class PlaylistDAOTest {
         // Optional: Direct DB check to be absolutely sure
         try (PreparedStatement pStatement = connection.prepareStatement(
                 "SELECT name, birthday FROM playlist_metadata WHERE idPlaylist = ? AND idUser = UUID_TO_BIN(?)")) {
-            pStatement.setInt(1, playlists.get(0));
+            pStatement.setInt(1, playlists.getFirst());
             pStatement.setString(2, testUserId.toString());
 
             try (ResultSet rs = pStatement.executeQuery()) {
@@ -317,7 +306,7 @@ public class PlaylistDAOTest {
 
         assertNotNull(foundPlaylist.getSongs(), "Playlist songs list should not be null");
         assertEquals(1, foundPlaylist.getSongs().size(), "Playlist should contain one song");
-        assertEquals(createdSongId, foundPlaylist.getSongs().get(0),
+        assertEquals(createdSongId, foundPlaylist.getSongs().getFirst(),
                 "Song ID in playlist should match");
 
         // Test NOT_FOUND
@@ -339,7 +328,7 @@ public class PlaylistDAOTest {
     @Order(5)
     public void testCreatePlaylist_InvalidSong() throws SQLException {
         List<Integer> invalidSongIds = List.of(-1); // Assuming -1 is an invalid/non-existent song
-                                                    // ID
+        // ID
 
         // Expect NOT_FOUND because the song ID check in createPlaylist should fail
         DAOException exception = assertThrows(DAOException.class, () -> playlistDAO
@@ -411,7 +400,7 @@ public class PlaylistDAOTest {
                 playlistDAO.createPlaylist("Playlist To Delete Again", testUserId, songIds);
         connection.commit();
         final int finalPlaylistIdToDelete = playlistToDelete.getIdPlaylist(); // Use final variable
-                                                                              // for lambda
+        // for lambda
         UUID otherUserId = UUID.randomUUID();
         DAOException accessDeniedException = assertThrows(DAOException.class,
                 () -> playlistDAO.deletePlaylist(finalPlaylistIdToDelete, otherUserId),
@@ -552,8 +541,8 @@ public class PlaylistDAOTest {
         // 6. Test removing a song not in the playlist - Returns boolean
         boolean removedNonPresent = assertDoesNotThrow(
                 () -> playlistDAO.removeSongFromPlaylist(playlistId, testUserId, secondSongId), // Try
-                                                                                                // removing
-                                                                                                // again
+                // removing
+                // again
                 "Removing non-present song should not throw.");
         connection.commit(); // Commit even if no change expected
         assertFalse(removedNonPresent, "Removing a song not present should return false");
