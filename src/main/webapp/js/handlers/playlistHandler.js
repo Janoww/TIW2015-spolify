@@ -10,37 +10,46 @@ export async function initPlaylistPage(appContainer, playlist){
 	}
 	
 	const playlistOrder = await getPlaylistSongOrder(playlist.idPlaylist);
-	// const orderedSongs = await getOrderedSongs(playlistOrder);	
-	
-	console.log(playlistOrder);
+	let orderedSongs = undefined;
+	if(playlistOrder && playlistOrder.length > 0){
+		orderedSongs = await getOrderedSongs(playlistOrder);	
+	} else {
+		orderedSongs = await getOrderedSongs(playlist.songs);
+		
+		orderedSongs.sort((a, b) => {
+		  // Compare artist names case-insensitive
+		  const artistA = a.album.artist.toLowerCase();
+		  const artistB = b.album.artist.toLowerCase();
+		  
+		  if (artistA < artistB) return -1;
+		  if (artistA > artistB) return 1;
+		  
+		  // If artist names are equal, compare album year
+		  return a.album.year - b.album.year;
+		});
+	}
 	
 	renderPlaylistView(appContainer);	
 	
 	//Write title
 	const sliderHeader = document.getElementById('sliderHeader');
-	console.log(sliderHeader);
 	if (sliderHeader){
 		sliderHeader.textContent = 'Songs in "' + playlist.name + '"'
 	}
 	
 	//Populate the slider
-	
 	const loaderMessage = document.querySelector('#all-songs-loader-message');
 	if (loaderMessage) {
 		loaderMessage.remove();
 	}
 	
-	if(playlistOrder && playlistOrder.length > 0){
+	if(orderedSongs){
 		let page = 0;
 		let totPages = Math.ceil(playlistOrder.length / 5);
 		if (page > totPages - 1) {
 			page = totPages - 1;
 		}
 		let songWithAlbumDisplayed = orderedSongs.slice(page * 5, (page + 1) * 5);
-
-		
-		
-		
 	}
 	
 
