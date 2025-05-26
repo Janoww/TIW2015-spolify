@@ -81,6 +81,16 @@ export function renderPlaylistView(appContainer){
 	songListDiv.className = 'song-list';
 	addSongsForm.appendChild(songListDiv);
 	
-	appContainer.appendChild(addSongsForm);
+	// Button
+	const addSongSendButton = document.createElement('button');
+	addSongSendButton.type = 'submit';
+	addSongSendButton.className = 'styled-button';
+	addSongSendButton.textContent = 'Add Song';
+	
+	addSongsForm.appendChild(addSongSendButton);
+	
+	
+	addSongSection.appendChild(addSongsForm);
+	appContainer.appendChild(addSongSection);
 
 }
