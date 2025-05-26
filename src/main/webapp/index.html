@@ -1,44 +1,46 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 
 <head>
 	<meta charset="UTF-8">
 	<title>Login page</title>
-	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<link rel="stylesheet" type="text/css" href="css/global.css">
 </head>
 
 <body>
-	<h1>Log in to Spolify</h1>
 
-	<form action="CheckLogin" method="POST" class="form-field">
-		<fieldset>
-			<p> <label for="username">Username: </label> <input type="text" name="lUsername" id="lUsername" required>
-			</p>
-			<p> <label for="pwd">Password: </label><input type="password" name="lPwd" id="lPwd" required> </p>
-			<input type="submit" class="styled-button" value="Continue">
-			<p th:text=" ${errorLogInMsg}"></p>
-		</fieldset>
-	</form>
+	<main>
+		<h1>Log in to Spolify</h1>
 
-	<h1>Don't have an account?</h1>
-	<form action="SignUp" method="POST" class="form-field">
-		<fieldset>
-			<p> <label for="name">Name: </label><input type="text" name="sName" id="sName" minlength="3" maxlength="100"
-					required> </p>
-			<p> <label for="surname">Surname: </label><input type="text" name="sSurname" id="sSurname" minlength="3"
-					maxlength="100" required> </p>
-			<p> <label for="username">Username: </label><input type="text" name="sUsername" id="sUsername" minlength="3"
-					maxlength="100" required>
-			</p>
-			<p> <label for="pwd">Password: </label><input type="password" name="sPwd" id="sPwd" minlength="4"
-					maxlength="100" required> </p>
-			<input type="submit" class="styled-button" value=" Sign Up">
-			<p th:text=" ${errorSignUpMsg}"></p>
-		</fieldset>
+		<form action="CheckLogin" method="POST" class="form-field">
+			<fieldset>
+				<p> <label for="username">Username: </label> <input type="text" name="lUsername" id="lUsername"
+						required>
+				</p>
+				<p> <label for="pwd">Password: </label><input type="password" name="lPwd" id="lPwd" required> </p>
+				<input type="submit" class="styled-button" value="Continue">
+				<p th:text=" ${errorLogInMsg}"></p>
+			</fieldset>
+		</form>
 
-	</form>
+		<h1>Don't have an account?</h1>
+		<form action="SignUp" method="POST" class="form-field">
+			<fieldset>
+				<p> <label for="name">Name: </label><input type="text" name="sName" id="sName" minlength="3"
+						maxlength="100" required> </p>
+				<p> <label for="surname">Surname: </label><input type="text" name="sSurname" id="sSurname" minlength="3"
+						maxlength="100" required> </p>
+				<p> <label for="username">Username: </label><input type="text" name="sUsername" id="sUsername"
+						minlength="3" maxlength="100" required>
+				</p>
+				<p> <label for="pwd">Password: </label><input type="password" name="sPwd" id="sPwd" minlength="4"
+						maxlength="100" required> </p>
+				<input type="submit" class="styled-button" value=" Sign Up">
+				<p th:text=" ${errorSignUpMsg}"></p>
+			</fieldset>
 
-
+		</form>
+	</main>
 
 
 </body>
