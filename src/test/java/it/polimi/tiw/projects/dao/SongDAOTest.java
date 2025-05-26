@@ -48,8 +48,6 @@ class SongDAOTest {
     private static final int TEST_ALBUM_YEAR = 2024;
     private static Connection connection;
     private static SongDAO songDAO;
-    private static UserDAO userDAO; // To manage a test user if needed
-    private static AlbumDAO albumDAO; // To manage a test album
     private static UUID testUserId;
     private static UUID testUserId2; // For authorization tests
     private static Integer testAlbumId = null;
@@ -65,8 +63,10 @@ class SongDAOTest {
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             connection.setAutoCommit(false); // Manage transactions manually
             songDAO = new SongDAO(connection);
-            userDAO = new UserDAO(connection); // Initialize UserDAO for test user setup
-            albumDAO = new AlbumDAO(connection); // Initialize AlbumDAO
+            // To manage a test user if needed
+            UserDAO userDAO = new UserDAO(connection); // Initialize UserDAO for test user setup
+            // To manage a test album
+            AlbumDAO albumDAO = new AlbumDAO(connection); // Initialize AlbumDAO
             logger.info("Database connection established for SongDAOTest.");
 
             // Initial cleanup of potential leftover test data (order matters)
@@ -247,7 +247,7 @@ class SongDAOTest {
     @Test
     @Order(1)
     @DisplayName("Test successful song creation")
-    void testCreateSong_Success() throws DAOException, SQLException {
+    void testCreateSong_Success() throws SQLException {
         assertNotNull(testAlbumId, "Test Album ID must be set before creating a song.");
         Song createdSong = assertDoesNotThrow(() -> songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR,
                 TEST_GENRE, TEST_AUDIO_FILE_1, testUserId));
@@ -307,7 +307,7 @@ class SongDAOTest {
     @Test
     @Order(3)
     @DisplayName("Test finding songs by user when none exist")
-    void testFindSongsByUser_Empty() throws DAOException {
+    void testFindSongsByUser_Empty() {
         // Ensure no songs exist for a different random user ID
         UUID nonExistentUserId = UUID.randomUUID();
         List<Song> userSongs = assertDoesNotThrow(() -> songDAO.findSongsByUser(nonExistentUserId));
@@ -347,7 +347,7 @@ class SongDAOTest {
     @Test
     @Order(5)
     @DisplayName("Test finding all songs when DB is empty (after cleanup)")
-    void testFindAllSongs_Empty() throws DAOException, SQLException {
+    void testFindAllSongs_Empty() throws SQLException {
         // Cleanup ensures no test songs are present. Assuming DB might have other
         // songs.
         // To truly test empty, we'd need to wipe the table, which is risky.
@@ -502,7 +502,7 @@ class SongDAOTest {
     @Test
     @Order(12)
     @DisplayName("Test findSongsByIdsAndUser - Empty or Null Input List")
-    void testFindSongsByIdsAndUser_EmptyInput() throws DAOException {
+    void testFindSongsByIdsAndUser_EmptyInput() {
         assertNotNull(testUserId, "Test User ID must be set.");
 
         // Test with empty list

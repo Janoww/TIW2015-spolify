@@ -36,10 +36,10 @@ public class SongCreationServiceDAO {
     private String saveAudioFile(@NotNull User user, @NotNull SongCreationParameters params) throws DAOException {
         String audioFileStorageName;
         try {
-            String originalAudioFileName = Paths.get(params.getAudioFilePart().getSubmittedFileName()).getFileName()
+            String originalAudioFileName = Paths.get(params.audioFilePart().getSubmittedFileName()).getFileName()
                     .toString();
 
-            try (InputStream audioContent = params.getAudioFilePart().getInputStream()) {
+            try (InputStream audioContent = params.audioFilePart().getInputStream()) {
                 audioFileStorageName = audioDAO.saveAudio(audioContent, originalAudioFileName);
             }
             logger.info("Audio file {} saved as {} for user {}", originalAudioFileName, audioFileStorageName,
@@ -83,17 +83,17 @@ public class SongCreationServiceDAO {
         boolean newAlbumCreated = false;
 
         List<Album> userAlbums = albumDAO.findAlbumsByUser(user.getIdUser());
-        album = userAlbums.stream().filter(x -> x.getName().equalsIgnoreCase(params.getAlbumTitle())).findFirst()
+        album = userAlbums.stream().filter(x -> x.getName().equalsIgnoreCase(params.albumTitle())).findFirst()
                 .orElse(null);
 
         if (album == null) {
             newAlbumCreated = true;
             logger.info("No album named '{}' found for user {}. Attempting to create new album.",
-                    params.getAlbumTitle(), user.getUsername());
+                    params.albumTitle(), user.getUsername());
 
-            imageFileStorageName = saveAlbumImageFile(user, params.getAlbumTitle(), imageFilePart);
+            imageFileStorageName = saveAlbumImageFile(user, params.albumTitle(), imageFilePart);
 
-            album = albumDAO.createAlbum(params.getAlbumTitle(), params.getAlbumYear(), params.getAlbumArtist(),
+            album = albumDAO.createAlbum(params.albumTitle(), params.albumYear(), params.albumArtist(),
                     imageFileStorageName, user.getIdUser());
             logger.info("New album '{}' (ID: {}) created for user {}", album.getName(), album.getIdAlbum(),
                     user.getUsername());
@@ -106,7 +106,7 @@ public class SongCreationServiceDAO {
 
     private Song saveSongDetails(@NotNull User user, @NotNull SongCreationParameters params, int albumId,
                                  @NotBlank String audioFileStorageName) throws DAOException {
-        Song createdSong = songDAO.createSong(params.getSongTitle(), albumId, params.getAlbumYear(), params.getGenre(),
+        Song createdSong = songDAO.createSong(params.songTitle(), albumId, params.albumYear(), params.genre(),
                 audioFileStorageName, user.getIdUser());
         logger.info("Song '{}' (ID: {}) created and associated with album ID {} for user {}", createdSong.getTitle(),
                 createdSong.getIdSong(), albumId, user.getUsername());
@@ -165,10 +165,8 @@ public class SongCreationServiceDAO {
             logger.error("Error during song creation workflow for user {}. Attempting rollback. Error: {}",
                     user.getUsername(), e.getMessage(), e);
             try {
-                if (connection != null) {
-                    connection.rollback();
-                    logger.info("Transaction rolled back for user {}", user.getUsername());
-                }
+                connection.rollback();
+                logger.info("Transaction rolled back for user {}", user.getUsername());
             } catch (SQLException exRollback) {
                 logger.error("Rollback failed for user {} after error: {}", user.getUsername(), exRollback.getMessage(),
                         exRollback);
@@ -197,15 +195,6 @@ public class SongCreationServiceDAO {
         }
     }
 
-    private static class AlbumData {
-        final Album album;
-        final String imageFileStorageName;
-        final boolean newAlbumCreated;
-
-        AlbumData(Album album, String imageFileStorageName, boolean newAlbumCreated) {
-            this.album = album;
-            this.imageFileStorageName = imageFileStorageName;
-            this.newAlbumCreated = newAlbumCreated;
-        }
+    private record AlbumData(Album album, String imageFileStorageName, boolean newAlbumCreated) {
     }
 }

@@ -165,7 +165,7 @@ class AudioDAOTest {
     // --- deleteAudio Tests ---
 
     @Test
-    void deleteAudio_shouldDeleteExistingFile_whenFileExists() throws DAOException, IOException {
+    void deleteAudio_shouldDeleteExistingFile_whenFileExists() throws DAOException {
         // Arrange: Save a file first
         InputStream inputStream = getResourceStream("valid.mp3");
         String filename = audioDAO.saveAudio(inputStream, "delete_test.mp3");
@@ -232,21 +232,21 @@ class AudioDAOTest {
         try (FileData fileData = audioDAO.getAudio(savedFilename)) {
             // Assert
             assertNotNull(fileData, "FileData should not be null for existing file");
-            assertEquals(savedFilename, fileData.getFilename(), "Filename in FileData should match");
+            assertEquals(savedFilename, fileData.filename(), "Filename in FileData should match");
 
             // Verify MIME type (Tika might give slightly different but compatible types)
             String expectedMimeType = tika.detect(expectedPath);
-            assertEquals(expectedMimeType, fileData.getMimeType(), "MIME type should match detected type");
+            assertEquals(expectedMimeType, fileData.mimeType(), "MIME type should match detected type");
 
             // Verify size
             long expectedSize = Files.size(expectedPath);
-            assertEquals(expectedSize, fileData.getSize(), "File size should match");
+            assertEquals(expectedSize, fileData.size(), "File size should match");
 
             // Verify content (read stream and compare)
-            assertNotNull(fileData.getContent(), "Content stream should not be null");
+            assertNotNull(fileData.content(), "Content stream should not be null");
             byte[] originalBytes = Files.readAllBytes(expectedPath);
             ByteArrayOutputStream retrievedBytesStream = new ByteArrayOutputStream();
-            fileData.getContent().transferTo(retrievedBytesStream);
+            fileData.content().transferTo(retrievedBytesStream);
             assertArrayEquals(originalBytes, retrievedBytesStream.toByteArray(), "File content should match");
         }
     }

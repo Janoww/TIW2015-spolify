@@ -68,7 +68,7 @@ public class AuthApiServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         AuthRoute route = resolveRoute(req);
         String pathInfo = req.getPathInfo();
         logger.info("Received GET request. Path: '{}', Route: {}", (pathInfo != null ? pathInfo : "null or empty"),
@@ -84,7 +84,7 @@ public class AuthApiServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
         AuthRoute route = resolveRoute(req);
         String pathInfo = req.getPathInfo();
         logger.info("Received POST request. Path: '{}', Route: {}", (pathInfo != null ? pathInfo : "null or empty"),

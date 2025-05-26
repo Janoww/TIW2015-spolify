@@ -52,7 +52,7 @@ public class UserApiServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
         logger.info("Received POST request to /api/v1/users (SignUp). PathInfo: {}", req.getPathInfo());
         UserDAO userDAO = new UserDAO(connection);
         UserCreationRequest userCreationDetails;

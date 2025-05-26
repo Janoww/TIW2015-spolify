@@ -74,24 +74,20 @@ public class PlaylistDAO {
         } catch (DAOException e) {
             logger.warn("Playlist creation failed for name={}, userId={} due to validation error: {}", name, idUser,
                     e.getMessage());
-            if (connection != null) {
-                try {
-                    connection.rollback();
-                    logger.debug("Transaction rolled back due to DAOException during playlist creation.");
-                } catch (SQLException ex) {
-                    logger.error("Rollback failed during DAOException handling: {}", ex.getMessage(), ex);
-                }
+            try {
+                connection.rollback();
+                logger.debug("Transaction rolled back due to DAOException during playlist creation.");
+            } catch (SQLException ex) {
+                logger.error("Rollback failed during DAOException handling: {}", ex.getMessage(), ex);
             }
             throw e;
         } catch (SQLException e) {
             logger.warn("Transaction rolled back for playlist creation (name={}, userId={}) due to SQL error: {}", name,
                     idUser, e.getMessage());
-            if (connection != null) {
-                try {
-                    connection.rollback();
-                } catch (SQLException ex) {
-                    logger.error("Rollback failed during SQLException handling: {}", ex.getMessage(), ex);
-                }
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                logger.error("Rollback failed during SQLException handling: {}", ex.getMessage(), ex);
             }
 
             // Translate SQLException to specific DAOException
@@ -720,12 +716,10 @@ public class PlaylistDAO {
             logger.warn(
                     "DAOException during addSongsToPlaylist transaction for playlist {}, user {}. Rolling back. Error: {}",
                     playlistId, userId, e.getMessage());
-            if (connection != null) {
-                try {
-                    connection.rollback();
-                } catch (SQLException ex) {
-                    logger.error("Rollback failed following DAOException: {}", ex.getMessage(), ex);
-                }
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                logger.error("Rollback failed following DAOException: {}", ex.getMessage(), ex);
             }
             throw e;
         } finally {

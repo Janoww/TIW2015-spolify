@@ -48,14 +48,11 @@ class PlaylistDAOTest {
     private static final String TEST_SURNAME_2 = "Tester2";
     private static Connection connection;
     private static PlaylistDAO playlistDAO;
-    private static UserDAO userDAO;
     private static SongDAO songDAO;
-    private static AlbumDAO albumDAO;
     private static UUID testUserId;
     private static UUID testUserId2;
     private Integer createdSongIdUser2; // Song created by user 2
 
-    private Integer createdPlaylistId;
     private Integer createdAlbumId;
     private Integer createdSongId; // Song created by user 1 (testUserId)
 
@@ -66,9 +63,9 @@ class PlaylistDAOTest {
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             connection.setAutoCommit(false);
             playlistDAO = new PlaylistDAO(connection);
-            userDAO = new UserDAO(connection);
+            UserDAO userDAO = new UserDAO(connection);
             songDAO = new SongDAO(connection);
-            albumDAO = new AlbumDAO(connection);
+            AlbumDAO albumDAO = new AlbumDAO(connection);
 
             // Cleanup existing test data
             cleanupTestPlaylists();
@@ -244,6 +241,7 @@ class PlaylistDAOTest {
         connection.commit(); // Manually commit the transaction
 
         // Verify metadata - should exist after commit
+        Integer createdPlaylistId;
         try (PreparedStatement pStatement = connection.prepareStatement(
                 "SELECT idPlaylist, birthday FROM playlist_metadata WHERE name = ? AND idUser = UUID_TO_BIN(?)")) {
             pStatement.setString(1, TEST_PLAYLIST_NAME);

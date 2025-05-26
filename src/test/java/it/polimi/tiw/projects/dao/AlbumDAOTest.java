@@ -42,7 +42,6 @@ class AlbumDAOTest {
     private static final String TEST_SURNAME = "Tester";
     private static Connection connection;
     private static AlbumDAO albumDAO;
-    private static UserDAO userDAO;
     private static UUID testUserId;
 
     // Store IDs of created albums for cleanup/verification
@@ -57,7 +56,7 @@ class AlbumDAOTest {
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             connection.setAutoCommit(false); // Manage transactions manually
             albumDAO = new AlbumDAO(connection);
-            userDAO = new UserDAO(connection);
+            UserDAO userDAO = new UserDAO(connection);
             logger.info("Database connection established for AlbumDAOTest.");
 
             // Initial cleanup of potential leftover test data (order matters: albums first)
@@ -183,7 +182,7 @@ class AlbumDAOTest {
     }
 
     // Direct deletion bypassing DAO for cleanup robustness
-    private void deleteAlbumByIdDirectly(int albumId) throws SQLException {
+    private void deleteAlbumByIdDirectly(int albumId) {
         String deleteSQL = "DELETE FROM Album WHERE idAlbum = ?";
         try (PreparedStatement pStatement = connection.prepareStatement(deleteSQL)) {
             pStatement.setInt(1, albumId);
@@ -203,7 +202,7 @@ class AlbumDAOTest {
     @Test
     @Order(1)
     @DisplayName("Test successful album creation for a user (without image)")
-    void testCreateAlbum_Success_NoImage() throws DAOException, SQLException {
+    void testCreateAlbum_Success_NoImage() throws SQLException {
         assertNotNull(testUserId, "Test User ID must be set before creating an album.");
         Album createdAlbum = assertDoesNotThrow(() -> albumDAO.createAlbum(TEST_ALBUM_NAME_1, TEST_ALBUM_YEAR_1,
                 TEST_ALBUM_ARTIST_1, null, testUserId));
@@ -412,7 +411,7 @@ class AlbumDAOTest {
     @Test
     @Order(6)
     @DisplayName("Test finding all albums when DB is empty (after cleanup)")
-    void testFindAllAlbums_Empty() throws DAOException, SQLException {
+    void testFindAllAlbums_Empty() throws SQLException {
         // @BeforeEach ensures cleanup. Commit it.
         connection.commit();
 
@@ -663,7 +662,7 @@ class AlbumDAOTest {
     @Test
     @Order(17)
     @DisplayName("Test finding albums for a user with no albums")
-    void testFindAlbumsByUser_NotFound() throws DAOException {
+    void testFindAlbumsByUser_NotFound() {
         // Use a random UUID for a user guaranteed to have no albums
         UUID nonExistentUserId = UUID.randomUUID();
         List<Album> userAlbums = assertDoesNotThrow(() -> albumDAO.findAlbumsByUser(nonExistentUserId));
@@ -768,7 +767,7 @@ class AlbumDAOTest {
     @Test
     @Order(20)
     @DisplayName("Test successful album creation with an image")
-    void testCreateAlbum_Success_WithImage() throws DAOException, SQLException {
+    void testCreateAlbum_Success_WithImage() throws SQLException {
         assertNotNull(testUserId, "Test User ID must be set before creating an album.");
         Album createdAlbum = assertDoesNotThrow(() -> albumDAO.createAlbum(TEST_ALBUM_NAME_1, TEST_ALBUM_YEAR_1,
                 TEST_ALBUM_ARTIST_1, TEST_ALBUM_IMAGE_1, testUserId));

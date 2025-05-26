@@ -157,8 +157,7 @@ public class SongApiServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
@@ -310,12 +309,12 @@ public class SongApiServlet extends HttpServlet {
 
         try (FileData audioFileData = audioDAO.getAudio(audioStorageName)) {
 
-            response.setContentType(audioFileData.getMimeType());
-            response.setContentLengthLong(audioFileData.getSize());
+            response.setContentType(audioFileData.mimeType());
+            response.setContentLengthLong(audioFileData.size());
 
             response.setHeader("Content-Disposition", "inline; filename=\"" + audioStorageName + "\"");
 
-            try (InputStream audioStream = audioFileData.getContent();
+            try (InputStream audioStream = audioFileData.content();
                  BufferedOutputStream bufferedResponseStream = new BufferedOutputStream(
                          response.getOutputStream())) {
                 audioStream.transferTo(bufferedResponseStream);
@@ -397,13 +396,13 @@ public class SongApiServlet extends HttpServlet {
         }
 
         try (FileData imageFileData = imageDAO.getImage(imageStorageName)) {
-            response.setContentType(imageFileData.getMimeType());
-            response.setContentLengthLong(imageFileData.getSize());
+            response.setContentType(imageFileData.mimeType());
+            response.setContentLengthLong(imageFileData.size());
 
             String albumNameForFile = album.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
             response.setHeader("Content-Disposition", "inline; filename=\"" + albumNameForFile + "\"");
 
-            try (InputStream imageStream = imageFileData.getContent();
+            try (InputStream imageStream = imageFileData.content();
                  BufferedOutputStream bufferedResponseStream = new BufferedOutputStream(
                          response.getOutputStream())) {
                 imageStream.transferTo(bufferedResponseStream);
@@ -447,8 +446,7 @@ public class SongApiServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 

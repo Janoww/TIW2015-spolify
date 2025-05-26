@@ -145,7 +145,7 @@ class ImageDAOTest {
     // --- deleteImage Tests ---
 
     @Test
-    void deleteImage_shouldDeleteExistingFile_whenFileExists() throws DAOException, IOException {
+    void deleteImage_shouldDeleteExistingFile_whenFileExists() throws DAOException {
         // Arrange: Save a file first
         InputStream inputStream = getResourceStream("valid.png");
         String filename = imageDAO.saveImage(inputStream, "delete_test.png");
@@ -212,21 +212,21 @@ class ImageDAOTest {
         try (FileData fileData = imageDAO.getImage(savedFilename)) {
             // Assert
             assertNotNull(fileData, "FileData should not be null for existing file");
-            assertEquals(savedFilename, fileData.getFilename(), "Filename in FileData should match");
+            assertEquals(savedFilename, fileData.filename(), "Filename in FileData should match");
 
             // Verify MIME type
             String expectedMimeType = tika.detect(expectedPath);
-            assertEquals(expectedMimeType, fileData.getMimeType(), "MIME type should match detected type");
+            assertEquals(expectedMimeType, fileData.mimeType(), "MIME type should match detected type");
 
             // Verify size
             long expectedSize = Files.size(expectedPath);
-            assertEquals(expectedSize, fileData.getSize(), "File size should match");
+            assertEquals(expectedSize, fileData.size(), "File size should match");
 
             // Verify content
-            assertNotNull(fileData.getContent(), "Content stream should not be null");
+            assertNotNull(fileData.content(), "Content stream should not be null");
             byte[] originalBytes = Files.readAllBytes(expectedPath);
             ByteArrayOutputStream retrievedBytesStream = new ByteArrayOutputStream();
-            fileData.getContent().transferTo(retrievedBytesStream);
+            fileData.content().transferTo(retrievedBytesStream);
             assertArrayEquals(originalBytes, retrievedBytesStream.toByteArray(), "File content should match");
         }
     }

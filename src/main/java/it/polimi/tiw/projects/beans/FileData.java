@@ -12,18 +12,10 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class FileData implements AutoCloseable, Serializable {
+public record FileData(@NotNull InputStream content, @NotBlank String filename, @NotBlank String mimeType,
+                       @Min(0) long size) implements AutoCloseable, Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-
-    @NotNull
-    private final transient InputStream content;
-    @NotBlank
-    private final String filename;
-    @NotBlank
-    private final String mimeType;
-    @Min(0)
-    private final long size;
 
     /**
      * Constructs a FileData object.
@@ -33,12 +25,7 @@ public class FileData implements AutoCloseable, Serializable {
      * @param mimeType The MIME type of the file.
      * @param size     The size of the file in bytes.
      */
-    public FileData(@NotNull InputStream content, @NotBlank String filename, @NotBlank String mimeType,
-                    @Min(0) long size) {
-        this.content = content;
-        this.filename = filename;
-        this.mimeType = mimeType;
-        this.size = size;
+    public FileData {
     }
 
     /**
@@ -70,19 +57,23 @@ public class FileData implements AutoCloseable, Serializable {
         }
     }
 
-    public InputStream getContent() {
+    @Override
+    public InputStream content() {
         return content;
     }
 
-    public String getFilename() {
+    @Override
+    public String filename() {
         return filename;
     }
 
-    public String getMimeType() {
+    @Override
+    public String mimeType() {
         return mimeType;
     }
 
-    public long getSize() {
+    @Override
+    public long size() {
         return size;
     }
 
