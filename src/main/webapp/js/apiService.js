@@ -34,12 +34,11 @@ async function _fetchApi(endpoint, options = {}, isFormData = false) {
             } catch (e) {
                 console.error("Fail to parse in json the response");
             }
-            throw {
-                status: response.status,
-                message: errorData.error || response.statusText || 'Unknown API error',
-                details: errorData,
-                response: response
-            };
+            const error = new Error(errorData.error || response.statusText || 'Unknown API error');
+            error.status = response.status;
+            error.details = errorData;
+            error.response = response;
+            throw error;
         }
 
         const contentType = response.headers.get("content-type");
@@ -54,12 +53,11 @@ async function _fetchApi(endpoint, options = {}, isFormData = false) {
             throw error;
         } else {
             console.error('Network or fetch setup error:', error);
-            throw {
-                status: 0,
-                message: error.message || 'Network error or request failed to send',
-                details: {},
-                isNetworkError: true
-            };
+            const networkError = new Error(error.message || 'Network error or request failed to send');
+            networkError.status = 0;
+            networkError.details = {};
+            networkError.isNetworkError = true;
+            throw networkError;
         }
     }
 }
