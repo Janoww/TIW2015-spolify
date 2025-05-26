@@ -1,6 +1,8 @@
-import {renderHomeView, renderPlaylists, renderSongs, renderSongUploadSection} from "../views/homeView.js";
-import {renderAllUserSongsList, renderSongsView, renderSongUploadSectionOnSongsPage} from "../views/songsView.js";
-import {createPlaylist, getPlaylists, getSongGenres as apiGetSongGenres, getSongs, uploadSong} from '../apiService.js';
+
+import { renderHomeView, renderPlaylists, renderSongs, renderSongUploadSection } from "../views/homeView.js";
+import { renderSongsView, renderSongUploadSectionOnSongsPage, renderAllUserSongsList } from "../views/songsView.js";
+import { getPlaylists, createPlaylist, getSongs, uploadSong, getSongGenres as apiGetSongGenres } from '../apiService.js';
+import { initPlaylistPage } from "./playlistHandler.js"
 
 function validateForm(formId, fieldIds) {
     //TODO
@@ -33,14 +35,16 @@ export async function initHomePage(appContainer) {
     renderSongUploadSection(songFormSectionContainer, genres, genreError);
     // TODO: Add event listener for 'add-song-form-home' submission here
 
-    // Load and render playlists
-    try {
-        const playlists = await getPlaylists();
-        renderPlaylists(appContainer, playlists);
-    } catch (error) {
-        console.error(`Error loading or rendering playlists: Status ${error.status}, Message: ${error.message}`, error.details || '');
-        // Display error in playlist section if possible
-    }
+
+	// Load and render playlists
+	let playlists;
+	try {
+		playlists = await getPlaylists();
+		renderPlaylists(appContainer, playlists);
+	} catch (error) {
+		console.error(`Error loading or rendering playlists: Status ${error.status}, Message: ${error.message}`, error.details || '');
+		// Display error in playlist section if possible
+	}
 
     // Load and render songs for the "Create New Playlist" form's song selection
     try {
@@ -52,8 +56,11 @@ export async function initHomePage(appContainer) {
 
     //events
 
-    const newSongForm = document.getElementById('add-song-form-home');
-    const newPlaylistForm = document.getElementById('create-playlist-form');
+
+	const newSongForm = document.getElementById('add-song-form-home');
+	const newPlaylistForm = document.getElementById('create-playlist-form');
+	const playlistsList = document.querySelector('.playlist-list')
+
 
     if (newPlaylistForm) {
         newPlaylistForm.addEventListener('submit', async (event) => {
@@ -108,23 +115,41 @@ export async function initHomePage(appContainer) {
                 formData.append('albumImage', form['album-image'].files[0]);
                 formData.append('audioFile', form['song-audio'].files[0]);
 
-                // Submit via fetch
-                try {
-                    const newSong = await uploadSong(formData);
-                    console.log('Upload successful:', newSong);
-                    // TODO update song list
-                    // Example: refreshSongsForPlaylistForm(appContainer);
-                    // and potentially refresh other song lists if they are visible
-                } catch (error) {
-                    console.error(`Upload failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
-                    // TODO handle error messages (e.g., display error.message in the UI)
-                }
-            } else {
-                console.log('NewSong form has errors.');
-                // TODO handle general error
-            }
-        })
-    }
+				// Submit via fetch
+				try {
+					const newSong = await uploadSong(formData);
+					console.log('Upload successful:', newSong);
+					// TODO update song list
+					// Example: refreshSongsForPlaylistForm(appContainer);
+					// and potentially refresh other song lists if they are visible
+				} catch (error) {
+					console.error(`Upload failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
+					// TODO handle error messages (e.g., display error.message in the UI)
+				}
+			} else {
+				console.log('NewSong form has errors.');
+				// TODO handle general error
+			}
+		})
+	}
+	
+	if (playlistsList) {
+		playlistsList.addEventListener('click', event => {
+		    const target = event.target;
+		    
+		    if (target.classList.contains('view-playlist-button')) {
+				const playlistId = parseInt(target.dataset.playlistId, 10); // convert to number
+				const playlist = playlists.find(p => p.idPlaylist === playlistId);
+				
+				initPlaylistPage(appContainer, playlist);
+		    }
+
+		    if (target.classList.contains('reorder-playlist-button')) {
+		        const playlistId = target.dataset.playlistId;
+		        console.log(`Reorder playlist ${playlistId}`); //TODO
+		    }
+		});
+	}
 }
 
 export async function initSongPage(appContainer) {
