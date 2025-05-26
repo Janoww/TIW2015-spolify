@@ -1,6 +1,6 @@
-import { renderLoginView, renderSignupView } from "../views/loginView.js";
-import { initHomePage } from "./homeHandler.js";
-import { login as apiLogin, signup as apiSignup, logout as apiLogout } from '../apiService.js';
+import {renderLoginView, renderSignupView} from "../views/loginView.js";
+import {initHomePage} from "./homeHandler.js";
+import {login as apiLogin, logout as apiLogout, signup as apiSignup} from '../apiService.js';
 
 // Helper function to validate a single form field
 function validateField(inputElement, errorElementId) {
@@ -50,10 +50,10 @@ function displayLogin(appContainer) {
                 const password = event.target.password.value;
 
                 try {
-                    const userData = await apiLogin({ username, password });
+                    const userData = await apiLogin({username, password});
                     console.log('Login successful:', userData);
                     sessionStorage.setItem('currentUser', JSON.stringify(userData));
-                    initHomePage(appContainer);
+                    await initHomePage(appContainer);
                 } catch (error) {
                     console.error(`Login failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
                     const generalErrorElement = document.getElementById('login-general-error');
@@ -94,7 +94,7 @@ function displaySignup(appContainer) {
                 const password = event.target.signupPassword.value;
 
                 try {
-                    const newUserData = await apiSignup({ username, name, surname, password });
+                    const newUserData = await apiSignup({username, name, surname, password});
                     console.log('Signup successful:', newUserData);
                     alert('Signup successful! User: ' + newUserData.username + '. Please log in.');
                     displayLogin(appContainer);

@@ -1,9 +1,10 @@
 package it.polimi.tiw.projects.beans;
 
-import java.io.Serializable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+
+import java.io.Serializable;
 
 public class UserCreationRequest implements Serializable {
     @NotBlank(message = "Username is required.")

@@ -1,59 +1,42 @@
 package it.polimi.tiw.projects.controllers.api;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import it.polimi.tiw.projects.beans.Album;
-import it.polimi.tiw.projects.beans.FileData;
-import it.polimi.tiw.projects.beans.Song;
-import it.polimi.tiw.projects.beans.SongCreationParameters;
-import it.polimi.tiw.projects.beans.SongWithAlbum;
-import it.polimi.tiw.projects.beans.User;
-import it.polimi.tiw.projects.dao.AlbumDAO;
-import it.polimi.tiw.projects.dao.AudioDAO;
-import it.polimi.tiw.projects.dao.ImageDAO;
-import it.polimi.tiw.projects.dao.SongDAO;
-import it.polimi.tiw.projects.dao.SongCreationServiceDAO;
+import it.polimi.tiw.projects.beans.*;
+import it.polimi.tiw.projects.dao.*;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.listeners.AppContextListener;
 import it.polimi.tiw.projects.utils.ConnectionHandler;
 import it.polimi.tiw.projects.utils.Genre;
 import it.polimi.tiw.projects.utils.ResponseUtils;
-
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.UnavailableException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.Part;
+import jakarta.servlet.http.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serial;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 @WebServlet("/api/v1/songs/*")
-@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 1, // 1MB
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, // 1MB
         maxFileSize = 1024 * 1024 * 75, // 75MB
         maxRequestSize = 1024 * 1024 * 85 // 85MB
 )
 public class SongApiServlet extends HttpServlet {
+    @Serial
     private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(SongApiServlet.class);
 
@@ -68,17 +51,6 @@ public class SongApiServlet extends HttpServlet {
     private transient Pattern standardTextPattern;
     private transient Integer standardTextMinLength;
     private transient Integer standardTextMaxLength;
-
-    private enum SongRoute {
-        // For GET requests
-        GET_ALL_SONGS, GET_SONG_BY_ID, GET_SONG_AUDIO, GET_SONG_IMAGE, GET_SONG_GENRES,
-
-        // For POST requests
-        CREATE_SONG,
-
-        // Fallback for unhandled or malformed paths
-        INVALID_ROUTE
-    }
 
     private SongRoute resolveRoute(HttpServletRequest request) {
         String method = request.getMethod();
@@ -210,25 +182,25 @@ public class SongApiServlet extends HttpServlet {
 
         try {
             switch (route) {
-            case GET_ALL_SONGS:
-                handleGetAllSongs(response, user);
-                break;
-            case GET_SONG_BY_ID:
-                handleGetSongById(response, user, songIdStr);
-                break;
-            case GET_SONG_AUDIO:
-                handleGetSongAudio(response, user, songIdStr);
-                break;
-            case GET_SONG_IMAGE:
-                handleGetSongImage(response, user, songIdStr);
-                break;
-            case GET_SONG_GENRES:
-                handleGetSongGenres(response, user);
-                break;
-            default:
-                ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                        "Invalid API path or method not supported for this GET path.");
-                break;
+                case GET_ALL_SONGS:
+                    handleGetAllSongs(response, user);
+                    break;
+                case GET_SONG_BY_ID:
+                    handleGetSongById(response, user, songIdStr);
+                    break;
+                case GET_SONG_AUDIO:
+                    handleGetSongAudio(response, user, songIdStr);
+                    break;
+                case GET_SONG_IMAGE:
+                    handleGetSongImage(response, user, songIdStr);
+                    break;
+                case GET_SONG_GENRES:
+                    handleGetSongGenres(response, user);
+                    break;
+                default:
+                    ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
+                            "Invalid API path or method not supported for this GET path.");
+                    break;
             }
         } catch (DAOException e) {
             logger.error("DAOException in doGet for user {}: Type={}, Message={}", user.getUsername(), e.getErrorType(),
@@ -275,7 +247,7 @@ public class SongApiServlet extends HttpServlet {
         if (foundSongs.isEmpty()) {
             ResponseUtils.sendError(response, HttpServletResponse.SC_NOT_FOUND, "Song not found or not owned by user.");
         } else {
-            Song song = foundSongs.get(0);
+            Song song = foundSongs.getFirst();
             Album album = null;
             try {
                 album = albumDAO.findAlbumById(song.getIdAlbum());
@@ -313,7 +285,7 @@ public class SongApiServlet extends HttpServlet {
                         "Song not found or not accessible by user.");
                 return;
             }
-            song = foundSongs.get(0);
+            song = foundSongs.getFirst();
             audioStorageName = song.getAudioFile();
 
         } catch (DAOException e) {
@@ -344,8 +316,8 @@ public class SongApiServlet extends HttpServlet {
             response.setHeader("Content-Disposition", "inline; filename=\"" + audioStorageName + "\"");
 
             try (InputStream audioStream = audioFileData.getContent();
-                    BufferedOutputStream bufferedResponseStream = new BufferedOutputStream(
-                            response.getOutputStream())) {
+                 BufferedOutputStream bufferedResponseStream = new BufferedOutputStream(
+                         response.getOutputStream())) {
                 audioStream.transferTo(bufferedResponseStream);
                 bufferedResponseStream.flush();
                 logger.debug("Successfully streamed audio for song ID {} for user {}", songIdInt, user.getUsername());
@@ -395,7 +367,7 @@ public class SongApiServlet extends HttpServlet {
                         "Song not found or not accessible by user.");
                 return;
             }
-            Song song = foundSongs.get(0);
+            Song song = foundSongs.getFirst();
             albumId = song.getIdAlbum();
 
             album = albumDAO.findAlbumById(albumId);
@@ -432,8 +404,8 @@ public class SongApiServlet extends HttpServlet {
             response.setHeader("Content-Disposition", "inline; filename=\"" + albumNameForFile + "\"");
 
             try (InputStream imageStream = imageFileData.getContent();
-                    BufferedOutputStream bufferedResponseStream = new BufferedOutputStream(
-                            response.getOutputStream())) {
+                 BufferedOutputStream bufferedResponseStream = new BufferedOutputStream(
+                         response.getOutputStream())) {
                 imageStream.transferTo(bufferedResponseStream);
                 bufferedResponseStream.flush();
                 logger.debug("Successfully streamed image for album ID {} (from song ID {}) for user {}", albumId,
@@ -497,7 +469,7 @@ public class SongApiServlet extends HttpServlet {
     }
 
     private Optional<String> validateStandardTextField(@NotBlank String rawValue, @NotBlank String fieldName,
-            HttpServletResponse response, @NotNull Pattern pattern, int minLength, int maxLength) {
+                                                       HttpServletResponse response, @NotNull Pattern pattern, int minLength, int maxLength) {
         String trimmedValue = rawValue.trim();
         if (trimmedValue.isEmpty() || trimmedValue.length() < minLength || trimmedValue.length() > maxLength) {
             ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
@@ -513,7 +485,7 @@ public class SongApiServlet extends HttpServlet {
     }
 
     private Optional<SongCreationParameters> parseAndValidateSongCreationParameters(HttpServletRequest request,
-            HttpServletResponse response, User user) {
+                                                                                    HttpServletResponse response, User user) {
 
         String songTitleRaw = request.getParameter("title");
         String albumTitleRaw = request.getParameter("albumTitle");
@@ -620,14 +592,14 @@ public class SongApiServlet extends HttpServlet {
 
             int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
             switch (e.getErrorType()) {
-            case DUPLICATE_ENTRY, NOT_FOUND, NAME_ALREADY_EXISTS, IMAGE_SAVE_FAILED, AUDIO_SAVE_FAILED:
-                statusCode = HttpServletResponse.SC_BAD_REQUEST;
-                break;
-            case CONSTRAINT_VIOLATION:
-                statusCode = HttpServletResponse.SC_CONFLICT;
-                break;
-            default:
-                break;
+                case DUPLICATE_ENTRY, NOT_FOUND, NAME_ALREADY_EXISTS, IMAGE_SAVE_FAILED, AUDIO_SAVE_FAILED:
+                    statusCode = HttpServletResponse.SC_BAD_REQUEST;
+                    break;
+                case CONSTRAINT_VIOLATION:
+                    statusCode = HttpServletResponse.SC_CONFLICT;
+                    break;
+                default:
+                    break;
             }
             ResponseUtils.sendError(response, statusCode, "Error creating song: " + e.getMessage());
         }
@@ -645,5 +617,16 @@ public class SongApiServlet extends HttpServlet {
         }
         super.destroy();
         logger.info("SongApiServlet destroyed.");
+    }
+
+    private enum SongRoute {
+        // For GET requests
+        GET_ALL_SONGS, GET_SONG_BY_ID, GET_SONG_AUDIO, GET_SONG_IMAGE, GET_SONG_GENRES,
+
+        // For POST requests
+        CREATE_SONG,
+
+        // Fallback for unhandled or malformed paths
+        INVALID_ROUTE
     }
 }

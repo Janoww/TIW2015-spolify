@@ -1,10 +1,11 @@
 package it.polimi.tiw.projects.beans;
 
-import java.util.List;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+
+import java.util.List;
 // Consider jakarta.validation.constraints.NotEmpty for songIds list if it cannot be empty
 
 public class PlaylistCreationRequest {

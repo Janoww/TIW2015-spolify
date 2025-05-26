@@ -1,6 +1,6 @@
-import { initHomePage, initSongPage } from './handlers/homeHandler.js';
-import { initLoginPage, logoutUser } from './handlers/loginHandler.js';
-import { checkAuthStatus } from './apiService.js';
+import {initHomePage, initSongPage} from './handlers/homeHandler.js';
+import {initLoginPage, logoutUser} from './handlers/loginHandler.js';
+import {checkAuthStatus} from './apiService.js';
 
 const appContainer = document.getElementById('app');
 
@@ -16,7 +16,7 @@ async function checkUserSessionAndInitialize() {
         const [, userData] = await Promise.all([delayPromise, checkAuthStatus()]);
         console.log('Active session found for user:', userData.username);
         sessionStorage.setItem('currentUser', JSON.stringify(userData));
-        initHomePage(appContainer);
+        await initHomePage(appContainer);
 
     } catch (error) {
         if (error.status === 401) {
@@ -32,12 +32,14 @@ async function checkUserSessionAndInitialize() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    checkUserSessionAndInitialize();
+    checkUserSessionAndInitialize().then(r => {
+    });
 
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
         logoutButton.addEventListener('click', () => {
-            logoutUser(appContainer);
+            logoutUser(appContainer).then(r => {
+            });
         });
     } else {
         console.error("Logout button not found in the DOM on initial load.");
@@ -45,7 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const homeButton = document.getElementById('home-button');
     if (homeButton) {
         homeButton.addEventListener('click', () => {
-            initHomePage(appContainer);
+            initHomePage(appContainer).then(r => {
+            });
         });
     } else {
         console.error("Home button not found in the DOM on initial load.");
@@ -53,7 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const songButton = document.getElementById('songs-button');
     if (songButton) {
         songButton.addEventListener('click', () => {
-            initSongPage(appContainer);
+            initSongPage(appContainer).then(r => {
+            });
         });
     } else {
         console.error("Song button not found in the DOM on initial load.");

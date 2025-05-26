@@ -1,17 +1,19 @@
 package it.polimi.tiw.projects.beans;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import org.apache.tika.Tika;
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.apache.tika.Tika;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serial;
+import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class FileData implements AutoCloseable, Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @NotNull
@@ -32,27 +34,11 @@ public class FileData implements AutoCloseable, Serializable {
      * @param size     The size of the file in bytes.
      */
     public FileData(@NotNull InputStream content, @NotBlank String filename, @NotBlank String mimeType,
-            @Min(0) long size) {
+                    @Min(0) long size) {
         this.content = content;
         this.filename = filename;
         this.mimeType = mimeType;
         this.size = size;
-    }
-
-    public InputStream getContent() {
-        return content;
-    }
-
-    public String getFilename() {
-        return filename;
-    }
-
-    public String getMimeType() {
-        return mimeType;
-    }
-
-    public long getSize() {
-        return size;
     }
 
     /**
@@ -82,6 +68,22 @@ public class FileData implements AutoCloseable, Serializable {
             }
             throw t;
         }
+    }
+
+    public InputStream getContent() {
+        return content;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public long getSize() {
+        return size;
     }
 
     /**

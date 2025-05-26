@@ -1,16 +1,6 @@
 package it.polimi.tiw.projects.controllers.api;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import it.polimi.tiw.projects.beans.LoginRequest;
 import it.polimi.tiw.projects.beans.User;
 import it.polimi.tiw.projects.dao.UserDAO;
@@ -26,16 +16,23 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Serial;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 @WebServlet("/api/v1/auth/*")
 public class AuthApiServlet extends HttpServlet {
+    @Serial
     private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(AuthApiServlet.class);
     private transient Connection connection;
-
-    private enum AuthRoute {
-        LOGIN, LOGOUT, CHECK_SESSION, INVALID_ROUTE
-    }
 
     public AuthApiServlet() {
         super();
@@ -94,16 +91,16 @@ public class AuthApiServlet extends HttpServlet {
                 route);
 
         switch (route) {
-        case LOGIN:
-            handleLogin(req, resp);
-            break;
-        case LOGOUT:
-            handleLogout(req, resp);
-            break;
-        default:
-            logger.warn("Invalid path for POST request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
-            ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
-            break;
+            case LOGIN:
+                handleLogin(req, resp);
+                break;
+            case LOGOUT:
+                handleLogout(req, resp);
+                break;
+            default:
+                logger.warn("Invalid path for POST request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
+                break;
         }
     }
 
@@ -279,5 +276,9 @@ public class AuthApiServlet extends HttpServlet {
         } catch (SQLException e) {
             logger.error("Failed to close database connection on servlet destroy.", e);
         }
+    }
+
+    private enum AuthRoute {
+        LOGIN, LOGOUT, CHECK_SESSION, INVALID_ROUTE
     }
 }

@@ -3,19 +3,19 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Spolify - Home</title>
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/components/forms.css">
-    <link rel="stylesheet" href="css/components/songs.css">
-    <link rel="stylesheet" href="css/components/playlists.css">
-    <link rel="stylesheet" href="css/components/home.css">
+    <link href="css/global.css" rel="stylesheet">
+    <link href="css/components/forms.css" rel="stylesheet">
+    <link href="css/components/songs.css" rel="stylesheet">
+    <link href="css/components/playlists.css" rel="stylesheet">
+    <link href="css/components/home.css" rel="stylesheet">
 </head>
 
 <body>
     <header>
         <div class="logo-and-title">
-            <img src="images/SpolifyIcon.png" class="icon" alt="Spolify Logo">
+            <img alt="Spolify Logo" class="icon" src="images/SpolifyIcon.png">
             <h1>SPOLIFY</h1>
         </div>
         <nav id="navbar">
@@ -62,7 +62,7 @@
                     <div class="form-field">
                         <div>
                             <label for="song-title">Song Title:</label>
-                            <input type="text" id="song-title" name="song-title" required>
+                            <input id="song-title" name="song-title" required type="text">
                         </div>
                         <span class="error-message" id="song-title-error"></span>
                     </div>
@@ -70,7 +70,7 @@
                     <div class="form-field">
                         <div>
                             <label for="album-title">Album Title:</label>
-                            <input type="text" id="album-title" name="album-title" required>
+                            <input id="album-title" name="album-title" required type="text">
                         </div>
                         <span class="error-message" id="album-title-error"></span>
                     </div>
@@ -78,7 +78,7 @@
                     <div class="form-field">
                         <div>
                             <label for="album-artist">Album Artist:</label>
-                            <input type="text" id="album-artist" name="album-artist" required>
+                            <input id="album-artist" name="album-artist" required type="text">
                         </div>
                         <span class="error-message" id="album-artist-error"></span>
                     </div>
@@ -86,7 +86,7 @@
                     <div class="form-field">
                         <div>
                             <label for="album-year">Album Year:</label>
-                            <input type="number" id="album-year" name="album-year" required min="1000" max="9999">
+                            <input id="album-year" max="9999" min="1000" name="album-year" required type="number">
                         </div>
                         <span class="error-message" id="album-year-error"></span>
                     </div>
@@ -94,7 +94,7 @@
                     <div class="form-field">
                         <div>
                             <label for="album-image">Album Image:</label>
-                            <input type="file" id="album-image" name="album-image" accept="image/*">
+                            <input accept="image/*" id="album-image" name="album-image" type="file">
                         </div>
                         <span class="error-message" id="album-image-error"></span>
                     </div>
@@ -103,7 +103,7 @@
                         <div>
                             <label for="song-genre">Genre:</label>
                             <select id="song-genre" name="song-genre" required>
-                                <option value="" disabled selected>Select a genre</option>
+                                <option disabled selected value="">Select a genre</option>
                                 <option value="AFRICAN">Music of Africa</option>
                                 <option value="ALTERNATIVE_ROCK">Alternative rock</option>
                                 <option value="AMBIENT">Ambient music</option>
@@ -162,12 +162,12 @@
                     <div class="form-field">
                         <div>
                             <label for="song-audio">Audio File:</label>
-                            <input type="file" id="song-audio" name="song-audio" accept="audio/*" required>
+                            <input accept="audio/*" id="song-audio" name="song-audio" required type="file">
                         </div>
                         <span class="error-message" id="song-audio-error"></span>
                     </div>
 
-                    <button type="submit" class="styled-button">Add Song</button>
+                    <button class="styled-button" type="submit">Add Song</button>
                 </form>
             </section>
 
@@ -177,7 +177,7 @@
                     <div class="form-field">
                         <div>
                             <label for="new-playlist-title">Playlist Title:</label>
-                            <input type="text" id="new-playlist-title" name="new-playlist-title" required>
+                            <input id="new-playlist-title" name="new-playlist-title" required type="text">
                         </div>
                         <span class="error-message" id="new-playlist-title-error"></span>
                     </div>
@@ -186,35 +186,35 @@
                     <div class="song-list">
                         <!-- Song items for selection will be dynamically populated by JS -->
                         <article class="song-item">
-                            <input type="checkbox" id="song-select-1" name="selected-songs" value="songId1"
-                                class="song-checkbox">
-                            <img src="images/image_placeholder.png" alt="[Song Title Placeholder]">
-                            <label for="song-select-1" class="song-metadata">
+                            <input class="song-checkbox" id="song-select-1" name="selected-songs" type="checkbox"
+                                   value="songId1">
+                            <img alt="[Song Title Placeholder]" src="images/image_placeholder.png">
+                            <label class="song-metadata" for="song-select-1">
                                 <h3>[Song Title Placeholder]</h3>
                                 <p>[Artist Name Placeholder] &bull; [Album Name Placeholder]</p>
                             </label>
                         </article>
                         <article class="song-item">
-                            <input type="checkbox" id="song-select-2" name="selected-songs" value="songId2"
-                                class="song-checkbox">
-                            <img src="images/image_placeholder.png" alt="[Song Title Placeholder 2]">
-                            <label for="song-select-2" class="song-metadata">
+                            <input class="song-checkbox" id="song-select-2" name="selected-songs" type="checkbox"
+                                   value="songId2">
+                            <img alt="[Song Title Placeholder 2]" src="images/image_placeholder.png">
+                            <label class="song-metadata" for="song-select-2">
                                 <h3>[Song Title Placeholder 2]</h3>
                                 <p>[Artist Name Placeholder 2] &bull; [Album Name Placeholder 2]</p>
                             </label>
                         </article>
                         <article class="song-item">
-                            <input type="checkbox" id="song-select-3" name="selected-songs" value="songId2"
-                                class="song-checkbox">
-                            <img src="images/image_placeholder.png" alt="[Song Title Placeholder 2]">
-                            <label for="song-select-3" class="song-metadata">
+                            <input class="song-checkbox" id="song-select-3" name="selected-songs" type="checkbox"
+                                   value="songId2">
+                            <img alt="[Song Title Placeholder 2]" src="images/image_placeholder.png">
+                            <label class="song-metadata" for="song-select-3">
                                 <h3>[Song Title Placeholder 2]</h3>
                                 <p>[Artist Name Placeholder 2] &bull; [Album Name Placeholder 2]</p>
                             </label>
                         </article>
                         <!-- Add more placeholder songs for selection as needed or generate via JS -->
                     </div>
-                    <button type="submit" class="styled-button">Create Playlist</button>
+                    <button class="styled-button" type="submit">Create Playlist</button>
                 </form>
             </section>
         </div>

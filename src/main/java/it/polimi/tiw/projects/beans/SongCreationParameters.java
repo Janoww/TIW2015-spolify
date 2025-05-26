@@ -2,11 +2,7 @@ package it.polimi.tiw.projects.beans;
 
 import it.polimi.tiw.projects.utils.Genre;
 import jakarta.servlet.http.Part;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.*;
 
 public class SongCreationParameters {
 

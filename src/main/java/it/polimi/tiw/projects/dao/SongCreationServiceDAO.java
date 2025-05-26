@@ -1,48 +1,31 @@
 package it.polimi.tiw.projects.dao;
 
-import it.polimi.tiw.projects.beans.Album;
-import it.polimi.tiw.projects.beans.Song;
-import it.polimi.tiw.projects.beans.SongCreationParameters;
-import it.polimi.tiw.projects.beans.SongWithAlbum;
-import it.polimi.tiw.projects.beans.User;
+import it.polimi.tiw.projects.beans.*;
 import it.polimi.tiw.projects.exceptions.DAOException;
-
+import jakarta.servlet.http.Part;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.NotBlank;
 
 public class SongCreationServiceDAO {
     private static final Logger logger = LoggerFactory.getLogger(SongCreationServiceDAO.class);
 
-    private Connection connection;
-    private AlbumDAO albumDAO;
-    private SongDAO songDAO;
-    private ImageDAO imageDAO;
-    private AudioDAO audioDAO;
-
-    private static class AlbumData {
-        final Album album;
-        final String imageFileStorageName;
-        final boolean newAlbumCreated;
-
-        AlbumData(Album album, String imageFileStorageName, boolean newAlbumCreated) {
-            this.album = album;
-            this.imageFileStorageName = imageFileStorageName;
-            this.newAlbumCreated = newAlbumCreated;
-        }
-    }
+    private final Connection connection;
+    private final AlbumDAO albumDAO;
+    private final SongDAO songDAO;
+    private final ImageDAO imageDAO;
+    private final AudioDAO audioDAO;
 
     public SongCreationServiceDAO(@NotNull Connection connection, @NotNull AlbumDAO albumDAO, @NotNull SongDAO songDAO,
-            @NotNull ImageDAO imageDAO, @NotNull AudioDAO audioDAO) {
+                                  @NotNull ImageDAO imageDAO, @NotNull AudioDAO audioDAO) {
         this.connection = connection;
         this.albumDAO = albumDAO;
         this.songDAO = songDAO;
@@ -94,7 +77,7 @@ public class SongCreationServiceDAO {
     }
 
     private AlbumData handleAlbumProcessing(@NotNull User user, @NotNull SongCreationParameters params,
-            Part imageFilePart) throws DAOException {
+                                            Part imageFilePart) throws DAOException {
         Album album;
         String imageFileStorageName = null;
         boolean newAlbumCreated = false;
@@ -122,7 +105,7 @@ public class SongCreationServiceDAO {
     }
 
     private Song saveSongDetails(@NotNull User user, @NotNull SongCreationParameters params, int albumId,
-            @NotBlank String audioFileStorageName) throws DAOException {
+                                 @NotBlank String audioFileStorageName) throws DAOException {
         Song createdSong = songDAO.createSong(params.getSongTitle(), albumId, params.getAlbumYear(), params.getGenre(),
                 audioFileStorageName, user.getIdUser());
         logger.info("Song '{}' (ID: {}) created and associated with album ID {} for user {}", createdSong.getTitle(),
@@ -158,7 +141,7 @@ public class SongCreationServiceDAO {
     }
 
     public SongWithAlbum createSongWorkflow(@NotNull User user, @NotNull SongCreationParameters params,
-            Part imageFilePart) throws DAOException {
+                                            Part imageFilePart) throws DAOException {
 
         String audioFileStorageName = null;
         AlbumData albumInfo = null;
@@ -211,6 +194,18 @@ public class SongCreationServiceDAO {
                 logger.error("Failed to reset autoCommit to true for user {}: {}", user.getUsername(),
                         exFinal.getMessage(), exFinal);
             }
+        }
+    }
+
+    private static class AlbumData {
+        final Album album;
+        final String imageFileStorageName;
+        final boolean newAlbumCreated;
+
+        AlbumData(Album album, String imageFileStorageName, boolean newAlbumCreated) {
+            this.album = album;
+            this.imageFileStorageName = imageFileStorageName;
+            this.newAlbumCreated = newAlbumCreated;
         }
     }
 }

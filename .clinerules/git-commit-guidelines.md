@@ -16,7 +16,7 @@ Based on the project history, common types include:
 
 - `feat`: A new feature or enhancement.
 - `fix`: A bug fix.
-- `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc).
+- `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semicolons, etc.).
 - `refactor`: A code change that neither fixes a bug nor adds a feature.
 - `docs`: Documentation only changes.
 - `test`: Adding missing tests or correcting existing tests.

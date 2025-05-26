@@ -1,4 +1,4 @@
-import { createFormField } from '../utils/formUtils.js';
+import {createFormField} from '../utils/formUtils.js';
 
 // Helper function to create a title container
 function createTitleContainer(titleText) {

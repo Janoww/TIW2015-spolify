@@ -1,6 +1,11 @@
 package it.polimi.tiw.projects.dao;
 
-import static org.junit.jupiter.api.Assertions.*;
+import it.polimi.tiw.projects.beans.FileData;
+import it.polimi.tiw.projects.exceptions.DAOException;
+import org.apache.tika.Tika;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -8,22 +13,16 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import it.polimi.tiw.projects.beans.FileData;
-import it.polimi.tiw.projects.exceptions.DAOException;
-import org.apache.tika.Tika;
+import static org.junit.jupiter.api.Assertions.*;
 
 class AudioDAOTest {
 
-    private AudioDAO audioDAO;
-    private Tika tika;
     private static final String SAMPLES_DIR = "/sample_audio/";
     private static final String AUDIO_SUBFOLDER = "song";
-
     @TempDir
     Path tempDir;
+    private AudioDAO audioDAO;
+    private Tika tika;
 
     // Note: Tests now run against a temporary directory provided by @TempDir,
     // ensuring isolation and automatic cleanup.
@@ -91,8 +90,8 @@ class AudioDAOTest {
     // --- saveAudio Validation Failure / Edge Case Tests (Updated) ---
 
     @Test
-    // @Disabled("Obsolete: Validation is now based on MIME type, not original
-    // extension")
+        // @Disabled("Obsolete: Validation is now based on MIME type, not original
+        // extension")
     void saveAudio_shouldSaveWithCorrectExtension_whenValidContentHasWrongExtension() throws DAOException {
         // This test now checks if valid audio content (MP3) with a wrong extension
         // (.txt)
@@ -112,9 +111,7 @@ class AudioDAOTest {
     @Test
     void saveAudio_shouldThrowIllegalArgument_whenContentTypeIsInvalid() {
         InputStream inputStream = getResourceStream("txt_pretending_to_be.mp3");
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.saveAudio(inputStream, "txt_pretending_to_be.mp3");
-        }, "Should throw IllegalArgumentException when content type (text) is invalid despite .mp3 extension");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.saveAudio(inputStream, "txt_pretending_to_be.mp3"), "Should throw IllegalArgumentException when content type (text) is invalid despite .mp3 extension");
     }
 
     @Test
@@ -135,17 +132,13 @@ class AudioDAOTest {
     @Test
     void saveAudio_shouldThrowIllegalArgument_whenFilenameIsNull() {
         InputStream inputStream = getResourceStream("valid.mp3");
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.saveAudio(inputStream, null);
-        }, "Should throw IllegalArgumentException for null filename");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.saveAudio(inputStream, null), "Should throw IllegalArgumentException for null filename");
     }
 
     @Test
     void saveAudio_shouldThrowIllegalArgument_whenFilenameIsBlank() {
         InputStream inputStream = getResourceStream("valid.mp3");
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.saveAudio(inputStream, "  ");
-        }, "Should throw IllegalArgumentException for blank filename");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.saveAudio(inputStream, "  "), "Should throw IllegalArgumentException for blank filename");
     }
 
     @Test
@@ -191,51 +184,37 @@ class AudioDAOTest {
         String nonExistentFilename = "non_existent_file_" + System.currentTimeMillis() + ".mp3";
 
         // Act & Assert: Expect DAOException with NOT_FOUND type
-        DAOException exception = assertThrows(DAOException.class, () -> {
-            audioDAO.deleteAudio(nonExistentFilename);
-        }, "deleteAudio should throw DAOException for a non-existent filename");
+        DAOException exception = assertThrows(DAOException.class, () -> audioDAO.deleteAudio(nonExistentFilename), "deleteAudio should throw DAOException for a non-existent filename");
         assertEquals(DAOException.DAOErrorType.NOT_FOUND, exception.getErrorType(),
                 "Exception type should be NOT_FOUND");
     }
 
     @Test
     void deleteAudio_shouldThrowIllegalArgument_whenFilenameIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.deleteAudio(null);
-        }, "Should throw IllegalArgumentException for null filename");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.deleteAudio(null), "Should throw IllegalArgumentException for null filename");
     }
 
     @Test
     void deleteAudio_shouldThrowIllegalArgument_whenFilenameIsBlank() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.deleteAudio("   ");
-        }, "Should throw IllegalArgumentException for blank filename");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.deleteAudio("   "), "Should throw IllegalArgumentException for blank filename");
     }
 
     @Test
     void deleteAudio_shouldThrowIllegalArgument_whenFilenameIsInvalidFormat() {
         // Filename contains forward slash
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.deleteAudio("invalid/name.mp3");
-        }, "Should throw IllegalArgumentException for filename containing '/'");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.deleteAudio("invalid/name.mp3"), "Should throw IllegalArgumentException for filename containing '/'");
 
         // Filename contains backslash
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.deleteAudio("invalid\\name.mp3");
-        }, "Should throw IllegalArgumentException for filename containing '\\'");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.deleteAudio("invalid\\name.mp3"), "Should throw IllegalArgumentException for filename containing '\\'");
 
         // Filename is just "."
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.deleteAudio(".");
-        }, "Should throw IllegalArgumentException for filename being '.'");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.deleteAudio("."), "Should throw IllegalArgumentException for filename being '.'");
     }
 
     @Test
     void deleteAudio_shouldThrowIllegalArgument_whenFilenameContainsTraversal() {
         // Attempt to go up directories
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.deleteAudio("../../../etc/passwd");
-        }, "Should throw IllegalArgumentException for filename containing '..'");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.deleteAudio("../../../etc/passwd"), "Should throw IllegalArgumentException for filename containing '..'");
     }
 
     // --- getAudio Tests ---
@@ -275,45 +254,33 @@ class AudioDAOTest {
     @Test
     void getAudio_shouldThrowNotFound_whenFileDoesNotExist() {
         String nonExistentFilename = "non_existent_for_get.mp3";
-        DAOException exception = assertThrows(DAOException.class, () -> {
-            audioDAO.getAudio(nonExistentFilename);
-        }, "getAudio should throw DAOException for a non-existent filename");
+        DAOException exception = assertThrows(DAOException.class, () -> audioDAO.getAudio(nonExistentFilename), "getAudio should throw DAOException for a non-existent filename");
         assertEquals(DAOException.DAOErrorType.NOT_FOUND, exception.getErrorType(),
                 "Exception type should be NOT_FOUND for non-existent file");
     }
 
     @Test
     void getAudio_shouldThrowIllegalArgument_whenFilenameIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.getAudio(null);
-        }, "Should throw IllegalArgumentException for null filename in getAudio");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.getAudio(null), "Should throw IllegalArgumentException for null filename in getAudio");
     }
 
     @Test
     void getAudio_shouldThrowIllegalArgument_whenFilenameIsBlank() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.getAudio("   ");
-        }, "Should throw IllegalArgumentException for blank filename in getAudio");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.getAudio("   "), "Should throw IllegalArgumentException for blank filename in getAudio");
     }
 
     @Test
     void getAudio_shouldThrowIllegalArgument_whenFilenameContainsTraversal() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.getAudio("../../../etc/passwd");
-        }, "Should throw IllegalArgumentException for filename containing '..' in getAudio");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.getAudio("../../../etc/passwd"), "Should throw IllegalArgumentException for filename containing '..' in getAudio");
     }
 
     @Test
     void getAudio_shouldThrowIllegalArgument_whenFilenameIsInvalidFormat() {
         // Filename contains forward slash
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.getAudio("invalid/name.mp3");
-        }, "Should throw IllegalArgumentException for filename containing '/' in getAudio");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.getAudio("invalid/name.mp3"), "Should throw IllegalArgumentException for filename containing '/' in getAudio");
 
         // Filename contains backslash
-        assertThrows(IllegalArgumentException.class, () -> {
-            audioDAO.getAudio("invalid\\name.mp3");
-        }, "Should throw IllegalArgumentException for filename containing '\\' in getAudio");
+        assertThrows(IllegalArgumentException.class, () -> audioDAO.getAudio("invalid\\name.mp3"), "Should throw IllegalArgumentException for filename containing '\\' in getAudio");
     }
 
     @Test
@@ -331,9 +298,7 @@ class AudioDAOTest {
             }
         };
 
-        DAOException exception = assertThrows(DAOException.class, () -> {
-            audioDAO.saveAudio(mockInputStream, "test_io_exception.mp3");
-        }, "Should throw DAOException when InputStream has an I/O error");
+        DAOException exception = assertThrows(DAOException.class, () -> audioDAO.saveAudio(mockInputStream, "test_io_exception.mp3"), "Should throw DAOException when InputStream has an I/O error");
 
         assertEquals(DAOException.DAOErrorType.GENERIC_ERROR, exception.getErrorType(),
                 "DAOErrorType should be GENERIC_ERROR for I/O issues during save.");

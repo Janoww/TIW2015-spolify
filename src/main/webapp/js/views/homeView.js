@@ -1,213 +1,213 @@
-import { createFormField } from '../utils/formUtils.js';
-import { createSongUploadFormElement } from './sharedComponents.js';
-import { getSongImageURL } from '../apiService.js';
+import {createFormField} from '../utils/formUtils.js';
+import {createSongUploadFormElement} from './sharedComponents.js';
+import {getSongImageURL} from '../apiService.js';
 
 // Helper function to create a title container
 function createHeaderContainer(titleText, size) { // TODO: Consider moving to a shared viewUtils.js
-	const h1 = document.createElement(size);
-	h1.textContent = titleText;
-	return h1;
+    const h1 = document.createElement(size);
+    h1.textContent = titleText;
+    return h1;
 }
 
 // Helper function to create a paragraph
 function createParagraphElement(text) {
-	const node = document.createElement('p');
-	node.textContent = text;
-	return node;
+    const node = document.createElement('p');
+    node.textContent = text;
+    return node;
 }
 
 
 // Helper function to create a playlist element
 function createPlaylistArticle(playlist) {
-	const article = document.createElement('article');
-	article.className = 'playlist-item';
+    const article = document.createElement('article');
+    article.className = 'playlist-item';
 
-	const divInfo = document.createElement('div');
-	divInfo.className = 'playlist-info';
+    const divInfo = document.createElement('div');
+    divInfo.className = 'playlist-info';
 
-	divInfo.appendChild(createHeaderContainer(playlist.name, 'h3'));
-	divInfo.appendChild(createParagraphElement('Created: ' + playlist.birthday));
+    divInfo.appendChild(createHeaderContainer(playlist.name, 'h3'));
+    divInfo.appendChild(createParagraphElement('Created: ' + playlist.birthday));
 
-	article.appendChild(divInfo);
+    article.appendChild(divInfo);
 
-	const divActions = document.createElement('div');
-	divActions.className = 'palylist-actions';
+    const divActions = document.createElement('div');
+    divActions.className = 'playlist-actions';
 
-	const buttonView = document.createElement('button');
-	const buttonReorder = document.createElement('button');
+    const buttonView = document.createElement('button');
+    const buttonReorder = document.createElement('button');
 
-	buttonView.className = 'styled-button view-playlist-button';
-	buttonView.dataset.playlistId = playlist.idPlaylist;
-	buttonView.textContent = 'View';
+    buttonView.className = 'styled-button view-playlist-button';
+    buttonView.dataset.playlistId = playlist.idPlaylist;
+    buttonView.textContent = 'View';
 
-	buttonReorder.className = 'styled-button reorder-playlist-button';
-	buttonReorder.dataset.playlistId = playlist.idPlaylist;
-	buttonReorder.textContent = 'Reorder';
+    buttonReorder.className = 'styled-button reorder-playlist-button';
+    buttonReorder.dataset.playlistId = playlist.idPlaylist;
+    buttonReorder.textContent = 'Reorder';
 
-	divActions.appendChild(buttonView);
-	divActions.appendChild(buttonReorder);
+    divActions.appendChild(buttonView);
+    divActions.appendChild(buttonReorder);
 
-	article.appendChild(divActions);
+    article.appendChild(divActions);
 
 
-	return article;
+    return article;
 }
 
 
 // Helper function to create a song element
 function createSongArticle(songWithAlbum) {
-	const article = document.createElement('article');
-	article.className = 'song-item';
+    const article = document.createElement('article');
+    article.className = 'song-item';
 
-	const inputEl = document.createElement('input');
-	inputEl.type = 'checkbox';
-	inputEl.id = 'song-select-' + songWithAlbum.song.idSong;
-	inputEl.name = 'selected-songs';
-	inputEl.value = songWithAlbum.song.idSong;
-	inputEl.className = 'song-checkbox';
+    const inputEl = document.createElement('input');
+    inputEl.type = 'checkbox';
+    inputEl.id = 'song-select-' + songWithAlbum.song.idSong;
+    inputEl.name = 'selected-songs';
+    inputEl.value = songWithAlbum.song.idSong;
+    inputEl.className = 'song-checkbox';
 
-	article.appendChild(inputEl);
+    article.appendChild(inputEl);
 
-	//TODO image
-	const img = document.createElement('img');
+    //TODO image
+    const img = document.createElement('img');
 
-	img.src = getSongImageURL(songWithAlbum.song.idSong);
-	img.alt = songWithAlbum.song.title || "Song cover";
-	img.onerror = () => {
-		img.src = 'images/image_placeholder.png';
-	};
+    img.src = getSongImageURL(songWithAlbum.song.idSong);
+    img.alt = songWithAlbum.song.title || "Song cover";
+    img.onerror = () => {
+        img.src = 'images/image_placeholder.png';
+    };
 
 
-	article.appendChild(img);
+    article.appendChild(img);
 
-	const label = document.createElement('label');
-	label.htmlFor = 'song-select-' + songWithAlbum.song.idSong;
-	label.className = 'song-metadata';
+    const label = document.createElement('label');
+    label.htmlFor = 'song-select-' + songWithAlbum.song.idSong;
+    label.className = 'song-metadata';
 
-	label.appendChild(createHeaderContainer(songWithAlbum.song.title, 'h3'));
-	label.appendChild(createParagraphElement(songWithAlbum.album.artist + ' • ' + songWithAlbum.album.name));
+    label.appendChild(createHeaderContainer(songWithAlbum.song.title, 'h3'));
+    label.appendChild(createParagraphElement(songWithAlbum.album.artist + ' • ' + songWithAlbum.album.name));
 
-	article.appendChild(label);
+    article.appendChild(label);
 
-	return article;
+    return article;
 }
 
 // Function that adds the songs to the song list
 
 export function renderSongs(appContainer, songWithAlbums) {
-	const songListDiv = appContainer.querySelector('.song-list');
+    const songListDiv = appContainer.querySelector('.song-list');
 
-	if (songWithAlbums) {
-		songWithAlbums.forEach(swa => {
-			const article = createSongArticle(swa);
-			songListDiv.appendChild(article);
-		})
-	}
+    if (songWithAlbums) {
+        songWithAlbums.forEach(swa => {
+            const article = createSongArticle(swa);
+            songListDiv.appendChild(article);
+        })
+    }
 }
 
 
 // Function that adds the playlists to the myPlaylists section
 export function renderPlaylists(appContainer, playlists) {
 
-	const playlistListDiv = appContainer.querySelector('.playlist-list');
+    const playlistListDiv = appContainer.querySelector('.playlist-list');
 
-	if (playlists) {
-		playlists.forEach(pl => {
-			const article = createPlaylistArticle(pl);
-			playlistListDiv.appendChild(article);
-		})
-	}
+    if (playlists) {
+        playlists.forEach(pl => {
+            const article = createPlaylistArticle(pl);
+            playlistListDiv.appendChild(article);
+        })
+    }
 
 
 }
 
 
 export function renderHomeView(appContainer) {
-	appContainer.innerHTML = '';
-	appContainer.style.maxWidth = '100%';
+    appContainer.innerHTML = '';
+    appContainer.style.maxWidth = '100%';
 
-	// The Home Page will be divides in a 3 section orizzontal grid
-	const homeGridDiv = document.createElement('div');
-	homeGridDiv.className = 'grid home-grid';
+    // The Home Page will be divides in a 3 section horizontal grid
+    const homeGridDiv = document.createElement('div');
+    homeGridDiv.className = 'grid home-grid';
 
-	// Section 1: User playlist
-	const myPlaylistsSection = document.createElement('section');
-	myPlaylistsSection.id = 'user-playlists-section';
+    // Section 1: User playlist
+    const myPlaylistsSection = document.createElement('section');
+    myPlaylistsSection.id = 'user-playlists-section';
 
-	// 1.1: Title
-	myPlaylistsSection.appendChild(createHeaderContainer('My Playlists', 'h2'));
+    // 1.1: Title
+    myPlaylistsSection.appendChild(createHeaderContainer('My Playlists', 'h2'));
 
-	// 1.2: List
-	const myPlaylistList = document.createElement('div');
-	myPlaylistList.className = 'playlist-list';
+    // 1.2: List
+    const myPlaylistList = document.createElement('div');
+    myPlaylistList.className = 'playlist-list';
 
-	// The list is populated in the homeHandler by renderPlaylists()
+    // The list is populated in the homeHandler by renderPlaylists()
 
-	myPlaylistsSection.appendChild(myPlaylistList);
+    myPlaylistsSection.appendChild(myPlaylistList);
 
-	homeGridDiv.appendChild(myPlaylistsSection);
+    homeGridDiv.appendChild(myPlaylistsSection);
 
-	// Section 2: New Song Upload
-	const newSongSection = document.createElement('section');
-	newSongSection.id = 'add-song-section';
-
-
-	// 2.1: Title
-	newSongSection.appendChild(createHeaderContainer('Upload New Song', 'h2'));
-
-	// Placeholder for the song form
-	const loadingP = document.createElement('p');
-	loadingP.id = 'song-form-loader-message';
-	loadingP.textContent = 'Loading song form...';
-	newSongSection.appendChild(loadingP);
-
-	homeGridDiv.appendChild(newSongSection);
-
-	// Section 3: New Playlist Creation
-	const newPlaylistSection = document.createElement('section');
-	newPlaylistSection.id = 'create-playlist-section';
-
-	// 3.1: Title
-	newPlaylistSection.appendChild(createHeaderContainer('Create New Playlist', 'h2'));
-
-	// 3.2: Form
-	const newPlaylistForm = document.createElement('form');
-	newPlaylistForm.id = 'create-playlist-form';
-
-	// Input: title
-	newPlaylistForm.appendChild(createFormField('new-playlist-title', 'Playlist Title:', 'text', 'new-playlist-title', true));
-
-	// Input: song list
-	newPlaylistForm.appendChild(createHeaderContainer('Select Songs to Add:', 'h3'));
-	const songListDiv = document.createElement('div');
-	songListDiv.className = 'song-list';
-	newPlaylistForm.appendChild(songListDiv);
+    // Section 2: New Song Upload
+    const newSongSection = document.createElement('section');
+    newSongSection.id = 'add-song-section';
 
 
-	// Button
-	const newPlaylistSendButton = document.createElement('button');
-	newPlaylistSendButton.type = 'submit';
-	newPlaylistSendButton.className = 'styled-button';
-	newPlaylistSendButton.textContent = 'Create Playlist';
-	newPlaylistForm.appendChild(newPlaylistSendButton);
+    // 2.1: Title
+    newSongSection.appendChild(createHeaderContainer('Upload New Song', 'h2'));
 
-	newPlaylistSection.appendChild(newPlaylistForm);
+    // Placeholder for the song form
+    const loadingP = document.createElement('p');
+    loadingP.id = 'song-form-loader-message';
+    loadingP.textContent = 'Loading song form...';
+    newSongSection.appendChild(loadingP);
 
-	homeGridDiv.appendChild(newPlaylistSection);
+    homeGridDiv.appendChild(newSongSection);
 
-	appContainer.appendChild(homeGridDiv);
+    // Section 3: New Playlist Creation
+    const newPlaylistSection = document.createElement('section');
+    newPlaylistSection.id = 'create-playlist-section';
+
+    // 3.1: Title
+    newPlaylistSection.appendChild(createHeaderContainer('Create New Playlist', 'h2'));
+
+    // 3.2: Form
+    const newPlaylistForm = document.createElement('form');
+    newPlaylistForm.id = 'create-playlist-form';
+
+    // Input: title
+    newPlaylistForm.appendChild(createFormField('new-playlist-title', 'Playlist Title:', 'text', 'new-playlist-title', true));
+
+    // Input: song list
+    newPlaylistForm.appendChild(createHeaderContainer('Select Songs to Add:', 'h3'));
+    const songListDiv = document.createElement('div');
+    songListDiv.className = 'song-list';
+    newPlaylistForm.appendChild(songListDiv);
+
+
+    // Button
+    const newPlaylistSendButton = document.createElement('button');
+    newPlaylistSendButton.type = 'submit';
+    newPlaylistSendButton.className = 'styled-button';
+    newPlaylistSendButton.textContent = 'Create Playlist';
+    newPlaylistForm.appendChild(newPlaylistSendButton);
+
+    newPlaylistSection.appendChild(newPlaylistForm);
+
+    homeGridDiv.appendChild(newPlaylistSection);
+
+    appContainer.appendChild(homeGridDiv);
 }
 
 // Function to specifically render the song upload form section
 export function renderSongUploadSection(sectionContainer, genres, error = null) {
-	// Clear previous content (e.g., the "Loading form..." message)
-	const loaderMessage = sectionContainer.querySelector('#song-form-loader-message');
-	if (loaderMessage) loaderMessage.remove();
+    // Clear previous content (e.g., the "Loading form..." message)
+    const loaderMessage = sectionContainer.querySelector('#song-form-loader-message');
+    if (loaderMessage) loaderMessage.remove();
 
-	// Remove any existing form or error message if re-rendering
-	const existingFormOrError = sectionContainer.querySelector('form, p.general-error-message');
-	if (existingFormOrError) existingFormOrError.remove();
+    // Remove any existing form or error message if re-rendering
+    const existingFormOrError = sectionContainer.querySelector('form, p.general-error-message');
+    if (existingFormOrError) existingFormOrError.remove();
 
-	const formElement = createSongUploadFormElement('add-song-form-home', genres, error);
-	sectionContainer.appendChild(formElement);
+    const formElement = createSongUploadFormElement('add-song-form-home', genres, error);
+    sectionContainer.appendChild(formElement);
 }

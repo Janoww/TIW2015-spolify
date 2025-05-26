@@ -1,153 +1,153 @@
 .slider {
-  position: relative;
-  overflow: hidden;
-  padding: 2vh 5vw;
-  width: 100%;
-  box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    padding: 2vh 5vw;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .slider-container {
-  position: relative;
-  border: 1px solid #9B7EBD;
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  gap: 1.5vw;
-  -webkit-overflow-scrolling: touch;
-  /* smoother on mobile */
+    position: relative;
+    border: 1px solid #9B7EBD;
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    gap: 1.5vw;
+    -webkit-overflow-scrolling: touch;
+    /* smoother on mobile */
 }
 
 .slider-container::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 .slider-item {
-  flex: 0 0 calc((100% - 4 * 1.5vw) / 5);
-  box-sizing: border-box;
-  padding: 10px;
-  background-color: #D4BEE4;
-  border-radius: 15px;
-  border: 2px solid #3B1E54;
-  color: #3B1E54;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  text-align: left;
-  transition: background-color 0.3s ease;
+    flex: 0 0 calc((100% - 4 * 1.5vw) / 5);
+    box-sizing: border-box;
+    padding: 10px;
+    background-color: #D4BEE4;
+    border-radius: 15px;
+    border: 2px solid #3B1E54;
+    color: #3B1E54;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+    transition: background-color 0.3s ease;
 }
 
 .slider-item:hover {
-  background-color: #c8a2dc;
+    background-color: #c8a2dc;
 }
 
 /* Image container */
 .slider-image {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  /* Square image container */
-  overflow: hidden;
-  border-radius: 10px;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    /* Square image container */
+    overflow: hidden;
+    border-radius: 10px;
 }
 
 /* Image thumbnail */
 .slider-thumbnail {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 /* Button overlay */
 .card-btn {
-  position: absolute;
-  bottom: 5px;
-  left: 50%;
-  transform: translate(-50%, 0%);
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translate(-50%, 0%);
 
-  padding: 0.5vh 5vw;
-  background-color: rgba(59, 30, 84, 0.85);
-  /* #3B1E54 with opacity */
-  color: #EEEEEE;
-  border: none;
-  border-radius: 10px;
-  font-size: 1vw;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+    padding: 0.5vh 5vw;
+    background-color: rgba(59, 30, 84, 0.85);
+    /* #3B1E54 with opacity */
+    color: #EEEEEE;
+    border: none;
+    border-radius: 10px;
+    font-size: 1vw;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
 }
 
 /* Show the button on hover */
 .slider-image:hover .card-btn {
-  opacity: 1;
-  pointer-events: auto;
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .card-btn:hover {
-  background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 /* Metadata section */
 .slider-metadata h3 {
-  font-size: 1.1rem;
-  margin: 0;
+    font-size: 1.1rem;
+    margin: 0;
 }
 
 .slider-metadata p {
-  margin: 0;
-  color: #3B1E54;
+    margin: 0;
+    color: #3B1E54;
 }
 
 .pre-carouselButton,
 .next-carouselButton {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 6vw;
-  border: none;
-  background-color: transparent;
-  cursor: pointer;
-  z-index: 10;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 6vw;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .pre-carouselButton {
-  left: 0;
+    left: 0;
 }
 
 .next-carouselButton {
-  right: 0;
+    right: 0;
 }
 
 /* Wrapper that detects hover even when transitioning from button to arrow */
 .arrow-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Initial hidden state */
 .arrow {
-  width: 32px;
-  height: auto;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  filter: drop-shadow(0 0 2px rgba(59, 30, 84, 0.6));
-  pointer-events: auto;
+    width: 32px;
+    height: auto;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    filter: drop-shadow(0 0 2px rgba(59, 30, 84, 0.6));
+    pointer-events: auto;
 }
 
 /* Hovering on button or wrapper → arrow fades in partially */
 .pre-carouselButton:hover .arrow,
 .next-carouselButton:hover .arrow {
-  opacity: 0.3;
+    opacity: 0.3;
 }
 
 /* Hovering directly on arrow → full opacity */
 .arrow-wrapper:hover .arrow {
-  opacity: 1;
+    opacity: 1;
 }

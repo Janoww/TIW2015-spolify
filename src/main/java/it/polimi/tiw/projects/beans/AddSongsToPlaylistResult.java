@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AddSongsToPlaylistResult {
-    private List<Integer> addedSongIds = new ArrayList<>();
-    private List<Integer> duplicateSongIds = new ArrayList<>();
+    private final List<Integer> addedSongIds = new ArrayList<>();
+    private final List<Integer> duplicateSongIds = new ArrayList<>();
 
     // Getters
     public List<Integer> getAddedSongIds() {

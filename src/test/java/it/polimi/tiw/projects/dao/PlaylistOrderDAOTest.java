@@ -1,6 +1,14 @@
 package it.polimi.tiw.projects.dao;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.polimi.tiw.projects.exceptions.DAOException;
+import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
+import it.polimi.tiw.projects.utils.ObjectMapperUtils;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,39 +16,19 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.io.TempDir;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import it.polimi.tiw.projects.exceptions.DAOException;
-import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
-import it.polimi.tiw.projects.utils.ObjectMapperUtils;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PlaylistOrderDAOTest {
 
     private static final Logger log = LoggerFactory.getLogger(PlaylistOrderDAOTest.class);
-    private PlaylistOrderDAO playlistOrderDAO;
-    private ObjectMapper objectMapper;
-
     private static final String PLAYLIST_ORDERS_SUBFOLDER = "playlist_orders";
     private static final String JSON_EXTENSION = ".json";
-
     @TempDir
     Path tempDir;
-
+    private PlaylistOrderDAO playlistOrderDAO;
+    private ObjectMapper objectMapper;
     private Path playlistOrdersStoragePath;
 
     @BeforeEach
@@ -75,7 +63,7 @@ class PlaylistOrderDAOTest {
         assertTrue(Files.exists(expectedFile), "JSON file for playlist order should be created.");
 
         // Verify content directly
-        List<Integer> savedOrder = objectMapper.readValue(expectedFile.toFile(), new TypeReference<List<Integer>>() {
+        List<Integer> savedOrder = objectMapper.readValue(expectedFile.toFile(), new TypeReference<>() {
         });
         assertEquals(songIds, savedOrder, "Saved song IDs should match the input.");
     }
@@ -95,7 +83,7 @@ class PlaylistOrderDAOTest {
         Path expectedFile = getExpectedFilePath(playlistId);
         assertTrue(Files.exists(expectedFile), "JSON file should still exist after update.");
 
-        List<Integer> savedOrder = objectMapper.readValue(expectedFile.toFile(), new TypeReference<List<Integer>>() {
+        List<Integer> savedOrder = objectMapper.readValue(expectedFile.toFile(), new TypeReference<>() {
         });
         assertEquals(updatedSongIds, savedOrder, "Saved song IDs should reflect the update.");
     }
@@ -113,7 +101,7 @@ class PlaylistOrderDAOTest {
         Path expectedFile = getExpectedFilePath(playlistId);
         assertTrue(Files.exists(expectedFile), "JSON file for empty order should be created.");
 
-        List<Integer> savedOrder = objectMapper.readValue(expectedFile.toFile(), new TypeReference<List<Integer>>() {
+        List<Integer> savedOrder = objectMapper.readValue(expectedFile.toFile(), new TypeReference<>() {
         });
         assertTrue(savedOrder.isEmpty(), "Saved order should be an empty list.");
     }

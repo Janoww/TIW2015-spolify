@@ -1,15 +1,8 @@
 package it.polimi.tiw.projects.dao;
 
+import it.polimi.tiw.projects.beans.FileData;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.Map;
-import java.util.UUID;
-import it.polimi.tiw.projects.beans.FileData;
 import it.polimi.tiw.projects.utils.StorageUtils;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,18 +10,24 @@ import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Map;
+import java.util.UUID;
+
 public class AudioDAO {
     private static final Logger log = LoggerFactory.getLogger(AudioDAO.class);
 
     private static final String AUDIO_SUBFOLDER = "song";
-    private final Path songStorageDirectory;
-
     // Map of allowed MIME types (derived from Tika definitions) to their canonical
     // file extensions
     private static final Map<String, String> ALLOWED_MIME_TYPES_MAP = Map.ofEntries(
             // MP3 Types from Tika definition
             Map.entry("audio/mpeg", ".mp3"), Map.entry("audio/x-mpeg", ".mp3"), // Alias for
-                                                                                // audio/mpeg
+            // audio/mpeg
 
             // WAV Types from Tika definition
             Map.entry("audio/vnd.wave", ".wav"), // Primary WAV type
@@ -41,6 +40,7 @@ public class AudioDAO {
             Map.entry("audio/vorbis", ".ogg") // Specific Vorbis codec in Ogg
     );
     private static final int MAX_FILENAME_PREFIX_LENGTH = 190;
+    private final Path songStorageDirectory;
 
     /**
      * Constructs an AudioDAO with a specified base storage directory. The 'song'
@@ -78,7 +78,7 @@ public class AudioDAO {
      * @param originalFileName The original filename provided by the client (used
      *                         for prefix).
      * @return The unique filename (e.g., "filename_uuid.mp3") of the saved audio
-     *         file within the 'song' directory.
+     * file within the 'song' directory.
      * @throws DAOException             If an I/O error occurs during file
      *                                  operations.
      * @throws IllegalArgumentException If the file content is not a valid/supported
@@ -135,7 +135,7 @@ public class AudioDAO {
      *
      * @param audioFile Path to the temporary audio file to validate.
      * @return The canonical file extension (e.g., ".mp3", ".wav") corresponding to
-     *         the detected and allowed MIME type.
+     * the detected and allowed MIME type.
      * @throws IllegalArgumentException if the file is not detected as a supported
      *                                  audio format based on the
      *                                  ALLOWED_MIME_TYPES_MAP.
@@ -144,7 +144,7 @@ public class AudioDAO {
      */
     private String validateAndGetExtension(@NotNull Path audioFile) throws IllegalArgumentException, IOException {
         Tika tika = new Tika();
-        String mimeType = null;
+        String mimeType;
         try {
             mimeType = tika.detect(audioFile);
             log.debug("Detected MIME type for {}: {}", audioFile, mimeType);
@@ -180,7 +180,7 @@ public class AudioDAO {
 
     /**
      * Helper method to delete a temporary file, logging any secondary errors.
-     * 
+     *
      * @param tempFile The path to the temporary file (can be null).
      */
     private void deleteTempFile(Path tempFile) {
@@ -255,7 +255,7 @@ public class AudioDAO {
             throw new IllegalArgumentException("Filename cannot be null or empty for deletion.");
         }
         // Specific check for problematic names
-        if (filename.equals(".") || filename.startsWith(".")) {
+        if (filename.startsWith(".")) {
             log.warn("Delete audio failed: Filename '{}' is invalid for deletion.", filename);
             throw new IllegalArgumentException("Invalid filename for deletion.");
         }

@@ -1,15 +1,8 @@
 package it.polimi.tiw.projects.dao;
 
+import it.polimi.tiw.projects.beans.FileData;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.Map;
-import java.util.UUID;
-import it.polimi.tiw.projects.beans.FileData;
 import it.polimi.tiw.projects.utils.StorageUtils;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,18 +10,24 @@ import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Map;
+import java.util.UUID;
+
 public class ImageDAO {
     private static final Logger log = LoggerFactory.getLogger(ImageDAO.class);
 
     private static final String IMAGE_SUBFOLDER = "image";
-    private final Path imageStorageDirectory;
-
     // Map of allowed MIME types to their canonical file extensions
     // Tika detects both .jpg and .jpeg as image/jpeg
     private static final Map<String, String> ALLOWED_MIME_TYPES_MAP = Map.ofEntries(Map.entry("image/jpeg", ".jpg"),
             Map.entry("image/png", ".png"), Map.entry("image/webp", ".webp"));
-
     private static final int MAX_FILENAME_PREFIX_LENGTH = 190;
+    private final Path imageStorageDirectory;
 
     /**
      * Constructs an ImageDAO with a specified base storage directory. The 'image'
@@ -65,7 +64,7 @@ public class ImageDAO {
      * @param originalFileName The original filename provided by the client (used
      *                         for prefix).
      * @return The unique filename (e.g., "filename_uuid.jpg") of the saved image
-     *         file within the 'image' directory.
+     * file within the 'image' directory.
      * @throws DAOException             If an I/O error occurs during file
      *                                  operations.
      * @throws IllegalArgumentException If the file content is not a valid/supported
@@ -127,7 +126,7 @@ public class ImageDAO {
      *
      * @param imageFile Path to the temporary image file to validate.
      * @return The canonical file extension (e.g., ".jpg", ".png") corresponding to
-     *         the detected and allowed MIME type.
+     * the detected and allowed MIME type.
      * @throws IllegalArgumentException if the file is not detected as a supported
      *                                  image format based on the
      *                                  ALLOWED_MIME_TYPES_MAP.
@@ -136,7 +135,7 @@ public class ImageDAO {
      */
     private String validateAndGetExtension(@NotNull Path imageFile) throws IllegalArgumentException, IOException {
         Tika tika = new Tika();
-        String mimeType = null;
+        String mimeType;
         try {
             mimeType = tika.detect(imageFile);
             log.debug("Detected MIME type for {}: {}", imageFile, mimeType);
@@ -172,7 +171,7 @@ public class ImageDAO {
 
     /**
      * Helper method to delete a temporary file, logging any secondary errors.
-     * 
+     *
      * @param tempFile The path to the temporary file (can be null).
      */
     private void deleteTempFile(Path tempFile) {
@@ -247,7 +246,7 @@ public class ImageDAO {
         }
         // Specific check for problematic names not covered by general path validation
         // for retrieval
-        if (filename.equals(".") || filename.startsWith(".")) {
+        if (filename.startsWith(".")) {
             log.warn("Delete image failed: Filename '{}' is invalid for deletion.", filename);
             throw new IllegalArgumentException("Invalid filename for deletion.");
         }

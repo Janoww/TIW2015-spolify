@@ -1,5 +1,5 @@
-import { createSongUploadFormElement } from './sharedComponents.js';
-import { getSongImageURL } from '../apiService.js';
+import {createSongUploadFormElement} from './sharedComponents.js';
+import {getSongImageURL} from '../apiService.js';
 
 // Helper function to create a title (similar to homeView, consider shared viewUtils.js)
 function createHeaderContainer(titleText, size = 'h2') {

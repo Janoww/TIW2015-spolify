@@ -1,16 +1,17 @@
 package it.polimi.tiw.projects.listeners;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.mysql.cj.jdbc.AbandonedConnectionCleanupThread;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import it.polimi.tiw.projects.dao.AudioDAO;
+import it.polimi.tiw.projects.dao.ImageDAO;
+import it.polimi.tiw.projects.dao.PlaylistOrderDAO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
-
-import it.polimi.tiw.projects.dao.AudioDAO;
-import it.polimi.tiw.projects.dao.ImageDAO;
-import it.polimi.tiw.projects.dao.PlaylistOrderDAO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,29 +23,22 @@ import java.util.function.IntPredicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import com.mysql.cj.jdbc.AbandonedConnectionCleanupThread;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
 @WebListener
 public class AppContextListener implements ServletContextListener {
-
-    private static final Logger logger = LoggerFactory.getLogger(AppContextListener.class);
-    private HikariDataSource dataSource;
 
     // Keys for ServletContext attributes for validation patterns
     public static final String USERNAME_REGEX_PATTERN = "USERNAME_REGEX_PATTERN";
     public static final String NAME_REGEX_PATTERN = "NAME_REGEX_PATTERN";
     public static final String PASSWORD_MIN_LENGTH = "PASSWORD_MIN_LENGTH";
     public static final String PASSWORD_MAX_LENGTH = "PASSWORD_MAX_LENGTH";
-
     // Consolidated text validation parameters
     public static final String STANDARD_TEXT_REGEX_PATTERN = "STANDARD_TEXT_REGEX_PATTERN";
     public static final String STANDARD_TEXT_MIN_LENGTH = "STANDARD_TEXT_MIN_LENGTH";
     public static final String STANDARD_TEXT_MAX_LENGTH = "STANDARD_TEXT_MAX_LENGTH";
-
     // Playlist name has a specific regex
     public static final String PLAYLIST_NAME_REGEX_PATTERN = "PLAYLIST_NAME_REGEX_PATTERN";
+    private static final Logger logger = LoggerFactory.getLogger(AppContextListener.class);
+    private HikariDataSource dataSource;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -112,7 +106,7 @@ public class AppContextListener implements ServletContextListener {
     }
 
     private void loadRegexPattern(ServletContext context, String paramName, String attributeKey,
-            String patternDescriptionForLogs) {
+                                  String patternDescriptionForLogs) {
         String regexStr = context.getInitParameter(paramName);
         if (regexStr != null && !regexStr.isBlank()) {
             try {
@@ -129,7 +123,7 @@ public class AppContextListener implements ServletContextListener {
     }
 
     private void loadIntegerValidation(ServletContext context, String paramName, String attributeKey,
-            String valueDescriptionForLogs, IntPredicate validator, String validationFailureMessage) {
+                                       String valueDescriptionForLogs, IntPredicate validator, String validationFailureMessage) {
         String valueStr = context.getInitParameter(paramName);
         if (valueStr != null && !valueStr.isBlank()) {
             try {

@@ -21,7 +21,7 @@ The backend API is specified in `design/specification.md`. The primary focus her
 
 2.  **Authentication (`loginView.js`, `loginHandler.js`):**
 
-    - **Improve Signup Flow:** After successful signup (`POST /users`), `loginHandler.js` should transition to `initHomePage` and store user data in `sessionStorage` (reflecting API spec that user is logged in), instead of redirecting back to login. (Backend `POST /users` correctly sets session attribute; this TODO is for frontend handler).
+    - **Improve Signup Flow:** After successful signup (`POST /users`), `loginHandler.js` should transition to `initHomePage` and store user data in `sessionStorage` (reflecting API spec that user is logged in), instead of redirecting back to log in. (Backend `POST /users` correctly sets session attribute; this TODO is for frontend handler).
     - **Refactor Validation:** Move form validation functions (`validateField`, `validateForm`) from `loginHandler.js` to `formUtils.js` for reuse.
 
 3.  **Home View (`homeView.js`, `homeHandler.js`):**

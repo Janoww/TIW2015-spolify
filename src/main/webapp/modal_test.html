@@ -3,10 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Modal Test Page</title>
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/components/modal.css">
+    <link href="css/global.css" rel="stylesheet">
+    <link href="css/components/modal.css" rel="stylesheet">
     <style>
         body {
             font-family: sans-serif;
@@ -24,25 +24,26 @@
 <body>
 
     <!-- Reorder Playlist Modal -->
-    <div id="reorderModal" class="modal" style="display:block; position:relative; margin-top: 50px;">
+    <div class="modal" id="reorderModal" style="display:block; position:relative; margin-top: 50px;">
         <!-- display:block and relative for testing -->
         <!-- Removed modal-overlay for isolated testing, or it would cover the whole test page -->
         <div class="modal-content">
             <span class="close-button" id="closeReorderModal">&times;</span>
             <h2>Reorder Playlist: <span id="reorderPlaylistName">[Playlist Name Placeholder]</span></h2>
             <p class="modal-instructions">Drag and drop songs to reorder them.</p>
-            <ul id="reorderSongList" class="song-list-reorder">
+            <ul class="song-list-reorder" id="reorderSongList">
                 <!-- Placeholder song items for visual testing -->
-                <li draggable="true" data-song-id="song123" class="reorder-song-item">Song Title 1 - Artist A</li>
-                <li draggable="true" data-song-id="song456" class="reorder-song-item">Song Title 2 - Artist B</li>
-                <li draggable="true" data-song-id="song789" class="reorder-song-item">Song Title 3 - Artist C</li>
-                <li draggable="true" data-song-id="song101" class="reorder-song-item">A Very Long Song Title That Might
-                    Wrap Around To Test Text Handling - Artist D</li>
-                <li draggable="true" data-song-id="song112" class="reorder-song-item">Another Song - Artist E</li>
+                <li class="reorder-song-item" data-song-id="song123" draggable="true">Song Title 1 - Artist A</li>
+                <li class="reorder-song-item" data-song-id="song456" draggable="true">Song Title 2 - Artist B</li>
+                <li class="reorder-song-item" data-song-id="song789" draggable="true">Song Title 3 - Artist C</li>
+                <li class="reorder-song-item" data-song-id="song101" draggable="true">A Very Long Song Title That Might
+                    Wrap Around To Test Text Handling - Artist D
+                </li>
+                <li class="reorder-song-item" data-song-id="song112" draggable="true">Another Song - Artist E</li>
             </ul>
             <div class="modal-actions">
-                <button id="saveOrderButton" class="styled-button">Save Order</button>
-                <button id="cancelOrderButton" class="styled-button styled-button-secondary">Cancel</button>
+                <button class="styled-button" id="saveOrderButton">Save Order</button>
+                <button class="styled-button styled-button-secondary" id="cancelOrderButton">Cancel</button>
             </div>
         </div>
     </div>
