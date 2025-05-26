@@ -1,5 +1,5 @@
-import { createFormField } from '../utils/formUtils.js'; // Keep if other forms are built here, or for song item rendering
 import { createSongUploadFormElement } from './sharedComponents.js';
+import { getSongImageURL } from '../apiService.js';
 
 // Helper function to create a title (similar to homeView, consider shared viewUtils.js)
 function createHeaderContainer(titleText, size = 'h2') {
@@ -105,7 +105,7 @@ export function renderAllUserSongsList(songListContainer, songs, error = null) {
         // For now, using placeholder as image path construction needs more info (e.g., base URL for images)
 
 
-        img.src = `api/v1/songs/${songWithAlbum.song.idSong}/image`;
+        img.src = getSongImageURL(songWithAlbum.song.idSong);
         img.alt = songWithAlbum.song.title || "Song cover";
         img.onerror = () => {
             img.src = 'images/image_placeholder.png';

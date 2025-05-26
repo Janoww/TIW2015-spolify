@@ -1,5 +1,6 @@
 import { createFormField } from '../utils/formUtils.js';
 import { createSongUploadFormElement } from './sharedComponents.js';
+import { getSongImageURL } from '../apiService.js';
 
 // Helper function to create a title container
 function createHeaderContainer(titleText, size) { // TODO: Consider moving to a shared viewUtils.js
@@ -70,7 +71,7 @@ function createSongArticle(songWithAlbum) {
 	//TODO image
 	const img = document.createElement('img');
 
-	img.src = `api/v1/songs/${songWithAlbum.song.idSong}/image`;
+	img.src = getSongImageURL(songWithAlbum.song.idSong);
 	img.alt = songWithAlbum.song.title || "Song cover";
 	img.onerror = () => {
 		img.src = 'images/image_placeholder.png';

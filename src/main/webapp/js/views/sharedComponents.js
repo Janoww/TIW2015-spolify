@@ -27,7 +27,7 @@ export function createSongUploadFormElement(formId, genres, error = null) {
     form.appendChild(createFormField('album-artist', 'Album Artist:', 'text', 'album-artist', true));
     // Album Year
     form.appendChild(createFormField('album-year', 'Album Year:', 'number', 'album-year', true, [], { min: "1000", max: "9999" }));
-    // Album Image (Optional based on specification for POST /songs, but home_mockup.html has it as not required, songs_mockup.html has it as not required)
+    // Album Image
     form.appendChild(createFormField('album-image', 'Album Image:', 'file', 'album-image', false, [], { accept: 'image/*' }));
 
     // Genre Select
