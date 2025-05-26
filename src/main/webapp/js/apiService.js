@@ -10,9 +10,9 @@ const API_BASE_URL = 'api/v1';
  */
 async function _fetchApi(endpoint, options = {}, isFormData = false) {
     const url = `${API_BASE_URL}${endpoint}`;
-    const fetchOptions = {...options};
+    const fetchOptions = { ...options };
 
-    fetchOptions.headers = {...fetchOptions.headers};
+    fetchOptions.headers = { ...fetchOptions.headers };
 
     if (!isFormData) {
         fetchOptions.headers['Accept'] = 'application/json';
@@ -43,7 +43,7 @@ async function _fetchApi(endpoint, options = {}, isFormData = false) {
         }
 
         const contentType = response.headers.get("content-type");
-        if (response.status === 204 || !contentType || !contentType.includes("application/json")) {
+        if (response.status === 204 || !contentType?.includes("application/json")) {
             return response.text();
         }
 
@@ -66,57 +66,57 @@ async function _fetchApi(endpoint, options = {}, isFormData = false) {
 
 // --- Authentication & User ---
 export async function checkAuthStatus() {
-    return _fetchApi('/auth/me', {method: 'GET'});
+    return _fetchApi('/auth/me', { method: 'GET' });
 }
 
 export async function login(credentials) {
-    return _fetchApi('/auth/login', {method: 'POST', body: credentials});
+    return _fetchApi('/auth/login', { method: 'POST', body: credentials });
 }
 
 export async function logout() {
-    return _fetchApi('/auth/logout', {method: 'POST'});
+    return _fetchApi('/auth/logout', { method: 'POST' });
 }
 
 export async function signup(userData) {
-    return _fetchApi('/users', {method: 'POST', body: userData});
+    return _fetchApi('/users', { method: 'POST', body: userData });
 }
 
 // --- Playlists ---
 export async function getPlaylists() {
-    return _fetchApi('/playlists', {method: 'GET'});
+    return _fetchApi('/playlists', { method: 'GET' });
 }
 
 export async function createPlaylist(playlistData) {
-    return _fetchApi('/playlists', {method: 'POST', body: playlistData});
+    return _fetchApi('/playlists', { method: 'POST', body: playlistData });
 }
 
 export async function getPlaylistSongOrder(playlistId) {
-    return _fetchApi(`/playlists/${playlistId}/order`, {method: 'GET'});
+    return _fetchApi(`/playlists/${playlistId}/order`, { method: 'GET' });
 }
 
 export async function addSongsToPlaylist(playlistId, songIdsData) {
-    return _fetchApi(`/playlists/${playlistId}/songs`, {method: 'POST', body: songIdsData});
+    return _fetchApi(`/playlists/${playlistId}/songs`, { method: 'POST', body: songIdsData });
 }
 
 export async function updatePlaylistOrder(playlistId, orderedSongIdsData) {
-    return _fetchApi(`/playlists/${playlistId}/order`, {method: 'PUT', body: orderedSongIdsData});
+    return _fetchApi(`/playlists/${playlistId}/order`, { method: 'PUT', body: orderedSongIdsData });
 }
 
 // --- Songs ---
 export async function getSongs() {
-    return _fetchApi('/songs', {method: 'GET'});
+    return _fetchApi('/songs', { method: 'GET' });
 }
 
 export async function uploadSong(formData) {
-    return _fetchApi('/songs', {method: 'POST', body: formData}, true);
+    return _fetchApi('/songs', { method: 'POST', body: formData }, true);
 }
 
 export async function getSongDetails(songId) {
-    return _fetchApi(`/songs/${songId}`, {method: 'GET'});
+    return _fetchApi(`/songs/${songId}`, { method: 'GET' });
 }
 
 export async function getSongGenres() {
-    return _fetchApi('/songs/genres', {method: 'GET'});
+    return _fetchApi('/songs/genres', { method: 'GET' });
 }
 
 // --- URL Builders ---
