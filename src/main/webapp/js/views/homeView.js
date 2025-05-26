@@ -69,8 +69,13 @@ function createSongArticle(songWithAlbum){
 
 	//TODO image
 	const img = document.createElement('img');
-	img.src = `api/v1/songs/${songWithAlbum.song.idSong}/image`
-	img.alt = songWithAlbum.song.title;
+	
+	img.src = `api/v1/songs/${songWithAlbum.song.idSong}/image`;
+	img.alt = songWithAlbum.song.title || "Song cover";
+	img.onerror = () => {
+	  img.src = 'images/image_placeholder.png';
+	};
+
 
 	article.appendChild(img);
 

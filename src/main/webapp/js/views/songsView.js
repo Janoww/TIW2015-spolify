@@ -103,9 +103,13 @@ export function renderAllUserSongsList(songListContainer, songs, error = null) {
 
 		console.log(songWithAlbum.album);
         // For now, using placeholder as image path construction needs more info (e.g., base URL for images)
-		//img.src = `api/v1/songs/${songWithAlbum.song.idSong}/image` // <-- This works btw
-        img.src = songWithAlbum.album.image ? `api/v1/songs/${songWithAlbum.song.idSong}/image` : 'images/image_placeholder.png';
-        img.alt = songWithAlbum.song.title;
+	
+				
+		img.src = `api/v1/songs/${songWithAlbum.song.idSong}/image`;
+		img.alt = songWithAlbum.song.title || "Song cover";
+		img.onerror = () => {
+		  img.src = 'images/image_placeholder.png';
+		};
 
         const metadataDiv = document.createElement('div');
         metadataDiv.className = 'song-metadata';
