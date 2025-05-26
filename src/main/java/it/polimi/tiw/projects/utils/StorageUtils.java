@@ -58,8 +58,7 @@ public class StorageUtils {
             log.debug("Constructed potential path: {}", potentialFilePath);
         } catch (InvalidPathException e) {
             log.warn("Validation failed: Invalid path generated from filename '{}'.", filename, e);
-            throw new IllegalArgumentException(
-                    "Invalid filename resulting in invalid path: " + e.getMessage(), e);
+            throw new IllegalArgumentException("Invalid filename resulting in invalid path: " + e.getMessage(), e);
         }
 
         // Security check:
@@ -72,7 +71,8 @@ public class StorageUtils {
             log.debug("File real path for validation: {}", fileRealPath);
 
             if (!fileRealPath.startsWith(baseStorageRealPath)) {
-                log.warn("Security validation failed: Filename '{}' resolves to path '{}' which is outside the designated storage directory '{}'.",
+                log.warn(
+                        "Security validation failed: Filename '{}' resolves to path '{}' which is outside the designated storage directory '{}'.",
                         filename, fileRealPath, baseStorageRealPath);
                 throw new DAOException("Access denied: Filename resolves outside storage directory.",
                         DAOErrorType.ACCESS_DENIED);
@@ -82,19 +82,18 @@ public class StorageUtils {
             return fileRealPath;
 
         } catch (NoSuchFileException e) {
-            log.warn("Validation failed: File not found at path '{}' derived from filename '{}'.",
-                    potentialFilePath, filename, e);
+            log.warn("Validation failed: File not found at path '{}' derived from filename '{}'.", potentialFilePath,
+                    filename);
             throw new DAOException("File not found: " + filename, e, DAOErrorType.NOT_FOUND);
         } catch (IOException e) {
-            log.error("IOException during path validation for filename '{}' in {}: {}", filename,
-                    baseStorageDirectory, e.getMessage(), e);
+            log.error("IOException during path validation for filename '{}' in {}: {}", filename, baseStorageDirectory,
+                    e.getMessage(), e);
             throw new DAOException("Failed to validate path due to I/O error: " + e.getMessage(), e,
                     DAOErrorType.GENERIC_ERROR);
         } catch (SecurityException e) {
             log.error("SecurityException during path validation for filename '{}' in {}: {}", filename,
                     baseStorageDirectory, e.getMessage(), e);
-            throw new DAOException(
-                    "Failed to validate path due to security restrictions: " + e.getMessage(), e,
+            throw new DAOException("Failed to validate path due to security restrictions: " + e.getMessage(), e,
                     DAOErrorType.GENERIC_ERROR);
         }
     }

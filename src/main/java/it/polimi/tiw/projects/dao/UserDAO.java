@@ -45,12 +45,12 @@ public class UserDAO {
      *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
      */
     public User createUser(@NotBlank String username, @NotBlank String pwd, @NotBlank String name,
-                           @NotBlank String surname) throws DAOException {
+            @NotBlank String surname) throws DAOException {
         logger.debug("Attempting to create user: username={}, name={}, surname={}", username, name, surname);
         String insertQuery = "INSERT INTO User (idUser, username, password, name, surname) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)";
         String checkExistence = "SELECT * FROM User WHERE username = ?";
         try (PreparedStatement checkStatement = connection.prepareStatement(checkExistence);
-             PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
+                PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
             checkStatement.setString(1, username);
             try (ResultSet result = checkStatement.executeQuery()) {
                 if (result.next()) {
@@ -130,12 +130,12 @@ public class UserDAO {
                     throw new DAOException("Invalid credentials", DAOException.DAOErrorType.INVALID_CREDENTIALS);
                 }
             }
-        } catch (SQLException e) { // GENERIC_ERROR
+        } catch (SQLException e) {
             logger.error("SQL error checking credentials for username {}: {}", username, e.getMessage(), e);
             throw new DAOException("Error checking credentials: " + e.getMessage(), e,
                     DAOException.DAOErrorType.GENERIC_ERROR);
-        } catch (IllegalArgumentException e) { // GENERIC_ERROR (expected for bad UUID data)
-            logger.error("Error parsing UUID for user {} during credential check: {}", username, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            logger.error("Error parsing UUID for user {} during credential check: {}", username, e.getMessage(), e);
             throw new DAOException("Error processing user data during credential check: " + e.getMessage(), e,
                     DAOException.DAOErrorType.GENERIC_ERROR);
         }

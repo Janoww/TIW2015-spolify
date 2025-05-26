@@ -29,6 +29,7 @@ public class ConnectionHandler {
             connection = dataSource.getConnection();
             logger.debug("Successfully obtained connection from DataSource.");
         } catch (SQLException e) {
+            logger.error("SQLException while trying to get connection from DataSource: {}", e.getMessage(), e);
             throw new UnavailableException("Couldn't get DB connection from pool: " + e.getMessage());
         }
         return connection;

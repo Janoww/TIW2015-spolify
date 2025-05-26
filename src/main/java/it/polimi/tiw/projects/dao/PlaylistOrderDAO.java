@@ -77,7 +77,7 @@ public class PlaylistOrderDAO {
 
         try {
             if (!filePath.normalize().startsWith(this.playlistOrdersStorageDirectory.normalize())) {
-                log.error(
+                log.warn(
                         "Security alert: Attempt to write playlist order outside designated directory. Playlist ID: {}, Path: {}",
                         idPlaylist, filePath);
                 throw new DAOException("Attempt to write playlist order outside designated directory.",
@@ -108,7 +108,7 @@ public class PlaylistOrderDAO {
      *
      * @param idPlaylist The ID of the playlist.
      * @return A list of song IDs in custom order, or null if no custom order
-     * exists.
+     *         exists.
      * @throws DAOException If an I/O error occurs or if the playlist ID is invalid.
      */
     public @NotNull List<Integer> getPlaylistOrder(int idPlaylist) throws DAOException {
@@ -124,9 +124,8 @@ public class PlaylistOrderDAO {
             Path resolvedFilePath = StorageUtils.validateAndResolveSecurePath(filename,
                     this.playlistOrdersStorageDirectory);
 
-            List<Integer> orderedSongIds = objectMapper.readValue(resolvedFilePath.toFile(),
-                    new TypeReference<>() {
-                    });
+            List<Integer> orderedSongIds = objectMapper.readValue(resolvedFilePath.toFile(), new TypeReference<>() {
+            });
             log.info("Successfully retrieved order for playlist ID: {}", idPlaylist);
             return orderedSongIds;
         } catch (DAOException e) {
@@ -176,7 +175,7 @@ public class PlaylistOrderDAO {
 
         try {
             if (!filePath.startsWith(this.playlistOrdersStorageDirectory.normalize())) {
-                log.error(
+                log.warn(
                         "Security alert: Attempt to delete playlist order file outside designated directory. Playlist ID: {}, Path: {}",
                         idPlaylist, filePath);
                 throw new DAOException("Attempt to delete playlist order file outside designated directory.",

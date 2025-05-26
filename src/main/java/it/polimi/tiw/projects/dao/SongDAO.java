@@ -37,7 +37,7 @@ public class SongDAO {
      *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
      */
     public Song createSong(@NotBlank String title, int idAlbum, int year, Genre genre, @NotBlank String audioFile,
-                           @NotNull UUID idUser) throws DAOException {
+            @NotNull UUID idUser) throws DAOException {
         logger.debug("Attempting to create song: title={}, idAlbum={}, year={}, genre={}, audioFile={}, userId={}",
                 title, idAlbum, year, genre, audioFile, idUser);
         String query = "INSERT into Song (title, idAlbum, year, genre, audioFile, idUser) VALUES(?, ?, ?, ?, ?, UUID_TO_BIN(?))";
@@ -136,8 +136,9 @@ public class SongDAO {
             logger.error("SQL error finding songs for user ID {}: {}", userId, e.getMessage(), e);
             throw new DAOException("Error finding songs by user: " + e.getMessage(), e,
                     DAOException.DAOErrorType.GENERIC_ERROR);
-        } catch (IllegalArgumentException e) { // GENERIC_ERROR
-            logger.error("Error parsing data (e.g., Genre, UUID) for songs for user ID {}: {}", userId, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            logger.error("Error parsing data (e.g., Genre, UUID) for songs for user ID {}: {}", userId, e.getMessage(),
+                    e);
             throw new DAOException("Error parsing song data: " + e.getMessage(), e,
                     DAOException.DAOErrorType.GENERIC_ERROR);
         }
@@ -173,12 +174,12 @@ public class SongDAO {
                 songs.add(song);
             }
             logger.debug("Found {} songs in total.", songs.size());
-        } catch (SQLException e) { // GENERIC_ERROR (unexpected)
+        } catch (SQLException e) {
             logger.error("SQL error finding all songs: {}", e.getMessage(), e);
             throw new DAOException("Error finding all songs: " + e.getMessage(), e,
                     DAOException.DAOErrorType.GENERIC_ERROR);
-        } catch (IllegalArgumentException e) { // GENERIC_ERROR
-            logger.error("Error parsing data (e.g., Genre, UUID) when finding all songs: {}", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            logger.error("Error parsing data (e.g., Genre, UUID) when finding all songs: {}", e.getMessage(), e);
             throw new DAOException("Error parsing song data: " + e.getMessage(), e,
                     DAOException.DAOErrorType.GENERIC_ERROR);
         }
@@ -223,8 +224,8 @@ public class SongDAO {
      * @param songIds The list of song IDs to retrieve.
      * @param userId  The UUID of the user who must own the songs.
      * @return A list of {@link Song} objects matching the criteria. Returns an
-     * empty list if songIds is null or empty, or if no matching songs are
-     * found for this user.
+     *         empty list if songIds is null or empty, or if no matching songs are
+     *         found for this user.
      * @throws DAOException if a database access error occurs
      *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
      */

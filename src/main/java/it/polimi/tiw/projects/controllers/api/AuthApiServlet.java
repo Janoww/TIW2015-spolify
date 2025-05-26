@@ -91,16 +91,16 @@ public class AuthApiServlet extends HttpServlet {
                 route);
 
         switch (route) {
-            case LOGIN:
-                handleLogin(req, resp);
-                break;
-            case LOGOUT:
-                handleLogout(req, resp);
-                break;
-            default:
-                logger.warn("Invalid path for POST request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
-                ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
-                break;
+        case LOGIN:
+            handleLogin(req, resp);
+            break;
+        case LOGOUT:
+            handleLogout(req, resp);
+            break;
+        default:
+            logger.warn("Invalid path for POST request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
+            ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
+            break;
         }
     }
 
@@ -116,7 +116,7 @@ public class AuthApiServlet extends HttpServlet {
             ResponseUtils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON format or missing fields.");
             return;
         } catch (IOException e) {
-            logger.warn("Failed to read request body for login: {}", e.getMessage());
+            logger.error("Failed to read request body for login: {}", e.getMessage(), e);
             ResponseUtils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error reading request data.");
             return;
         }
@@ -154,7 +154,8 @@ public class AuthApiServlet extends HttpServlet {
                 logger.warn("Invalid credentials attempt for username: {}. Details: {}", username, e.getMessage());
                 ResponseUtils.sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Invalid username or password.");
             } else {
-                logger.warn("DAOException during login for username: {}. ErrorType: {}", username, e.getErrorType(), e);
+                logger.error("DAOException during login for username: {}. ErrorType: {}", username, e.getErrorType(),
+                        e);
                 ResponseUtils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                         "Login failed due to a server error.");
             }

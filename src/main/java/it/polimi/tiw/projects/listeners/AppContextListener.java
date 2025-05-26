@@ -106,7 +106,7 @@ public class AppContextListener implements ServletContextListener {
     }
 
     private void loadRegexPattern(ServletContext context, String paramName, String attributeKey,
-                                  String patternDescriptionForLogs) {
+            String patternDescriptionForLogs) {
         String regexStr = context.getInitParameter(paramName);
         if (regexStr != null && !regexStr.isBlank()) {
             try {
@@ -115,7 +115,7 @@ public class AppContextListener implements ServletContextListener {
                 logger.info("Loaded and compiled {} regex pattern: {}", patternDescriptionForLogs, regexStr);
             } catch (PatternSyntaxException e) {
                 logger.error("Invalid regex syntax for {} pattern ({}): '{}'. Error: {}", patternDescriptionForLogs,
-                        paramName, regexStr, e.getMessage());
+                        paramName, regexStr, e.getMessage(), e);
             }
         } else {
             logger.warn("{} regex pattern ({}) not found or empty in web.xml.", patternDescriptionForLogs, paramName);
@@ -123,7 +123,7 @@ public class AppContextListener implements ServletContextListener {
     }
 
     private void loadIntegerValidation(ServletContext context, String paramName, String attributeKey,
-                                       String valueDescriptionForLogs, IntPredicate validator, String validationFailureMessage) {
+            String valueDescriptionForLogs, IntPredicate validator, String validationFailureMessage) {
         String valueStr = context.getInitParameter(paramName);
         if (valueStr != null && !valueStr.isBlank()) {
             try {
@@ -137,7 +137,7 @@ public class AppContextListener implements ServletContextListener {
                 }
             } catch (NumberFormatException e) {
                 logger.error("Invalid number format for {} ({}): '{}'. Error: {}", valueDescriptionForLogs, paramName,
-                        valueStr, e.getMessage());
+                        valueStr, e.getMessage(), e);
             }
         } else {
             logger.warn("{} ({}) not found or empty in web.xml.", valueDescriptionForLogs, paramName);
