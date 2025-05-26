@@ -53,18 +53,18 @@ export async function initHomePage(appContainer) {
 	//events
 
 	const newSongForm = document.getElementById('add-song-form-home');
-	const newPlaylistForm = document.getElementById('crate-playlist-form');
-
+	const newPlaylistForm = document.getElementById('create-playlist-form');
+	
 	if (newPlaylistForm){
 		newPlaylistForm.addEventListener('submit', async (event) => {
 			event.preventDefault();
 			const fieldIds = ['new-playlist-title'];
 			const selectedCheckboxes = document.querySelectorAll('input[name="selected-songs"]:checked');
 			
-			if(validateForm('create-playlist-form', fieldIds) && selectedCheckboxes.length > 0){
+			if(validateForm('create-playlist-form', fieldIds) && selectedCheckboxes.length > 0 ){
 				const form = event.target;
 				
-				const plName = form['new-playlist-title'].value;
+				const name = form['new-playlist-title'].value;
 				const songIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
 				
 				const payload = {
@@ -73,7 +73,7 @@ export async function initHomePage(appContainer) {
 				};
 				
 				try {
-					const res = await fetch('api/v1/playlists', {
+					const response = await fetch('api/v1/playlists', {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json'
@@ -83,8 +83,8 @@ export async function initHomePage(appContainer) {
 
 					const data = await res.json();
 					
-					if (res.ok) {
-						console.log("Playlist created:", result);
+					if (response.ok) {
+						console.log("Playlist created:", response);
 						//TODO update playlist lits
 					} else {
 						console.error('Playlist creation failed failed:', data.error || response.statusText);

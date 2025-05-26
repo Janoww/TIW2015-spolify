@@ -69,7 +69,7 @@ function createSongArticle(songWithAlbum){
 
 	//TODO image
 	const img = document.createElement('img');
-	// img.src = ...
+	img.src = `api/v1/songs/${songWithAlbum.song.idSong}/image`
 	img.alt = songWithAlbum.song.title;
 
 	article.appendChild(img);
@@ -103,7 +103,7 @@ export function renderSongs(appContainer, songWithAlbums){
 // Function that adds the playlists to the myPlaylists section
 export function renderPlaylists(appContainer, playlists) {
 
-	const playlistListDiv = appContainer.querySelector('playlist-list');
+	const playlistListDiv = appContainer.querySelector('.playlist-list');
 
 	if (playlists) {
 		playlists.forEach(pl => {
@@ -115,60 +115,6 @@ export function renderPlaylists(appContainer, playlists) {
 
 }
 
-function listAllGenres(){
-	return [
-	  { value: 'AFRICAN', text: 'Music of Africa' },
-	  { value: 'ALTERNATIVE_ROCK', text: 'Alternative rock' },
-	  { value: 'AMBIENT', text: 'Ambient music' },
-	  { value: 'AMERICAN_FOLK', text: 'American folk music' },
-	  { value: 'ASIAN', text: 'Music of Asia' },
-	  { value: 'BLUES', text: 'Blues' },
-	  { value: 'CHRISTIAN', text: 'Christian music' },
-	  { value: 'CLASSICAL', text: 'Classical music' },
-	  { value: 'COMMERCIAL', text: 'Commercial' },
-	  { value: 'COUNTRY', text: 'Country music' },
-	  { value: 'DANCE', text: 'Dance music' },
-	  { value: 'DISCO', text: 'Disco' },
-	  { value: 'EASY_LISTENING', text: 'Easy listening' },
-	  { value: 'EDM', text: 'Electronic dance music' },
-	  { value: 'ELECTRONIC', text: 'Electronic music' },
-	  { value: 'EXPERIMENTAL', text: 'Experimental music' },
-	  { value: 'FOLK', text: 'Folk music' },
-	  { value: 'FUNK', text: 'Funk' },
-	  { value: 'GENEALOGY', text: 'Genealogy of musical genres' },
-	  { value: 'GOSPEL', text: 'Gospel music' },
-	  { value: 'HARDCORE', text: 'Hardcore' },
-	  { value: 'HEAVY_METAL', text: 'Heavy metal' },
-	  { value: 'HIPHOP', text: 'Hip-hop' },
-	  { value: 'HIPHOP_CULTURE', text: 'Hip-hop culture' },
-	  { value: 'HOUSE', text: 'House music' },
-	  { value: 'INDEPENDENT', text: 'Independent music' },
-	  { value: 'INDIE_POP', text: 'Indie pop' },
-	  { value: 'INDIE_ROCK', text: 'Indie rock' },
-	  { value: 'JAZZ', text: 'Jazz' },
-	  { value: 'KPOP', text: 'K-pop' },
-	  { value: 'LATIN_AMERICAN', text: 'Music of Latin America' },
-	  { value: 'MIDDLE_EASTERN', text: 'Middle Eastern music' },
-	  { value: 'MODERNISM', text: 'Modernism' },
-	  { value: 'NEW_AGE', text: 'New-age music' },
-	  { value: 'NEW_WAVE', text: 'New wave' },
-	  { value: 'POP', text: 'Pop music' },
-	  { value: 'PSYCHEDELIC', text: 'Psychedelic music' },
-	  { value: 'PUNK_ROCK', text: 'Punk rock' },
-	  { value: 'REGGAE', text: 'Reggae' },
-	  { value: 'ROCK_AND_ROLL', text: 'Rock and roll' },
-	  { value: 'SKA', text: 'Ska' },
-	  { value: 'SOCA', text: 'Soca music' },
-	  { value: 'SOUL', text: 'Soul music' },
-	  { value: 'SYNTH_POP', text: 'Synth-pop' },
-	  { value: 'TECHNO', text: 'Techno' },
-	  { value: 'THRASH_METAL', text: 'Thrash metal' },
-	  { value: 'VAPOR_WAVE', text: 'Vapor-wave' },
-	  { value: 'VOCAL', text: 'Vocal music' },
-	  { value: 'WESTERN', text: 'Western music' },
-	  { value: 'WORLD', text: 'World music' }
-	];
-}
 
 export function renderHomeView(appContainer) {
 	appContainer.innerHTML = '';
@@ -199,6 +145,7 @@ export function renderHomeView(appContainer) {
 	const newSongSection = document.createElement('section');
 	newSongSection.id = 'add-song-section';
 
+
 	// 2.1: Title
 	newSongSection.appendChild(createHeaderContainer('Upload New Song', 'h2'));
 
@@ -226,7 +173,10 @@ export function renderHomeView(appContainer) {
 
 	// Input: song list
 	newPlaylistForm.appendChild(createHeaderContainer('Select Songs to Add:', 'h3'));
-	// TODO populate song list
+	const songListDiv = document.createElement('div');
+	songListDiv.className = 'song-list';
+	newPlaylistForm.appendChild(songListDiv);
+
 
 	// Button
 	const newPlaylistSendButton = document.createElement('button');
