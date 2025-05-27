@@ -228,7 +228,6 @@ function createSongArticle(appContainer, songWithAlbum) {
 
 	article.appendChild(inputEl);
 
-	//TODO image
 	const img = document.createElement('img');
 
 	img.src = getSongImageURL(songWithAlbum.song.idSong);

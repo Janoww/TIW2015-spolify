@@ -3,10 +3,7 @@ import { renderHomeView, renderPlaylists, renderSongs, renderSongUploadSection }
 import { renderSongsView, renderSongUploadSectionOnSongsPage, renderAllUserSongsList } from "../views/songsView.js";
 import { getPlaylists, createPlaylist, getSongs, uploadSong, getSongGenres as apiGetSongGenres } from '../apiService.js';
 import { navigate } from '../router.js';
-function validateForm(formId, fieldIds) {
-    //TODO
-    return true;
-}
+
 
 /**
  *
@@ -34,6 +31,7 @@ export async function initHomePage(appContainer) {
     let playlists;
     try {
         playlists = await getPlaylists();
+		playlists.sort((a, b) => new Date(b.birthday) - new Date(a.birthday));
         renderPlaylists(appContainer, playlists);
     } catch (error) {
         console.error(`Error loading or rendering playlists: Status ${error.status}, Message: ${error.message}`, error.details || '');
@@ -41,8 +39,9 @@ export async function initHomePage(appContainer) {
     }
 
     // Load and render songs for the "Create New Playlist" form's song selection
+	let songsForPlaylistSelection;
     try {
-        const songsForPlaylistSelection = await getSongs();
+         songsForPlaylistSelection = await getSongs();
         renderSongs(appContainer, songsForPlaylistSelection);
     } catch (error) {
         console.error(`Error loading or rendering songs for playlist creation: Status ${error.status}, Message: ${error.message}`, error.details || '');
@@ -61,9 +60,25 @@ export async function initHomePage(appContainer) {
             event.preventDefault();
             const fieldIds = ['new-playlist-title'];
             const selectedCheckboxes = document.querySelectorAll('input[name="selected-songs"]:checked');
+			
+
+			const errorDiv = document.getElementById('create-playlist-error');
+			if (errorDiv) {
+				errorDiv.style.display = 'none';
+				errorDiv.textContent = '';
+			}
+
+			if (selectedCheckboxes.length === 0) {
+				if (errorDiv) {
+					errorDiv.textContent = 'Please select at least one song.';
+					errorDiv.style.display = 'block';
+				}
+				return;
+			}
 
             if (validateForm('create-playlist-form', fieldIds) && selectedCheckboxes.length > 0) {
                 const form = event.target;
+
 
                 const name = form['new-playlist-title'].value;
                 const songIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
@@ -76,16 +91,21 @@ export async function initHomePage(appContainer) {
                 try {
                     const newPlaylist = await createPlaylist(payload);
                     console.log("Playlist created:", newPlaylist);
-                    //TODO update playlist list
-                    // Example: refreshPlaylists(appContainer);
-                    // or add newPlaylist to the existing list if the view supports it
+					
+					playlists.unshift(newPlaylist);
+					renderPlaylists(appContainer, playlists);
+					newPlaylistForm.reset();
+					
                 } catch (error) {
                     console.error(`Playlist creation failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
-                    //TODO handle errors (e.g., display error.message in the UI)
+					if (errorDiv) {
+						errorDiv.textContent = 'An error occurred while adding songs. Please try again.';
+						errorDiv.style.display = 'block';
+					}
                 }
+				
             } else {
                 console.log('NewPlaylist form has errors or no songs selected.');
-                //TODO handle errors
             }
         })
     }
@@ -94,6 +114,13 @@ export async function initHomePage(appContainer) {
         newSongForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const fieldIds = ['song-title', 'album-title', 'album-artist', 'album-year', 'album-image', 'song-genre', 'song-audio'];
+			
+			const errorDiv = document.getElementById('create-song-error');
+			if (errorDiv) {
+				errorDiv.style.display = 'none';
+				errorDiv.textContent = '';
+			}
+			
             if (validateForm('add-song-form-home', fieldIds)) {
                 const form = event.target;
                 const formData = new FormData();
@@ -112,13 +139,20 @@ export async function initHomePage(appContainer) {
                 try {
                     const newSong = await uploadSong(formData);
                     console.log('Upload successful:', newSong);
-                    // TODO update song list
-                    // Example: refreshSongsForPlaylistForm(appContainer);
-                    // and potentially refresh other song lists if they are visible
+					
+					
+					songsForPlaylistSelection.unshift(newSong);
+					renderSongs(appContainer, songsForPlaylistSelection);
+
+					newSongForm.reset();					
+
                 } catch (error) {
                     console.error(`Upload failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
-                    // TODO handle error messages (e.g., display error.message in the UI)
-                }
+					if (errorDiv) {
+						errorDiv.textContent = error.message;
+						errorDiv.style.display = 'block';
+					}               
+				}
             } else {
                 console.log('NewSong form has errors.');
                 // TODO handle general error
@@ -176,4 +210,71 @@ export async function initSongPage(appContainer) {
     }
     renderAllUserSongsList(songListContainer, allUserSongs, songsError);
 
+}
+
+function validateForm(formId, fieldIds) {
+	//TODO regex validation
+  const form = document.getElementById(formId);
+  if (!form) {
+    console.error(`Form with id "${formId}" not found.`);
+    return false;
+  }
+
+  let isValid = true;
+
+  for (const fieldId of fieldIds) {
+    const input = form.querySelector(`#${fieldId}`);
+    const errorSpan = form.querySelector(`#${fieldId}-error`);
+
+    if (!input || !errorSpan) {
+      console.warn(`Field or error span for id "${fieldId}" not found.`);
+      continue;
+    }
+
+    let value = input.value;
+
+    // Special handling for file inputs
+    if (input.type === "file") {
+      if (input.files.length === 0) {
+        errorSpan.textContent = "Please select a file.";
+        isValid = false;
+        continue;
+      } else {
+        errorSpan.textContent = "";
+      }
+      continue;
+    }
+
+    // Special handling for select dropdowns
+    if (input.tagName.toLowerCase() === "select") {
+      if (!value) {
+        errorSpan.textContent = "Please select an option.";
+        isValid = false;
+        continue;
+      } else {
+        errorSpan.textContent = "";
+      }
+      continue;
+    }
+
+    // For text and number inputs
+    if (!value || value.trim() === "") {
+      errorSpan.textContent = "This field is required.";
+      isValid = false;
+    } else if (input.type === "number") {
+      const num = Number(value);
+      const min = input.min ? Number(input.min) : null;
+      const max = input.max ? Number(input.max) : null;
+      if ((min !== null && num < min) || (max !== null && num > max)) {
+        errorSpan.textContent = `Value must be between ${min} and ${max}.`;
+        isValid = false;
+      } else {
+        errorSpan.textContent = "";
+      }
+    } else {
+      errorSpan.textContent = "";
+    }
+  }
+
+  return isValid;
 }
