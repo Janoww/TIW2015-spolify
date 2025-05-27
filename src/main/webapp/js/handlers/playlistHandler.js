@@ -1,7 +1,30 @@
 import { renderPlaylistView } from '../views/playlistView.js';
-import { getPlaylistSongOrder, getSongDetails, getSongImageURL, getSongs } from '../apiService.js';
+import { getPlaylists, getPlaylistSongOrder, getSongDetails, getSongImageURL, getSongs } from '../apiService.js';
 
-export async function initPlaylistPage(appContainer, playlist) {
+export async function initPlaylistPage(appContainer, params) {
+
+	const { idplaylist } = params;
+
+	if (!idplaylist) {
+		console.error("Playlist ID is missing from params.");
+		navigate('home');
+		return;
+	}
+
+	// Navbar display is handled by the router
+	appContainer.innerHTML = '<div class="loader">Loading playlist details...</div>';
+
+	// Fetch all playlists and find the current one by ID
+	const allPlaylists = await getPlaylists();
+	const currentPlaylistId = parseInt(idplaylist, 10); // Ensure ID is a number for comparison
+	const playlist = allPlaylists.find(p => p.idPlaylist === currentPlaylistId);
+
+	if (!playlist) {
+		console.error(`Playlist with ID ${currentPlaylistId} not found.`);
+		appContainer.innerHTML = `<p>Playlist not found.</p>`;
+		return;
+	}
+
 	const navbar = document.getElementById('navbar');
 	if (navbar) {
 		navbar.style.display = 'inline-block';

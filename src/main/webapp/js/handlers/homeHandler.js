@@ -2,8 +2,7 @@
 import { renderHomeView, renderPlaylists, renderSongs, renderSongUploadSection } from "../views/homeView.js";
 import { renderSongsView, renderSongUploadSectionOnSongsPage, renderAllUserSongsList } from "../views/songsView.js";
 import { getPlaylists, createPlaylist, getSongs, uploadSong, getSongGenres as apiGetSongGenres } from '../apiService.js';
-import { initPlaylistPage } from "./playlistHandler.js"
-
+import { navigate } from '../router.js';
 function validateForm(formId, fieldIds) {
     //TODO
     return true;
@@ -14,12 +13,6 @@ function validateForm(formId, fieldIds) {
  * @param {HTMLElement} appContainer
  */
 export async function initHomePage(appContainer) {
-    const navbar = document.getElementById('navbar');
-    if (navbar) {
-        navbar.style.display = 'inline-block';
-    } else {
-        console.error("Navbar element not found in initHomePage.");
-    }
 
     renderHomeView(appContainer);
 
@@ -138,10 +131,12 @@ export async function initHomePage(appContainer) {
             const target = event.target;
 
             if (target.classList.contains('view-playlist-button')) {
-                const playlistId = parseInt(target.dataset.playlistId, 10); // convert to number
-                const playlist = playlists.find(p => p.idPlaylist === playlistId);
-
-                initPlaylistPage(appContainer, playlist);
+                const playlistId = parseInt(target.dataset.playlistId, 10);
+                if (playlistId) {
+                    navigate('playlist-' + playlistId);
+                } else {
+                    console.error("Playlist ID not found for navigation.");
+                }
             }
 
             if (target.classList.contains('reorder-playlist-button')) {
@@ -153,13 +148,6 @@ export async function initHomePage(appContainer) {
 }
 
 export async function initSongPage(appContainer) {
-    const navbar = document.getElementById('navbar');
-    if (navbar) {
-        navbar.style.display = 'inline-block';
-    } else {
-        console.error("Navbar element not found in initSongPage.");
-    }
-
     // Render the basic songs view structure, including a placeholder for its song form
     renderSongsView(appContainer);
 

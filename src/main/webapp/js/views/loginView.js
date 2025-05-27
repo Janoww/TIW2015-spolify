@@ -52,7 +52,7 @@ export function renderLoginView(appContainer) {
 
     loginSection.appendChild(loginForm);
 
-    loginSection.appendChild(createLinkBlock("Don't have an account? ", 'signupLink', 'Sign up'));
+    loginSection.appendChild(createLinkBlock("Don't have an account? ", 'signupLink', 'Sign up', '#signup'));
 
     appContainer.appendChild(loginSection);
 }
@@ -90,7 +90,7 @@ export function renderSignupView(appContainer) {
 
     signupSection.appendChild(signupForm);
 
-    signupSection.appendChild(createLinkBlock('Already have an account? ', 'loginLink', 'Login'));
+    signupSection.appendChild(createLinkBlock('Already have an account? ', 'loginLink', 'Login', '#login'));
 
     appContainer.appendChild(signupSection);
 }

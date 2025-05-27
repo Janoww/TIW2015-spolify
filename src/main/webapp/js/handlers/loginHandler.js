@@ -1,6 +1,6 @@
 import { renderLoginView, renderSignupView } from "../views/loginView.js";
-import { initHomePage } from "./homeHandler.js";
 import { login as apiLogin, logout as apiLogout, signup as apiSignup } from '../apiService.js';
+import { navigate } from '../router.js';
 
 // Helper function to validate a single form field
 function validateField(inputElement, errorElementId) {
@@ -39,7 +39,6 @@ function displayLogin(appContainer) {
     renderLoginView(appContainer);
 
     const loginForm = document.getElementById("loginForm");
-    const signupLink = document.getElementById("signupLink");
 
     if (loginForm) {
         loginForm.addEventListener("submit", async (event) => {
@@ -53,7 +52,7 @@ function displayLogin(appContainer) {
                     const userData = await apiLogin({ username, password });
                     console.log('Login successful:', userData);
                     sessionStorage.setItem('currentUser', JSON.stringify(userData));
-                    await initHomePage(appContainer);
+                    navigate('home');
                 } catch (error) {
                     console.error(`Login failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
                     const generalErrorElement = document.getElementById('login-general-error');
@@ -68,20 +67,12 @@ function displayLogin(appContainer) {
             }
         });
     }
-
-    if (signupLink) {
-        signupLink.addEventListener("click", (event) => {
-            event.preventDefault();
-            displaySignup(appContainer);
-        });
-    }
 }
 
 function displaySignup(appContainer) {
     renderSignupView(appContainer);
 
     const signupForm = document.getElementById("signupForm");
-    const loginLink = document.getElementById("loginLink");
 
     if (signupForm) {
         signupForm.addEventListener("submit", async (event) => {
@@ -112,13 +103,6 @@ function displaySignup(appContainer) {
             }
         });
     }
-
-    if (loginLink) {
-        loginLink.addEventListener("click", (event) => {
-            event.preventDefault();
-            displayLogin(appContainer);
-        });
-    }
 }
 
 /**
@@ -127,9 +111,18 @@ function displaySignup(appContainer) {
  * @param {HTMLElement} appContainer - The main application container element.
  */
 export function initLoginPage(appContainer) {
-    document.getElementById("navbar").style.display = "none";
-    console.log("Initializing login page...")
+    console.log("Initializing login page via router...")
     displayLogin(appContainer);
+}
+
+/**
+ * Initializes the signup page.
+ * Renders the signup view within the given application container.
+ * @param {HTMLElement} appContainer - The main application container element.
+ */
+export function initSignupPage(appContainer) {
+    console.log("Initializing signup page via router...");
+    displaySignup(appContainer);
 }
 
 /**
@@ -154,6 +147,6 @@ export async function logoutUser(appContainer) {
     } finally {
         sessionStorage.removeItem('currentUser');
         console.log('Client-side user session cleared.');
-        initLoginPage(appContainer);
+        navigate('login');
     }
 }
