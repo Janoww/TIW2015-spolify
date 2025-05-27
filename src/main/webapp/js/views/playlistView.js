@@ -60,6 +60,11 @@ export function renderPlaylistView(appContainer) {
 		attributes: { type: 'submit' }
 	});
 	addSongsForm.appendChild(addSongSendButton);
+	
+	// Error
+	const errorDiv = createElement('div', {className: 'error-message'});
+	errorDiv.id = 'add-song-error';
+	addSongsForm.appendChild(errorDiv);
 
 	addSongSection.appendChild(addSongsForm);
 	appContainer.appendChild(addSongSection);

@@ -107,11 +107,24 @@ export async function initPlaylistPage(appContainer, params){
 		})
 	}
 	
-	console.log(addSongForm);
 	if(addSongForm){
 		addSongForm.addEventListener('submit', async (event) =>{
 			event.preventDefault();
 			const selectedCheckboxes = appContainer.querySelectorAll('input[name="selected-songs"]:checked');
+			
+			const errorDiv = document.getElementById('add-song-error');
+			if (errorDiv) {
+				errorDiv.style.display = 'none';
+				errorDiv.textContent = '';
+			}
+			
+			if (selectedCheckboxes.length === 0) {
+				if (errorDiv) {
+					errorDiv.textContent = 'Please select at least one song.';
+					errorDiv.style.display = 'block';
+				}
+				return;
+			}
 			
 			if(selectedCheckboxes.length > 0){}
 			const songIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
@@ -119,6 +132,8 @@ export async function initPlaylistPage(appContainer, params){
 			const payload = {
 				songIds
 			}
+			
+
 			
 			try {
 				const response = await addSongsToPlaylist(playlist.idPlaylist, payload)
@@ -136,7 +151,10 @@ export async function initPlaylistPage(appContainer, params){
 				
 			} catch (error){
 				console.error("Song adding failed: ", error);
-				//TODO handle errors
+				if (errorDiv) {
+					errorDiv.textContent = 'An error occurred while adding songs. Please try again.';
+					errorDiv.style.display = 'block';
+				}
 			}
 		})
 		
