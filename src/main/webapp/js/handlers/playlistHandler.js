@@ -1,13 +1,13 @@
-import { renderPlaylistView, writeSliderHeader, renderButtons} from '../views/playlistView.js';
-import { getPlaylists, getPlaylistSongOrder, getSongDetails, getSongImageURL, getSongs, addSongsToPlaylist} from '../apiService.js';
+import { renderPlaylistView, writeSliderHeader, renderButtons } from '../views/playlistView.js';
+import { getPlaylists, getPlaylistSongOrder, getSongDetails, getSongImageURL, getSongs, addSongsToPlaylist } from '../apiService.js';
 
 
 /**
  *
  * @param {HTMLElement} appContainer
  */
-export async function initPlaylistPage(appContainer, params){
-		
+export async function initPlaylistPage(appContainer, params) {
+
 	const { idplaylist } = params;
 
 	if (!idplaylist) {
@@ -29,95 +29,95 @@ export async function initPlaylistPage(appContainer, params){
 		appContainer.innerHTML = `<p>Playlist not found.</p>`;
 		return;
 	}
-	
+
 	// Retrieve resources
 	let playlistOrder = await getPlaylistSongOrder(playlist.idPlaylist);
 	let orderedSongs = await getOrderedSongs(playlist, playlistOrder);
 	let allSongs = await getSongs();
-	
+
 	let page = 0;
-		
+
 	// Render the skeleton of the page
-	renderPlaylistView(appContainer);	
-	
+	renderPlaylistView(appContainer);
+
 	//Write title
 	writeSliderHeader(playlist.name);
-	
+
 	//Populate the slider
 	populateSlider(orderedSongs, page);
-	
+
 	// Form to Add songs
 	generateAndPopulateForm(orderedSongs, allSongs, appContainer);
 
-	
-	
+
+
 	// Events
 
-	
+
 	const addSongForm = document.getElementById('add-song-form');
 	const preButton = appContainer.querySelector('.pre-carouselButton');
 	const nxtButton = appContainer.querySelector('.next-carouselButton');
 	console.log(nxtButton);
-	
-	if(preButton){
+
+	if (preButton) {
 		preButton.addEventListener('click', () => {
 			let totPages = Math.ceil(orderedSongs.length / 5);
-			if(page > 0){
+			if (page > 0) {
 				page--;
 				let songWithAlbumDisplayed = orderedSongs.slice(page * 5, (page + 1) * 5);
 				const sliderContainer = appContainer.querySelector('.slider-container');
 				// Remove all elements with class 'slider-item' inside sliderContainer
 				if (sliderContainer) {
-				  const sliderItems = sliderContainer.querySelectorAll('.slider-item');
-				  sliderItems.forEach(item => item.remove());
+					const sliderItems = sliderContainer.querySelectorAll('.slider-item');
+					sliderItems.forEach(item => item.remove());
 				}
-				
+
 				// Add new songs
 				songWithAlbumDisplayed.forEach(swa => {
 					sliderContainer.append(createSliderItem(swa));
 				})
-				
+
 				renderButtons(page, totPages);
 			}
 		})
 	}
-	
-	if(nxtButton){
+
+	if (nxtButton) {
 		nxtButton.addEventListener('click', () => {
 			let totPages = Math.ceil(orderedSongs.length / 5);
 
-			if(page < totPages-1){
+			if (page < totPages - 1) {
 				page++;
 				let songWithAlbumDisplayed = orderedSongs.slice(page * 5, (page + 1) * 5);
 				const sliderContainer = appContainer.querySelector('.slider-container');
 				// Remove all elements with class 'slider-item' inside sliderContainer
 				if (sliderContainer) {
-				  const sliderItems = sliderContainer.querySelectorAll('.slider-item');
-				  sliderItems.forEach(item => item.remove());
+					const sliderItems = sliderContainer.querySelectorAll('.slider-item');
+					sliderItems.forEach(item => item.remove());
 				}
-				
+
 				// Add new songs
 				songWithAlbumDisplayed.forEach(swa => {
 					sliderContainer.append(createSliderItem(swa));
 				})
-				
+
 				renderButtons(page, totPages);
-				
+
 			}
 		})
 	}
-	
-	if(addSongForm){
-		addSongForm.addEventListener('submit', async (event) =>{
+
+	if (addSongForm) {
+		addSongForm.addEventListener('submit', async (event) => {
 			event.preventDefault();
 			const selectedCheckboxes = appContainer.querySelectorAll('input[name="selected-songs"]:checked');
-			
+
 			const errorDiv = document.getElementById('add-song-error');
 			if (errorDiv) {
 				errorDiv.style.display = 'none';
 				errorDiv.textContent = '';
 			}
-			
+
 			if (selectedCheckboxes.length === 0) {
 				if (errorDiv) {
 					errorDiv.textContent = 'Please select at least one song.';
@@ -125,20 +125,20 @@ export async function initPlaylistPage(appContainer, params){
 				}
 				return;
 			}
-			
-			if(selectedCheckboxes.length > 0){}
+
+			if (selectedCheckboxes.length > 0) { }
 			const songIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
-			
+
 			const payload = {
 				songIds
 			}
-			
 
-			
+
+
 			try {
 				const response = await addSongsToPlaylist(playlist.idPlaylist, payload)
 				playlist.songs.push(...response.addedSongIds);
-				
+
 				playlistOrder = await getPlaylistSongOrder(playlist.idPlaylist);
 				orderedSongs = await getOrderedSongs(playlist, playlistOrder);
 				allSongs = await getSongs();
@@ -148,8 +148,8 @@ export async function initPlaylistPage(appContainer, params){
 
 				// Form to Add songs
 				generateAndPopulateForm(orderedSongs, allSongs, appContainer);
-				
-			} catch (error){
+
+			} catch (error) {
 				console.error("Song adding failed: ", error);
 				if (errorDiv) {
 					errorDiv.textContent = 'An error occurred while adding songs. Please try again.';
@@ -157,36 +157,36 @@ export async function initPlaylistPage(appContainer, params){
 				}
 			}
 		})
-		
+
 	}
 
 
 }
 
-async function getOrderedSongs(playlist, playlistOrder){
+async function getOrderedSongs(playlist, playlistOrder) {
 
-	
-	function getSongsOrdered(songs){
+
+	function getSongsOrdered(songs) {
 		songs.sort((a, b) => {
-		// Compare artist names case-insensitive
-		const artistA = a.album.artist.toLowerCase();
-		const artistB = b.album.artist.toLowerCase();
-		  
-		if (artistA < artistB) return -1;
-		if (artistA > artistB) return 1;
-		  
-		// If artist names are equal, compare album year
-		return a.album.year - b.album.year;
+			// Compare artist names case-insensitive
+			const artistA = a.album.artist.toLowerCase();
+			const artistB = b.album.artist.toLowerCase();
+
+			if (artistA < artistB) return -1;
+			if (artistA > artistB) return 1;
+
+			// If artist names are equal, compare album year
+			return a.album.year - b.album.year;
 		});
 		return songs;
 	}
-	
+
 	let orderedSongs = undefined;
-	
-	if(playlistOrder && playlistOrder.length > 0){
+
+	if (playlistOrder && playlistOrder.length > 0) {
 		orderedSongs = await getListOfSongs(playlistOrder);
-		
-		if(playlistOrder.length < playlist.songs.length){
+
+		if (playlistOrder.length < playlist.songs.length) {
 			const allTheSongs = await getListOfSongs(playlist.songs);
 			const filteredSongs = getSongsOrdered(allTheSongs.filter(swa => !orderedSongIds.has(swa.song.idSong)));
 			orderedSongs.push(...filteredSongs);
@@ -199,25 +199,25 @@ async function getOrderedSongs(playlist, playlistOrder){
 }
 
 function renderSongs(appContainer, songWithAlbums) {
-    const songListDiv = appContainer.querySelector('.song-list');
-	
+	const songListDiv = appContainer.querySelector('.song-list');
+
 	// Remove all elements with class 'slider-item' inside sliderContainer
 	if (songListDiv) {
-	  const songItems = songListDiv.querySelectorAll('.song-item');
-	  songItems.forEach(item => item.remove());
+		const songItems = songListDiv.querySelectorAll('.song-item');
+		songItems.forEach(item => item.remove());
 	}
 
-    if (songWithAlbums) {
-        songWithAlbums.forEach(swa => {
-            const article = createSongArticle(appContainer, swa);
-            songListDiv.appendChild(article);
-        })
-    }
+	if (songWithAlbums) {
+		songWithAlbums.forEach(swa => {
+			const article = createSongArticle(appContainer, swa);
+			songListDiv.appendChild(article);
+		})
+	}
 }
 
 function createSongArticle(appContainer, songWithAlbum) {
-    const article = document.createElement('article');
-    article.className = 'song-item';
+	const article = document.createElement('article');
+	article.className = 'song-item';
 
 	const inputEl = document.createElement('input');
 	inputEl.type = 'checkbox';
@@ -282,7 +282,7 @@ function createParagraphElement(text) {
 }
 
 // Function that fills the slider with the song's cards
-function populateSlider (orderedSongs, page) { 
+function populateSlider(orderedSongs, page) {
 	const loaderMessage = document.querySelector('#all-songs-loader-message');
 	if (loaderMessage) {
 		loaderMessage.remove();
@@ -291,13 +291,13 @@ function populateSlider (orderedSongs, page) {
 	const sliderContainer = document.querySelector('.slider-container');
 	// Remove all elements with class 'slider-item' inside sliderContainer
 	if (sliderContainer) {
-	  const sliderItems = sliderContainer.querySelectorAll('.slider-item');
-	  sliderItems.forEach(item => item.remove());
+		const sliderItems = sliderContainer.querySelectorAll('.slider-item');
+		sliderItems.forEach(item => item.remove());
 	}
-	
+
 	const oldItems = document.querySelect
-		
-	if(orderedSongs){
+
+	if (orderedSongs) {
 		let totPages = Math.ceil(orderedSongs.length / 5);
 		if (page > totPages - 1) {
 			page = totPages - 1;
@@ -310,15 +310,15 @@ function populateSlider (orderedSongs, page) {
 		songWithAlbumDisplayed.forEach(swa => {
 			sliderContainer.append(createSliderItem(swa));
 		})
-		
+
 	}
 }
 
-function generateAndPopulateForm(orderedSongs, allSongs, appContainer){
+function generateAndPopulateForm(orderedSongs, allSongs, appContainer) {
 	const orderedSongIds = new Set(orderedSongs.map(swa => swa.song.idSong));
 	const filteredSongs = allSongs.filter(swa => !orderedSongIds.has(swa.song.idSong));
 
-	if(!filteredSongs || filteredSongs.length == 0){
+	if (!filteredSongs || filteredSongs.length == 0) {
 		appContainer.querySelector('.addSong').style.display = 'none';
 	} else {
 		appContainer.querySelector('.addSong').style.display = '';

@@ -47,7 +47,7 @@ function createSongArticle(songWithAlbum) {
         }
     });
     article.appendChild(inputEl);
-	
+
     const img = document.createElement('img');
     img.src = getSongImageURL(songWithAlbum.song.idSong);
     img.alt = songWithAlbum.song.title || "Song cover";
@@ -70,27 +70,27 @@ function createSongArticle(songWithAlbum) {
 // Function that adds the songs to the song list
 
 export function renderSongs(appContainer, songWithAlbums) {
-	function getSongsOrdered(songs){
-		songs.sort((a, b) => {
-		// Compare artist names case-insensitive
-		const artistA = a.album.artist.toLowerCase();
-		const artistB = b.album.artist.toLowerCase();
-		  
-		if (artistA < artistB) return -1;
-		if (artistA > artistB) return 1;
-		  
-		// If artist names are equal, compare album year
-		return a.album.year - b.album.year;
-		});
-		return songs;
-	}
-	
+    function getSongsOrdered(songs) {
+        songs.sort((a, b) => {
+            // Compare artist names case-insensitive
+            const artistA = a.album.artist.toLowerCase();
+            const artistB = b.album.artist.toLowerCase();
+
+            if (artistA < artistB) return -1;
+            if (artistA > artistB) return 1;
+
+            // If artist names are equal, compare album year
+            return a.album.year - b.album.year;
+        });
+        return songs;
+    }
+
     const songListDiv = appContainer.querySelector('.song-list');
-	
-	songListDiv.querySelectorAll('.song-item').forEach(item => item.remove);
+
+    songListDiv.querySelectorAll('.song-item').forEach(item => item.remove);
 
     if (songWithAlbums) {
-		songWithAlbums = getSongsOrdered(songWithAlbums);
+        songWithAlbums = getSongsOrdered(songWithAlbums);
         songWithAlbums.forEach(swa => {
             const article = createSongArticle(swa);
             songListDiv.appendChild(article);
@@ -103,8 +103,8 @@ export function renderSongs(appContainer, songWithAlbums) {
 export function renderPlaylists(appContainer, playlists) {
 
     const playlistListDiv = appContainer.querySelector('.playlist-list');
-	
-	playlistListDiv.querySelectorAll('.playlist-item').forEach(item => item.remove());
+
+    playlistListDiv.querySelectorAll('.playlist-item').forEach(item => item.remove());
 
     if (playlists) {
         playlists.forEach(pl => {
@@ -152,9 +152,9 @@ export function renderHomeView(appContainer) {
         attributes: { type: 'submit' }
     });
     newPlaylistForm.appendChild(newPlaylistSendButton);
-	const errorDiv = createElement('div', {className: 'error-message'});
-	errorDiv.id = 'create-playlist-error';
-	newPlaylistForm.appendChild(errorDiv);
+    const errorDiv = createElement('div', { className: 'error-message' });
+    errorDiv.id = 'create-playlist-error';
+    newPlaylistForm.appendChild(errorDiv);
     newPlaylistSection.appendChild(newPlaylistForm);
     homeGridDiv.appendChild(newPlaylistSection);
 
@@ -172,16 +172,16 @@ export function renderSongUploadSection(sectionContainer, genres, error = null) 
     if (existingFormOrError) existingFormOrError.remove();
 
     const formElement = createSongUploadFormElement('add-song-form-home', genres, error);
-	
-	const errorDiv = createElement('div', {className: 'error-message'});
-	errorDiv.id = 'create-song-error';
-	formElement.appendChild(errorDiv);
-	
+
+    const errorDiv = createElement('div', { className: 'error-message' });
+    errorDiv.id = 'create-song-error';
+    formElement.appendChild(errorDiv);
+
     sectionContainer.appendChild(formElement);
 }
 
 function formatPlaylistDate(isoString) {
-	const date = new Date(isoString);
-	const options = { year: 'numeric', month: 'long', day: 'numeric' };
-	return date.toLocaleDateString(undefined, options); // Uses user's locale
+    const date = new Date(isoString);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString(undefined, options); // Uses user's locale
 }

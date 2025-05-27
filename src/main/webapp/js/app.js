@@ -6,6 +6,8 @@ import { checkAuthStatus } from './apiService.js';
 
 const appContainer = document.getElementById('app');
 
+const publicRoutes = ['login', 'signup'];
+
 const routeDefinitions = {
     'home': initHomePage,
     'login': initLoginPage,
@@ -38,18 +40,14 @@ async function checkUserSessionAndInitialize() {
 
         // User is not authenticated.
         const currentHash = location.hash;
+        let routeKeyFromHash = currentHash.substring(1);
 
-        // Check if the current hash (or its corresponding route key) is public
-        let isPublicRoute = false;
-        if (currentHash === '' || currentHash === '#') { // Empty hash defaults to home, which is protected
-        } else {
-            const routeKey = currentHash.substring(1);
-            if (routeKey === 'login' || routeKey === 'signup') {
-                isPublicRoute = true;
-            }
+        if (currentHash === '' || currentHash === '#') {
+            routeKeyFromHash = 'home';
         }
 
-        if (!isPublicRoute) {
+        if (!publicRoutes.includes(routeKeyFromHash)) {
+            console.log(`App.js: Initial load on protected route "${routeKeyFromHash}" without session. Redirecting to login.`);
             navigate('login');
         }
 
@@ -73,10 +71,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Make outer listen
     }
 
     // Initialize the router. This will call handleRouteChange once for the initial hash.
-    initRouter(appContainer, routeDefinitions);
+    initRouter(appContainer, routeDefinitions, publicRoutes);
 
-    // After router is set up and has processed initial hash, check session.
-    // This will then potentially override navigation if auth state requires it.
     await checkUserSessionAndInitialize();
 
     const logoutButton = document.getElementById('logout-button');

@@ -1,14 +1,44 @@
+import { createElement } from "./utils/viewUtils.js";
+
 let routes = {};
 let appContainerRef = null;
+let publicRouteKeys = [];
+let loaderElement = null;
+
+/**
+ * Shows the loader in the app container.
+ */
+function showLoader() {
+    if (!appContainerRef) return;
+    if (!loaderElement) {
+        loaderElement = createElement('div', {
+            className: 'loader'
+        });
+    }
+    appContainerRef.innerHTML = '';
+    appContainerRef.appendChild(loaderElement);
+}
+
+/**
+ * Hides the loader.
+ */
+function hideLoader() {
+    if (loaderElement && loaderElement.parentNode === appContainerRef) {
+        appContainerRef.removeChild(loaderElement);
+    }
+    // The actual content rendering will replace the loader
+}
 
 /**
  * Initializes the router.
  * @param {HTMLElement} containerElement - The main DOM element where views will be rendered.
  * @param {Object} routeDefinitions - An object mapping route keys (e.g., 'home', 'playlist-:idplaylist') to handler functions.
+ * @param {string[]} appPublicRoutes - An array of route keys that are considered public (e.g., ['login', 'signup']).
  */
-function initRouter(containerElement, routeDefinitions) {
+function initRouter(containerElement, routeDefinitions, appPublicRoutes) {
     appContainerRef = containerElement;
     routes = routeDefinitions;
+    publicRouteKeys = appPublicRoutes || [];
     window.addEventListener('hashchange', handleRouteChange);
     handleRouteChange();
 }
@@ -46,7 +76,9 @@ async function handleRouteChange() {
         console.error("Router not initialized: App container reference is missing.");
         return;
     }
-    appContainerRef.innerHTML = '';
+    showLoader();
+
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     let handlerFound = false;
     let params = {};
@@ -74,6 +106,7 @@ async function handleRouteChange() {
     }
 
     if (!handlerFound) {
+        hideLoader();
         console.error(`No handler found for path: #${processedPath}. Displaying 404.`);
         appContainerRef.innerHTML = '<h1>404 - Page Not Found</h1>';
     }
@@ -86,10 +119,19 @@ async function handleRouteChange() {
  * @param {Object} params - Extracted URL parameters.
  */
 async function executeHandler(handler, matchedRoutePattern, params) {
+
+    if (!publicRouteKeys.includes(matchedRoutePattern)) {
+        const currentUser = sessionStorage.getItem('currentUser');
+        if (!currentUser) {
+            console.log(`Router: Protected route "${matchedRoutePattern}" access attempt without session. Redirecting to login.`);
+            navigate('login');
+            return;
+        }
+    }
+
     const navbar = document.getElementById('navbar');
     if (navbar) {
-        const routesWithoutNavbar = ['login', 'signup'];
-        if (routesWithoutNavbar.includes(matchedRoutePattern)) {
+        if (publicRouteKeys.includes(matchedRoutePattern)) {
             navbar.style.display = 'none';
         } else {
             navbar.style.display = 'inline-block';
@@ -101,6 +143,8 @@ async function executeHandler(handler, matchedRoutePattern, params) {
     } catch (error) {
         console.error(`Error executing handler for route pattern ${matchedRoutePattern}:`, error);
         appContainerRef.innerHTML = '<h1>Error loading page</h1><p>Sorry, an error occurred. Please try again.</p>';
+    } finally {
+        hideLoader();
     }
 }
 
