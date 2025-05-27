@@ -1,12 +1,6 @@
-import {createSongUploadFormElement} from './sharedComponents.js';
-import {getSongImageURL} from '../apiService.js';
-
-// Helper function to create a title (similar to homeView, consider shared viewUtils.js)
-function createHeaderContainer(titleText, size = 'h2') {
-    const h = document.createElement(size);
-    h.textContent = titleText;
-    return h;
-}
+import { createSongUploadFormElement } from './sharedComponents.js';
+import { getSongImageURL } from '../apiService.js';
+import { createHeaderContainer, createParagraphElement, createElement } from '../utils/viewUtils.js';
 
 /**
  * Renders the basic structure of the Songs page.
@@ -16,34 +10,22 @@ export function renderSongsView(appContainer) {
     appContainer.innerHTML = '';
     appContainer.style.maxWidth = '100%';
 
-    const songGrid = document.createElement('div');
-    songGrid.className = 'grid song-grid';
+    const songGrid = createElement('div', { className: 'grid song-grid' });
 
     // Section 1: All Songs
-    const allSongsSection = document.createElement('section');
-    allSongsSection.id = 'songs';
+    const allSongsSection = createElement('section', { id: 'songs' });
     allSongsSection.appendChild(createHeaderContainer('All Songs'));
 
-    const songListDiv = document.createElement('div');
-    songListDiv.className = 'song-list';
-
-    // Placeholder for song items
-    const loadingSongsP = document.createElement('p');
-    loadingSongsP.id = 'all-songs-loader-message';
-    loadingSongsP.textContent = 'Loading songs...';
+    const songListDiv = createElement('div', { className: 'song-list' });
+    const loadingSongsP = createParagraphElement('Loading songs...', 'all-songs-loader-message');
     songListDiv.appendChild(loadingSongsP);
     allSongsSection.appendChild(songListDiv);
     songGrid.appendChild(allSongsSection);
 
     // Section 2: Upload New Song
-    const uploadSongSection = document.createElement('section');
-    uploadSongSection.id = 'add-song';
+    const uploadSongSection = createElement('section', { id: 'add-song' });
     uploadSongSection.appendChild(createHeaderContainer('Upload New Song'));
-
-    // Placeholder for the song form
-    const formLoaderP = document.createElement('p');
-    formLoaderP.id = 'song-form-loader-message-songs-page';
-    formLoaderP.textContent = 'Loading song form...';
+    const formLoaderP = createParagraphElement('Loading song form...', 'song-form-loader-message-songs-page');
     uploadSongSection.appendChild(formLoaderP);
     songGrid.appendChild(uploadSongSection);
 
@@ -79,16 +61,13 @@ export function renderAllUserSongsList(songListContainer, songs, error = null) {
     if (loaderMessage) loaderMessage.remove();
 
     if (error) {
-        const errorP = document.createElement('p');
-        errorP.className = 'general-error-message';
-        errorP.textContent = 'Failed to load songs. Please try refreshing.';
+        const errorP = createParagraphElement('Failed to load songs. Please try refreshing.', null, 'general-error-message');
         songListContainer.appendChild(errorP);
         return;
     }
 
     if (!songs || songs.length === 0) {
-        const noSongsP = document.createElement('p');
-        noSongsP.textContent = 'No songs found. Upload your first song!';
+        const noSongsP = createParagraphElement('No songs found. Upload your first song!');
         songListContainer.appendChild(noSongsP);
         return;
     }
@@ -96,34 +75,25 @@ export function renderAllUserSongsList(songListContainer, songs, error = null) {
     songs.forEach(songWithAlbum => {
         // TODO: Implement createSongArticleElement similar to homeView.js or songs_mockup.html structure
         // For now, a simple placeholder:
-        const songArticle = document.createElement('article');
-        songArticle.className = 'song-item';
+        const songArticle = createElement('article', { className: 'song-item' });
 
         const img = document.createElement('img');
-
         console.log(songWithAlbum.album);
-        // For now, using placeholder as image path construction needs more info (e.g., base URL for images)
-
-
         img.src = getSongImageURL(songWithAlbum.song.idSong);
         img.alt = songWithAlbum.song.title || "Song cover";
         img.onerror = () => {
             img.src = 'images/image_placeholder.png';
         };
 
-        const metadataDiv = document.createElement('div');
-        metadataDiv.className = 'song-metadata';
+        const metadataDiv = createElement('div', { className: 'song-metadata' });
 
-        const titleH3 = document.createElement('h3');
-        titleH3.textContent = songWithAlbum.song.title;
+        const titleH3 = createHeaderContainer(songWithAlbum.song.title, 'h3');
         metadataDiv.appendChild(titleH3);
 
-        const artistAlbumP = document.createElement('p');
-        artistAlbumP.textContent = `${songWithAlbum.album.artist} • ${songWithAlbum.album.name}`;
+        const artistAlbumP = createParagraphElement(`${songWithAlbum.album.artist} • ${songWithAlbum.album.name}`);
         metadataDiv.appendChild(artistAlbumP);
 
-        const genreYearP = document.createElement('p');
-        genreYearP.textContent = `${songWithAlbum.song.genre} • ${songWithAlbum.song.year}`;
+        const genreYearP = createParagraphElement(`${songWithAlbum.song.genre} • ${songWithAlbum.song.year}`);
         metadataDiv.appendChild(genreYearP);
 
         songArticle.appendChild(img);

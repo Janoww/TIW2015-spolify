@@ -1,4 +1,5 @@
-import {createFormField} from '../utils/formUtils.js';
+import { createFormField } from '../utils/formUtils.js';
+import { createParagraphElement, createElement } from '../utils/viewUtils.js';
 
 /**
  * Creates and returns an HTML form element for uploading a new song.
@@ -9,15 +10,15 @@ import {createFormField} from '../utils/formUtils.js';
  */
 export function createSongUploadFormElement(formId, genres, error = null) {
     if (error) {
-        const errorP = document.createElement('p');
-        errorP.className = 'general-error-message';
-        errorP.textContent = 'Failed to load song creation form: Genres could not be fetched. Please try refreshing.';
+        const errorP = createParagraphElement(
+            'Failed to load song creation form: Genres could not be fetched. Please try refreshing.',
+            null,
+            'general-error-message'
+        );
         return errorP;
     }
 
-    const form = document.createElement('form');
-    form.id = formId;
-    form.noValidate = true;
+    const form = createElement('form', { id: formId, attributes: { noValidate: true } });
 
     // Song Title
     form.appendChild(createFormField('song-title', 'Song Title:', 'text', 'song-title', true));
@@ -31,23 +32,23 @@ export function createSongUploadFormElement(formId, genres, error = null) {
         max: "9999"
     }));
     // Album Image
-    form.appendChild(createFormField('album-image', 'Album Image:', 'file', 'album-image', false, [], {accept: 'image/*'}));
+    form.appendChild(createFormField('album-image', 'Album Image:', 'file', 'album-image', false, [], { accept: 'image/*' }));
 
     // Genre Select
     // Initial default option
-    const genreOptions = [{value: "", text: "Select a genre", disabled: true, selected: true}];
+    const genreOptions = [{ value: "", text: "Select a genre", disabled: true, selected: true }];
     let genresAvailable = false;
 
     if (genres && genres.length > 0) {
         genresAvailable = true;
         genres.forEach(genre => {
             // Assuming genre object has 'name' for value and 'description' for text, as per API spec
-            genreOptions.push({value: genre.name, text: genre.description});
+            genreOptions.push({ value: genre.name, text: genre.description });
         });
     } else if (genres === null && !error) {
-        genreOptions.push({value: '', text: 'Failed to load genres', disabled: true});
+        genreOptions.push({ value: '', text: 'Failed to load genres', disabled: true });
     } else if (genres && genres.length === 0) {
-        genreOptions.push({value: '', text: 'No genres available', disabled: true});
+        genreOptions.push({ value: '', text: 'No genres available', disabled: true });
     }
 
     const genreField = createFormField('song-genre', 'Genre:', 'select', 'song-genre', true, genreOptions);
@@ -57,16 +58,18 @@ export function createSongUploadFormElement(formId, genres, error = null) {
     form.appendChild(genreField);
 
     // Audio File
-    form.appendChild(createFormField('song-audio', 'Audio File:', 'file', 'song-audio', true, [], {accept: 'audio/*'}));
+    form.appendChild(createFormField('song-audio', 'Audio File:', 'file', 'song-audio', true, [], { accept: 'audio/*' }));
 
     // Submit Button
-    const submitButton = document.createElement('button');
-    submitButton.type = 'submit';
-    submitButton.className = 'styled-button';
-    submitButton.textContent = 'Add Song';
+    const buttonAttributes = { type: 'submit' };
     if (!genresAvailable) {
-        submitButton.disabled = true;
+        buttonAttributes.disabled = true;
     }
+    const submitButton = createElement('button', {
+        textContent: 'Add Song',
+        className: 'styled-button',
+        attributes: buttonAttributes
+    });
     form.appendChild(submitButton);
 
     return form;

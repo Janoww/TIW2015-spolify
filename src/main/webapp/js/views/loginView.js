@@ -1,24 +1,18 @@
-import {createFormField} from '../utils/formUtils.js';
-
-// Helper function to create a title container
-function createTitleContainer(titleText) {
-    const h1 = document.createElement('h1');
-    h1.textContent = titleText;
-    return h1;
-}
+import { createFormField } from '../utils/formUtils.js';
+import { createHeaderContainer, createElement } from '../utils/viewUtils.js';
 
 // Helper function to create a link block (div > p > text + a)
 function createLinkBlock(baseText, linkId, linkTextContent, linkHref = '#') {
-    const linkContainerDiv = document.createElement('div');
-    linkContainerDiv.className = 'link-container';
+    const linkContainerDiv = createElement('div', { className: 'link-container' });
 
-    const pElement = document.createElement('p');
+    const pElement = createElement('p');
     pElement.appendChild(document.createTextNode(baseText));
 
-    const linkElement = document.createElement('a');
-    linkElement.href = linkHref;
-    linkElement.id = linkId;
-    linkElement.textContent = linkTextContent;
+    const linkElement = createElement('a', {
+        id: linkId,
+        textContent: linkTextContent,
+        attributes: { href: linkHref }
+    });
 
     pElement.appendChild(linkElement);
     linkContainerDiv.appendChild(pElement);
@@ -36,33 +30,23 @@ export function renderLoginView(appContainer) {
     appContainer.innerHTML = '';
     appContainer.style.maxWidth = '60vw';
 
+    const loginSection = createElement('section', { id: 'login-section', className: 'container' });
+    loginSection.appendChild(createHeaderContainer('LOGIN', 'h1'));
 
-    const loginSection = document.createElement('section');
-    loginSection.id = 'login-section';
-    loginSection.className = 'container';
-
-    loginSection.appendChild(createTitleContainer('LOGIN'));
-
-    const loginGeneralErrorDiv = document.createElement('div');
-    loginGeneralErrorDiv.id = 'login-general-error';
-    loginGeneralErrorDiv.className = 'general-error-message';
+    const loginGeneralErrorDiv = createElement('div', { id: 'login-general-error', className: 'general-error-message' });
     loginSection.appendChild(loginGeneralErrorDiv);
 
-    const loginForm = document.createElement('form');
-    loginForm.id = 'loginForm';
-    loginForm.noValidate = true;
-
+    const loginForm = createElement('form', { id: 'loginForm', attributes: { noValidate: true } });
     loginForm.appendChild(createFormField('username', 'Username:', 'text', 'username', true, [], {}));
     loginForm.appendChild(createFormField('password', 'Password:', 'password', 'password', true, [], {}));
 
-    const buttonFieldDiv = document.createElement('div');
-    buttonFieldDiv.className = 'form-field';
-    const loginButton = document.createElement('button');
-    loginButton.type = 'submit';
-    loginButton.id = 'loginButton';
-    loginButton.className = 'styled-button';
-    loginButton.textContent = 'Login';
-    loginButton.style.fontSize = '1.2em';
+    const buttonFieldDiv = createElement('div', { className: 'form-field' });
+    const loginButton = createElement('button', {
+        id: 'loginButton',
+        textContent: 'Login',
+        className: 'styled-button',
+        attributes: { type: 'submit', style: 'font-size: 1.2em;' }
+    });
     buttonFieldDiv.appendChild(loginButton);
     loginForm.appendChild(buttonFieldDiv);
 
@@ -83,33 +67,24 @@ export function renderSignupView(appContainer) {
     appContainer.innerHTML = '';
     appContainer.style.maxWidth = '60vw';
 
-    const signupSection = document.createElement('section');
-    signupSection.id = 'signup-section';
-    signupSection.className = 'container';
+    const signupSection = createElement('section', { id: 'signup-section', className: 'container' });
+    signupSection.appendChild(createHeaderContainer('SIGN UP', 'h1'));
 
-    signupSection.appendChild(createTitleContainer('SIGN UP'));
-
-    const signupGeneralErrorDiv = document.createElement('div');
-    signupGeneralErrorDiv.id = 'signup-general-error';
-    signupGeneralErrorDiv.className = 'general-error-message';
+    const signupGeneralErrorDiv = createElement('div', { id: 'signup-general-error', className: 'general-error-message' });
     signupSection.appendChild(signupGeneralErrorDiv);
 
-    const signupForm = document.createElement('form');
-    signupForm.id = 'signupForm';
-    signupForm.noValidate = true;
-
+    const signupForm = createElement('form', { id: 'signupForm', attributes: { noValidate: true } });
     signupForm.appendChild(createFormField('signupUsername', 'Username:', 'text', 'username', true, [], {}));
     signupForm.appendChild(createFormField('name', 'Name:', 'text', 'name', true, [], {}));
     signupForm.appendChild(createFormField('surname', 'Surname:', 'text', 'surname', true, [], {}));
     signupForm.appendChild(createFormField('signupPassword', 'Password:', 'password', 'password', true, [], {}));
 
-    const buttonFieldDiv = document.createElement('div');
-    buttonFieldDiv.className = 'form-field';
-    const signupButton = document.createElement('button');
-    signupButton.type = 'submit';
-    signupButton.className = 'styled-button';
-    signupButton.textContent = 'Sign Up';
-    signupButton.style.fontSize = '1.2em';
+    const buttonFieldDiv = createElement('div', { className: 'form-field' });
+    const signupButton = createElement('button', {
+        textContent: 'Sign Up',
+        className: 'styled-button',
+        attributes: { type: 'submit', style: 'font-size: 1.2em;' }
+    });
     buttonFieldDiv.appendChild(signupButton);
     signupForm.appendChild(buttonFieldDiv);
 

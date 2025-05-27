@@ -1,3 +1,5 @@
+import { createElement } from "./viewUtils.js";
+
 /**
  * Creates a div element containing a labeled form input field.
  *
@@ -11,52 +13,44 @@
  * @returns {HTMLElement} A div containing the labeled input element.
  */
 export function createFormField(inputId, labelText, inputType, name, required = true, options = [], attributes = {}) {
-    const formFieldDiv = document.createElement('div');
-    formFieldDiv.className = 'form-field';
+    const formFieldDiv = createElement('div', {
+        className: 'form-field'
+    });
 
-    const innerDiv = document.createElement('div');
+    const innerDiv = createElement('div');
 
-    const labelEl = document.createElement('label');
-    labelEl.htmlFor = inputId;
-    labelEl.textContent = labelText;
+    const labelEl = createElement('label', {
+        textContent: labelText,
+        attributes: { htmlFor: inputId }
+    });
     innerDiv.appendChild(labelEl);
 
     let inputEl;
-    if (inputType === 'select') {
-        inputEl = document.createElement('select');
-        if (options) {
-            options.forEach(optConfig => {
-                const optionEl = document.createElement('option');
-                optionEl.value = optConfig.value;
-                optionEl.textContent = optConfig.text;
-                if (optConfig.disabled) optionEl.disabled = true;
-                if (optConfig.selected) optionEl.selected = true;
-                inputEl.appendChild(optionEl);
-            });
-        }
-    } else {
-        inputEl = document.createElement('input');
-        inputEl.type = inputType;
-    }
-
-    inputEl.id = inputId;
-    inputEl.name = name;
+    const commonInputAttributes = { ...attributes, name: name };
     if (required) {
-        inputEl.required = true;
+        commonInputAttributes.required = true;
     }
 
-    if (attributes) {
-        for (const attrKey in attributes) {
-            inputEl.setAttribute(attrKey, attributes[attrKey]);
-        }
+    if (inputType === 'select') {
+        inputEl = createElement('select', { id: inputId, attributes: commonInputAttributes });
+        options?.map(optConfig => {
+            const optionAttrs = { value: optConfig.value };
+            optConfig.disabled && (optionAttrs.disabled = true);
+            optConfig.selected && (optionAttrs.selected = true);
+            return createElement('option', { textContent: optConfig.text, attributes: optionAttrs });
+        }).forEach(optionEl => { inputEl.appendChild(optionEl); });
+    } else {
+        commonInputAttributes.type = inputType;
+        inputEl = createElement('input', { id: inputId, attributes: commonInputAttributes });
     }
+
     innerDiv.appendChild(inputEl);
-
     formFieldDiv.appendChild(innerDiv);
 
-    const errorSpan = document.createElement('span');
-    errorSpan.className = 'error-message';
-    errorSpan.id = inputId + '-error';
+    const errorSpan = createElement('span', {
+        className: 'error-message',
+        id: inputId + '-error'
+    });
     formFieldDiv.appendChild(errorSpan);
 
     return formFieldDiv;
