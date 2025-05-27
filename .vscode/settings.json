@@ -34,5 +34,21 @@
   "java.format.settings.profile": "GoogleStyle",
   "javascript.suggest.completeFunctionCalls": true,
   "javascript.preferences.importModuleSpecifierEnding": "js",
-  "eslint.format.enable": true
+  "eslint.format.enable": true,
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.compile.nullAnalysis.nonnull": [
+    "javax.annotation.Nonnull",
+    "org.eclipse.jdt.annotation.NonNull",
+    "org.springframework.lang.NonNull"
+  ],
+  "java.compile.nullAnalysis.nonnullbydefault": [
+    "javax.annotation.ParametersAreNonnullByDefault",
+    "org.eclipse.jdt.annotation.NonNullByDefault",
+    "org.springframework.lang.NonNullApi"
+  ],
+  "java.compile.nullAnalysis.nullable": [
+    "javax.annotation.Nullable",
+    "org.eclipse.jdt.annotation.Nullable",
+    "org.springframework.lang.Nullable"
+  ]
 }
