@@ -36,15 +36,15 @@ export async function initHomePage(appContainer) {
     // TODO: Add event listener for 'add-song-form-home' submission here
 
 
-	// Load and render playlists
-	let playlists;
-	try {
-		playlists = await getPlaylists();
-		renderPlaylists(appContainer, playlists);
-	} catch (error) {
-		console.error(`Error loading or rendering playlists: Status ${error.status}, Message: ${error.message}`, error.details || '');
-		// Display error in playlist section if possible
-	}
+    // Load and render playlists
+    let playlists;
+    try {
+        playlists = await getPlaylists();
+        renderPlaylists(appContainer, playlists);
+    } catch (error) {
+        console.error(`Error loading or rendering playlists: Status ${error.status}, Message: ${error.message}`, error.details || '');
+        // Display error in playlist section if possible
+    }
 
     // Load and render songs for the "Create New Playlist" form's song selection
     try {
@@ -57,9 +57,9 @@ export async function initHomePage(appContainer) {
     //events
 
 
-	const newSongForm = document.getElementById('add-song-form-home');
-	const newPlaylistForm = document.getElementById('create-playlist-form');
-	const playlistsList = document.querySelector('.playlist-list')
+    const newSongForm = document.getElementById('add-song-form-home');
+    const newPlaylistForm = document.getElementById('create-playlist-form');
+    const playlistsList = document.querySelector('.playlist-list')
 
 
     if (newPlaylistForm) {
@@ -115,41 +115,41 @@ export async function initHomePage(appContainer) {
                 formData.append('albumImage', form['album-image'].files[0]);
                 formData.append('audioFile', form['song-audio'].files[0]);
 
-				// Submit via fetch
-				try {
-					const newSong = await uploadSong(formData);
-					console.log('Upload successful:', newSong);
-					// TODO update song list
-					// Example: refreshSongsForPlaylistForm(appContainer);
-					// and potentially refresh other song lists if they are visible
-				} catch (error) {
-					console.error(`Upload failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
-					// TODO handle error messages (e.g., display error.message in the UI)
-				}
-			} else {
-				console.log('NewSong form has errors.');
-				// TODO handle general error
-			}
-		})
-	}
-	
-	if (playlistsList) {
-		playlistsList.addEventListener('click', event => {
-		    const target = event.target;
-		    
-		    if (target.classList.contains('view-playlist-button')) {
-				const playlistId = parseInt(target.dataset.playlistId, 10); // convert to number
-				const playlist = playlists.find(p => p.idPlaylist === playlistId);
-				
-				initPlaylistPage(appContainer, playlist);
-		    }
+                // Submit via fetch
+                try {
+                    const newSong = await uploadSong(formData);
+                    console.log('Upload successful:', newSong);
+                    // TODO update song list
+                    // Example: refreshSongsForPlaylistForm(appContainer);
+                    // and potentially refresh other song lists if they are visible
+                } catch (error) {
+                    console.error(`Upload failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
+                    // TODO handle error messages (e.g., display error.message in the UI)
+                }
+            } else {
+                console.log('NewSong form has errors.');
+                // TODO handle general error
+            }
+        })
+    }
 
-		    if (target.classList.contains('reorder-playlist-button')) {
-		        const playlistId = target.dataset.playlistId;
-		        console.log(`Reorder playlist ${playlistId}`); //TODO
-		    }
-		});
-	}
+    if (playlistsList) {
+        playlistsList.addEventListener('click', event => {
+            const target = event.target;
+
+            if (target.classList.contains('view-playlist-button')) {
+                const playlistId = parseInt(target.dataset.playlistId, 10); // convert to number
+                const playlist = playlists.find(p => p.idPlaylist === playlistId);
+
+                initPlaylistPage(appContainer, playlist);
+            }
+
+            if (target.classList.contains('reorder-playlist-button')) {
+                const playlistId = target.dataset.playlistId;
+                console.log(`Reorder playlist ${playlistId}`); //TODO
+            }
+        });
+    }
 }
 
 export async function initSongPage(appContainer) {
