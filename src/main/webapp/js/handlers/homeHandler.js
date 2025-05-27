@@ -15,6 +15,7 @@ function validateForm(formId, fieldIds) {
 export async function initHomePage(appContainer) {
 
     renderHomeView(appContainer);
+	
 
     const songFormSectionContainer = appContainer.querySelector('#add-song-section');
     let genres = null;
@@ -107,7 +108,6 @@ export async function initHomePage(appContainer) {
                 // File fields
                 formData.append('albumImage', form['album-image'].files[0]);
                 formData.append('audioFile', form['song-audio'].files[0]);
-
                 // Submit via fetch
                 try {
                     const newSong = await uploadSong(formData);
