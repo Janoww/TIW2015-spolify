@@ -32,7 +32,7 @@ async function _fetchApi(endpoint, options = {}, isFormData = false) {
             try {
                 errorData = await response.json();
             } catch (e) {
-                console.error("Fail to parse in json the response");
+                console.error(`Fail to parse in json the response: ${e}`);
             }
             const error = new Error(errorData.error || response.statusText || 'Unknown API error');
             error.status = response.status;

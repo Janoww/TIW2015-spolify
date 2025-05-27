@@ -1,6 +1,6 @@
-import {initHomePage, initSongPage} from './handlers/homeHandler.js';
-import {initLoginPage, logoutUser} from './handlers/loginHandler.js';
-import {checkAuthStatus} from './apiService.js';
+import { initHomePage, initSongPage } from './handlers/homeHandler.js';
+import { initLoginPage, logoutUser } from './handlers/loginHandler.js';
+import { checkAuthStatus } from './apiService.js';
 
 const appContainer = document.getElementById('app');
 
@@ -32,13 +32,13 @@ async function checkUserSessionAndInitialize() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    checkUserSessionAndInitialize().then(r => {
+    checkUserSessionAndInitialize().then(() => {
     });
 
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
         logoutButton.addEventListener('click', () => {
-            logoutUser(appContainer).then(r => {
+            logoutUser(appContainer).then(() => {
             });
         });
     } else {
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const homeButton = document.getElementById('home-button');
     if (homeButton) {
         homeButton.addEventListener('click', () => {
-            initHomePage(appContainer).then(r => {
+            initHomePage(appContainer).then(() => {
             });
         });
     } else {
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const songButton = document.getElementById('songs-button');
     if (songButton) {
         songButton.addEventListener('click', () => {
-            initSongPage(appContainer).then(r => {
+            initSongPage(appContainer).then(() => {
             });
         });
     } else {
