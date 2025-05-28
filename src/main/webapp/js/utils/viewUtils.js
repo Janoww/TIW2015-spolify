@@ -58,3 +58,22 @@ export function createParagraphElement(text, id, className) {
     className && (opts.className = className);
     return createElement('p', opts);
 }
+
+/**
+ * Helper function to create a loader container with an loader animation and text
+ * @param {string} [text] - The text content for next the loader animation
+ * @param {string} [id] - Optional ID for the element
+ * @returns {HTMLDivElement} The created loader container element
+ */
+export function createLoaderContainer(text, id) {
+    const loaderContainer = createElement('div', { className: 'loader-container' });
+    id && (loaderContainer.id = id);
+
+    const loader = createElement('div', { className: 'loader' });
+    loaderContainer.appendChild(loader);
+
+    const textElement = createElement('h3', { textContent: text || "Loading..." });
+    loaderContainer.appendChild(textElement);
+
+    return loaderContainer;
+}

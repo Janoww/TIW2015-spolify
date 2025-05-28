@@ -1,6 +1,6 @@
 import { createSongUploadFormElement } from './sharedComponents.js';
 import { getSongImageURL } from '../apiService.js';
-import { createHeaderContainer, createParagraphElement, createElement } from '../utils/viewUtils.js';
+import { createHeaderContainer, createParagraphElement, createElement, createLoaderContainer } from '../utils/viewUtils.js';
 
 /**
  * Renders the basic structure of the Songs page.
@@ -17,16 +17,18 @@ export function renderSongsView(appContainer) {
     allSongsSection.appendChild(createHeaderContainer('All Songs'));
 
     const songListDiv = createElement('div', { className: 'song-list' });
-    const loadingSongsP = createParagraphElement('Loading songs...', 'all-songs-loader-message');
-    songListDiv.appendChild(loadingSongsP);
+
+    const allSongsLoader = createLoaderContainer('Loading songs...', 'all-songs-loader-message')
+    songListDiv.appendChild(allSongsLoader);
     allSongsSection.appendChild(songListDiv);
     songGrid.appendChild(allSongsSection);
 
     // Section 2: Upload New Song
     const uploadSongSection = createElement('section', { id: 'add-song' });
     uploadSongSection.appendChild(createHeaderContainer('Upload New Song'));
-    const formLoaderP = createParagraphElement('Loading song form...', 'song-form-loader-message-songs-page');
-    uploadSongSection.appendChild(formLoaderP);
+
+    const formLoader = createLoaderContainer('Loading song form...', 'song-form-loader-message-songs-page')
+    uploadSongSection.appendChild(formLoader);
     songGrid.appendChild(uploadSongSection);
 
     appContainer.appendChild(songGrid);

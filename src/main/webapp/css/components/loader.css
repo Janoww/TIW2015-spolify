@@ -8,6 +8,14 @@
     animation: spin 1s linear infinite;
 }
 
+.loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    gap: 10px;
+}
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);
