@@ -53,9 +53,49 @@ export function renderSongUploadSectionOnSongsPage(sectionContainer, genres, err
 }
 
 /**
+ * Creates an article element for a single song.
+ * @param {Object} songWithAlbum - An object containing song and album details.
+ * @returns {HTMLElement} The created article element for the song.
+ */
+function createSongArticleElement(songWithAlbum) {
+    const songArticle = createElement('article', { className: 'song-item' });
+    const playButton = createElement('button', { id: `song-action-${songWithAlbum.song.idSong}` });
+    playButton.style.display = 'none'; // Or handle visibility via CSS classes
+
+    const label = createElement('label', {
+        className: 'song-metadata',
+        attributes: { htmlFor: `song-action-${songWithAlbum.song.idSong}` }
+    });
+
+    const img = document.createElement('img');
+    img.src = getSongImageURL(songWithAlbum.song.idSong);
+    img.alt = songWithAlbum.song.title || "Song cover";
+    img.onerror = () => {
+        img.src = 'images/image_placeholder.png';
+    };
+
+    const metadataDiv = createElement('div', { className: 'song-text' });
+    const titleH3 = createHeaderContainer(songWithAlbum.song.title, 'h3');
+    const artistAlbumP = createParagraphElement(`${songWithAlbum.album.artist} • ${songWithAlbum.album.name}`);
+    const genreYearP = createParagraphElement(`${songWithAlbum.song.genre} • ${songWithAlbum.song.year}`); // Assuming song.year exists
+
+    metadataDiv.appendChild(titleH3);
+    metadataDiv.appendChild(artistAlbumP);
+    metadataDiv.appendChild(genreYearP);
+
+    label.appendChild(img);
+    label.appendChild(metadataDiv);
+
+    songArticle.appendChild(playButton);
+    songArticle.appendChild(label);
+
+    return songArticle;
+}
+
+/**
  * Renders the list of all user songs.
  * @param {HTMLElement} songListContainer The div where song items should be appended.
- * @param {Array<Object|null} songs Array of songWithAlbum objects.
+ * @param {Array<Object>|null} songs Array of songWithAlbum objects.
  * @param {Object|null} error Error object if song fetching failed.
  */
 export function renderAllUserSongsList(songListContainer, songs, error = null) {
@@ -74,42 +114,7 @@ export function renderAllUserSongsList(songListContainer, songs, error = null) {
         return;
     }
 
-    songs.forEach(songWithAlbum => {
-        // TODO: Implement createSongArticleElement similar to homeView.js or songs_mockup.html structure
-        // For now, a simple placeholder:
-        const songArticle = createElement('article', { className: 'song-item' });
-        const playButton = createElement('button', { id: `song-action-${songWithAlbum.song.idSong}` });
-        playButton.style.display = 'none';
+    const songArticles = songs.map(createSongArticleElement);
 
-        const label = createElement('label', {
-            className: 'song-metadata',
-            attributes: { htmlFor: `song-action-${songWithAlbum.song.idSong}` }
-        })
-
-        const img = document.createElement('img');
-        console.log(songWithAlbum.album);
-        img.src = getSongImageURL(songWithAlbum.song.idSong);
-        img.alt = songWithAlbum.song.title || "Song cover";
-        img.onerror = () => {
-            img.src = 'images/image_placeholder.png';
-        };
-
-        const metadataDiv = createElement('div', { className: 'song-text' });
-
-        const titleH3 = createHeaderContainer(songWithAlbum.song.title, 'h3');
-        const artistAlbumP = createParagraphElement(`${songWithAlbum.album.artist} • ${songWithAlbum.album.name}`);
-        const genreYearP = createParagraphElement(`${songWithAlbum.song.genre} • ${songWithAlbum.song.year}`);
-
-        metadataDiv.appendChild(titleH3);
-        metadataDiv.appendChild(artistAlbumP);
-        metadataDiv.appendChild(genreYearP);
-
-        label.appendChild(img);
-        label.appendChild(metadataDiv);
-
-        songArticle.appendChild(playButton);
-        songArticle.appendChild(label);
-
-        songListContainer.appendChild(songArticle);
-    });
+    songListContainer.append(...songArticles)
 }
