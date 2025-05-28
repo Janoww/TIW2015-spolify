@@ -1,9 +1,9 @@
 
 import { renderHomeView, renderPlaylists, renderSongs, renderSongUploadSection, createReorderPopup, populateModal } from "../views/homeView.js";
-import { renderSongsView, renderSongUploadSectionOnSongsPage, renderAllUserSongsList } from "../views/songsView.js";
 import { getPlaylists, createPlaylist, getSongs, uploadSong, getSongGenres as apiGetSongGenres, updatePlaylistOrder, getPlaylistSongOrder } from '../apiService.js';
 import { getOrderedSongs } from './playlistHandler.js'
 import { navigate } from '../router.js';
+import { validateForm } from '../utils/formUtils.js';
 
 
 /**
@@ -25,7 +25,6 @@ export async function initHomePage(appContainer) {
         genreError = error;
     }
     renderSongUploadSection(songFormSectionContainer, genres, genreError);
-    // TODO: Add event listener for 'add-song-form-home' submission here
 
 
     // Load and render playlists
@@ -48,7 +47,7 @@ export async function initHomePage(appContainer) {
         console.error(`Error loading or rendering songs for playlist creation: Status ${error.status}, Message: ${error.message}`, error.details || '');
     }
 
-    //events
+    // Events
 
 
     const newSongForm = document.getElementById('add-song-form-home');
@@ -77,7 +76,7 @@ export async function initHomePage(appContainer) {
                 return;
             }
 
-            if (validateForm('create-playlist-form', fieldIds) && selectedCheckboxes.length > 0) {
+            if (validateForm(newPlaylistForm, fieldIds) && selectedCheckboxes.length > 0) {
                 const form = event.target;
 
 
@@ -93,7 +92,7 @@ export async function initHomePage(appContainer) {
                     const newPlaylist = await createPlaylist(payload);
                     console.log("Playlist created:", newPlaylist);
 
-                    playlists.unshift(newPlaylist);
+                    playlists instanceof Array && playlists.unshift(newPlaylist);
                     renderPlaylists(appContainer, playlists);
                     newPlaylistForm.reset();
 
@@ -122,7 +121,7 @@ export async function initHomePage(appContainer) {
                 errorDiv.textContent = '';
             }
 
-            if (validateForm('add-song-form-home', fieldIds)) {
+            if (validateForm(newSongForm, fieldIds)) {
                 const form = event.target;
                 const formData = new FormData();
 
@@ -145,7 +144,8 @@ export async function initHomePage(appContainer) {
                     songsForPlaylistSelection.unshift(newSong);
                     renderSongs(appContainer, songsForPlaylistSelection);
 
-                    newSongForm.reset();
+                    newSongForm instanceof HTMLFormElement && newSongForm.reset();
+                    alert('Song uploaded successfully!');
 
                 } catch (error) {
                     console.error(`Upload failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
@@ -176,115 +176,115 @@ export async function initHomePage(appContainer) {
 
             if (target.classList.contains('reorder-playlist-button')) {
                 const playlistId = parseInt(target.dataset.playlistId, 10);
-				
-				if (playlistId){
-					const modal = document.getElementById('reorderModal'); //TODO to add
-					const modalContent = createReorderPopup();
-					
-					const playlist = playlists.find(playlist => playlist.idPlaylist === playlistId);
-					
-					//TODO populate modalContent
-					let playlistOrder = await getPlaylistSongOrder(playlist.idPlaylist);
-					let orderedSongs = await getOrderedSongs(playlist, playlistOrder);
-					
-					console.log(modalContent.querySelector('#reorderSongList'));
 
-					
-					populateModal(orderedSongs, modalContent);
-					
-					modal.appendChild(modalContent);
-					
-					// 🔗 Add event listeners
-					const closeButton = modalContent.querySelector('#closeReorderModal');
-					const cancelButton = modalContent.querySelector('#cancelOrderButton');
-					const saveButton = modalContent.querySelector('#saveOrderButton');
-					
-					closeButton.addEventListener("click", () => {
-						modalContent.remove()
-						modal.style.display = 'hidden';
-					});
-					cancelButton.addEventListener("click", () => {
-						modalContent.remove();
-						modalContent = createReorderPopup();
-						modal.appendChild(modalContent);
-					});
-					saveButton.addEventListener("click", async () => {
-					  	const reorderedIds = Array.from(songList.children).map(li => li.getAttribute("data-song-id"));
-						try{
-							const response = await updatePlaylistOrder(playlistId, reorderedIds);				  
+                if (playlistId) {
+                    const modal = document.getElementById('reorderModal'); //TODO to add
+                    const modalContent = createReorderPopup();
 
-						} catch (error){
-							//TODO to handle
-						}
-						
-					  	console.log("New order:", reorderedIds);
-					  	modalContent.remove();
-					});
-					
-					const reorderSongList = document.getElementById('reorderSongList');
-					let draggedItem = null;
+                    const playlist = playlists.find(playlist => playlist.idPlaylist === playlistId);
 
-					reorderSongList.addEventListener('dragstart', (event) => {
-					    if (event.target.classList.contains('reorder-song-item')) {
-							draggedItem = event.target;
-							let allItemsButOne = Array.from(document.querySelectorAll('.reorder-song-item'));
-							allItemsButOne = allItemsButOne.filter(item => item !== draggedItem);
-							allItemsButOne.forEach(item => item.classList.add('no-hover'));
-							
-					        event.dataTransfer.setData('text/plain', event.target.dataset.songId);
-					        setTimeout(() => {
-					            event.target.classList.add('dragging');
-					        }, 0);
-					    }
-					});
+                    //TODO populate modalContent
+                    let playlistOrder = await getPlaylistSongOrder(playlist.idPlaylist);
+                    let orderedSongs = await getOrderedSongs(playlist, playlistOrder);
 
-					reorderSongList.addEventListener('dragend', () => {
-					    if (draggedItem) {
-							const allItems = Array.from(document.querySelectorAll('.reorder-song-item'));
-							allItems.forEach(item => item.classList.remove('no-hover'));
-							
-					        draggedItem.classList.remove('dragging');
-					        draggedItem = null;
-					    }
-					});
+                    console.log(modalContent.querySelector('#reorderSongList'));
 
 
-					reorderSongList.addEventListener('dragover', (event) => {
-					    event.preventDefault();
-					    const targetItem = event.target.closest('.reorder-song-item');
-					    if (targetItem && targetItem !== draggedItem) {
-					        const bounding = targetItem.getBoundingClientRect();
-					        const offset = event.clientY - (bounding.top + bounding.height / 2);
-					        const parent = reorderSongList;
+                    populateModal(orderedSongs, modalContent);
 
-					        if (offset > 0) {
-					            parent.insertBefore(draggedItem, targetItem.nextSibling);
-					        } else {
-					            parent.insertBefore(draggedItem, targetItem);
-					        }
-					    }
-					});
+                    modal.appendChild(modalContent);
 
-					reorderSongList.addEventListener('drop', (event) => {
-					    event.preventDefault(); // Prevent default action (open as link for some elements)
-					    // The reordering is handled in dragover for immediate visual feedback.
-					    // If an item was being dragged, its 'dragging' class is removed in dragend.
-					});
+                    // 🔗 Add event listeners
+                    const closeButton = modalContent.querySelector('#closeReorderModal');
+                    const cancelButton = modalContent.querySelector('#cancelOrderButton');
+                    const saveButton = modalContent.querySelector('#saveOrderButton');
 
-					
-					
-				}
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
+                    closeButton.addEventListener("click", () => {
+                        modalContent.remove()
+                        modal.style.display = 'hidden';
+                    });
+                    cancelButton.addEventListener("click", () => {
+                        modalContent.remove();
+                        modalContent = createReorderPopup();
+                        modal.appendChild(modalContent);
+                    });
+                    saveButton.addEventListener("click", async () => {
+                        const reorderedIds = Array.from(songList.children).map(li => li.getAttribute("data-song-id"));
+                        try {
+                            const response = await updatePlaylistOrder(playlistId, reorderedIds);
+
+                        } catch (error) {
+                            //TODO to handle
+                        }
+
+                        console.log("New order:", reorderedIds);
+                        modalContent.remove();
+                    });
+
+                    const reorderSongList = document.getElementById('reorderSongList');
+                    let draggedItem = null;
+
+                    reorderSongList.addEventListener('dragstart', (event) => {
+                        if (event.target.classList.contains('reorder-song-item')) {
+                            draggedItem = event.target;
+                            let allItemsButOne = Array.from(document.querySelectorAll('.reorder-song-item'));
+                            allItemsButOne = allItemsButOne.filter(item => item !== draggedItem);
+                            allItemsButOne.forEach(item => item.classList.add('no-hover'));
+
+                            event.dataTransfer.setData('text/plain', event.target.dataset.songId);
+                            setTimeout(() => {
+                                event.target.classList.add('dragging');
+                            }, 0);
+                        }
+                    });
+
+                    reorderSongList.addEventListener('dragend', () => {
+                        if (draggedItem) {
+                            const allItems = Array.from(document.querySelectorAll('.reorder-song-item'));
+                            allItems.forEach(item => item.classList.remove('no-hover'));
+
+                            draggedItem.classList.remove('dragging');
+                            draggedItem = null;
+                        }
+                    });
+
+
+                    reorderSongList.addEventListener('dragover', (event) => {
+                        event.preventDefault();
+                        const targetItem = event.target.closest('.reorder-song-item');
+                        if (targetItem && targetItem !== draggedItem) {
+                            const bounding = targetItem.getBoundingClientRect();
+                            const offset = event.clientY - (bounding.top + bounding.height / 2);
+                            const parent = reorderSongList;
+
+                            if (offset > 0) {
+                                parent.insertBefore(draggedItem, targetItem.nextSibling);
+                            } else {
+                                parent.insertBefore(draggedItem, targetItem);
+                            }
+                        }
+                    });
+
+                    reorderSongList.addEventListener('drop', (event) => {
+                        event.preventDefault(); // Prevent default action (open as link for some elements)
+                        // The reordering is handled in dragover for immediate visual feedback.
+                        // If an item was being dragged, its 'dragging' class is removed in dragend.
+                    });
+
+
+
+                }
+
+
+
+
+
+
+
+
+
+
+
             }
         });
     }
@@ -319,71 +319,4 @@ export async function initSongPage(appContainer) {
     }
     renderAllUserSongsList(songListContainer, allUserSongs, songsError);
 
-}
-
-function validateForm(formId, fieldIds) {
-    //TODO regex validation
-    const form = document.getElementById(formId);
-    if (!form) {
-        console.error(`Form with id "${formId}" not found.`);
-        return false;
-    }
-
-    let isValid = true;
-
-    for (const fieldId of fieldIds) {
-        const input = form.querySelector(`#${fieldId}`);
-        const errorSpan = form.querySelector(`#${fieldId}-error`);
-
-        if (!input || !errorSpan) {
-            console.warn(`Field or error span for id "${fieldId}" not found.`);
-            continue;
-        }
-
-        let value = input.value;
-
-        // Special handling for file inputs
-        if (input.type === "file") {
-            if (input.files.length === 0) {
-                errorSpan.textContent = "Please select a file.";
-                isValid = false;
-                continue;
-            } else {
-                errorSpan.textContent = "";
-            }
-            continue;
-        }
-
-        // Special handling for select dropdowns
-        if (input.tagName.toLowerCase() === "select") {
-            if (!value) {
-                errorSpan.textContent = "Please select an option.";
-                isValid = false;
-                continue;
-            } else {
-                errorSpan.textContent = "";
-            }
-            continue;
-        }
-
-        // For text and number inputs
-        if (!value || value.trim() === "") {
-            errorSpan.textContent = "This field is required.";
-            isValid = false;
-        } else if (input.type === "number") {
-            const num = Number(value);
-            const min = input.min ? Number(input.min) : null;
-            const max = input.max ? Number(input.max) : null;
-            if ((min !== null && num < min) || (max !== null && num > max)) {
-                errorSpan.textContent = `Value must be between ${min} and ${max}.`;
-                isValid = false;
-            } else {
-                errorSpan.textContent = "";
-            }
-        } else {
-            errorSpan.textContent = "";
-        }
-    }
-
-    return isValid;
 }

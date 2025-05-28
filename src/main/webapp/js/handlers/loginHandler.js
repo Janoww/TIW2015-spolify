@@ -1,39 +1,7 @@
 import { renderLoginView, renderSignupView } from "../views/loginView.js";
 import { login as apiLogin, logout as apiLogout, signup as apiSignup } from '../apiService.js';
 import { navigate } from '../router.js';
-
-// Helper function to validate a single form field
-function validateField(inputElement, errorElementId) {
-    const errorElement = document.getElementById(errorElementId);
-    if (!inputElement) { // Defensive check
-        console.error(`Input element not found for ${errorElementId}`);
-        return false;
-    }
-    if (inputElement.required && !inputElement.value.trim()) {
-        errorElement.textContent = `${inputElement.labels[0].textContent.replace(':', '')} is required.`;
-        inputElement.classList.add('input-error');
-        return false;
-    }
-    errorElement.textContent = '';
-    inputElement.classList.remove('input-error');
-    return true;
-}
-
-// Helper function to validate the entire form
-function validateForm(formId, fieldIds) {
-    let isValid = true;
-    fieldIds.forEach(fieldId => {
-        const inputElement = document.getElementById(fieldId);
-        if (inputElement) {
-            if (!validateField(inputElement, `${fieldId}-error`)) {
-                isValid = false;
-            }
-        } else {
-            console.warn(`validateForm: Element with ID ${fieldId} not found in form ${formId}`);
-        }
-    });
-    return isValid;
-}
+import { validateForm } from '../utils/formUtils.js';
 
 function displayLogin(appContainer) {
     renderLoginView(appContainer);
@@ -44,7 +12,7 @@ function displayLogin(appContainer) {
         loginForm.addEventListener("submit", async (event) => {
             event.preventDefault();
             const fieldIds = ['username', 'password'];
-            if (validateForm('loginForm', fieldIds)) {
+            if (validateForm(loginForm, fieldIds)) {
                 const username = event.target.username.value;
                 const password = event.target.password.value;
 
@@ -78,7 +46,7 @@ function displaySignup(appContainer) {
         signupForm.addEventListener("submit", async (event) => {
             event.preventDefault();
             const fieldIds = ['signupUsername', 'name', 'surname', 'signupPassword'];
-            if (validateForm('signupForm', fieldIds)) {
+            if (validateForm(signupForm, fieldIds)) {
                 const username = event.target.signupUsername.value;
                 const name = event.target.name.value;
                 const surname = event.target.surname.value;
