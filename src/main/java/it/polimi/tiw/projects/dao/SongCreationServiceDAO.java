@@ -25,7 +25,7 @@ public class SongCreationServiceDAO {
     private final AudioDAO audioDAO;
 
     public SongCreationServiceDAO(@NotNull Connection connection, @NotNull AlbumDAO albumDAO, @NotNull SongDAO songDAO,
-                                  @NotNull ImageDAO imageDAO, @NotNull AudioDAO audioDAO) {
+            @NotNull ImageDAO imageDAO, @NotNull AudioDAO audioDAO) {
         this.connection = connection;
         this.albumDAO = albumDAO;
         this.songDAO = songDAO;
@@ -77,7 +77,7 @@ public class SongCreationServiceDAO {
     }
 
     private AlbumData handleAlbumProcessing(@NotNull User user, @NotNull SongCreationParameters params,
-                                            Part imageFilePart) throws DAOException {
+            Part imageFilePart) throws DAOException {
         Album album;
         String imageFileStorageName = null;
         boolean newAlbumCreated = false;
@@ -88,8 +88,8 @@ public class SongCreationServiceDAO {
 
         if (album == null) {
             newAlbumCreated = true;
-            logger.info("No album named '{}' found for user {}. Attempting to create new album.",
-                    params.albumTitle(), user.getUsername());
+            logger.info("No album named '{}' found for user {}. Attempting to create new album.", params.albumTitle(),
+                    user.getUsername());
 
             imageFileStorageName = saveAlbumImageFile(user, params.albumTitle(), imageFilePart);
 
@@ -105,7 +105,7 @@ public class SongCreationServiceDAO {
     }
 
     private Song saveSongDetails(@NotNull User user, @NotNull SongCreationParameters params, int albumId,
-                                 @NotBlank String audioFileStorageName) throws DAOException {
+            @NotBlank String audioFileStorageName) throws DAOException {
         Song createdSong = songDAO.createSong(params.songTitle(), albumId, params.albumYear(), params.genre(),
                 audioFileStorageName, user.getIdUser());
         logger.info("Song '{}' (ID: {}) created and associated with album ID {} for user {}", createdSong.getTitle(),
@@ -140,8 +140,8 @@ public class SongCreationServiceDAO {
         }
     }
 
-    public SongWithAlbum createSongWorkflow(@NotNull User user, @NotNull SongCreationParameters params,
-                                            Part imageFilePart) throws DAOException {
+    public @NotNull SongWithAlbum createSongWorkflow(@NotNull User user, @NotNull SongCreationParameters params,
+            Part imageFilePart) throws DAOException {
 
         String audioFileStorageName = null;
         AlbumData albumInfo = null;

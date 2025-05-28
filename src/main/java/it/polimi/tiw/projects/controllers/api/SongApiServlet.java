@@ -216,12 +216,7 @@ public class SongApiServlet extends HttpServlet {
 
         for (Song song : userSongs) {
             Album album = albumDAO.findAlbumById(song.getIdAlbum());
-            if (album != null) {
-                songsWithAlbumDetails.add(new SongWithAlbum(song, album));
-            } else {
-                logger.warn("Album with ID {} not found for song ID {} (User: {}). Skipping song in response.",
-                        song.getIdAlbum(), song.getIdSong(), user.getUsername());
-            }
+            songsWithAlbumDetails.add(new SongWithAlbum(song, album));
         }
         ResponseUtils.sendJson(response, HttpServletResponse.SC_OK, songsWithAlbumDetails);
         logger.debug("User {} retrieved {} songs.", user.getUsername(), songsWithAlbumDetails.size());
@@ -257,6 +252,12 @@ public class SongApiServlet extends HttpServlet {
                             song.getIdAlbum(), song.getIdSong(), user.getUsername(), e.getMessage(), e);
                     ResponseUtils.sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                             "Song data inconsistent: Album not found.");
+                    return;
+                } else {
+                    logger.error("Album ID {} for song ID {} (User: {}) generic error. Details: {}", song.getIdAlbum(),
+                            song.getIdSong(), user.getUsername(), e.getMessage(), e);
+                    ResponseUtils.sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                            "Error during Album query.");
                     return;
                 }
             }
