@@ -24,7 +24,11 @@ export function createElement(tagName, options = {}) {
 
     if (options.attributes) {
         Object.entries(options.attributes).forEach(([key, value]) => {
-            element.setAttribute(key, value);
+            if (key === 'htmlFor' && tagName.toLowerCase() === 'label') {
+                element.htmlFor = value;
+            } else {
+                element.setAttribute(key, value);
+            }
         });
     }
 

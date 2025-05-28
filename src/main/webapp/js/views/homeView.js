@@ -36,6 +36,11 @@ function createPlaylistArticle(playlist) {
 // Helper function to create a song element
 function createSongArticle(songWithAlbum) {
     const article = createElement('article', { className: 'song-item' });
+    const label = createElement('label', {
+        className: 'song-metadata',
+        attributes: { htmlFor: `song-select-${songWithAlbum.song.idSong}` }
+    });
+    article.appendChild(label);
 
     const inputEl = createElement('input', {
         id: 'song-select-' + songWithAlbum.song.idSong,
@@ -46,7 +51,6 @@ function createSongArticle(songWithAlbum) {
             value: songWithAlbum.song.idSong
         }
     });
-    article.appendChild(inputEl);
 
     const img = document.createElement('img');
     img.src = getSongImageURL(songWithAlbum.song.idSong);
@@ -54,15 +58,14 @@ function createSongArticle(songWithAlbum) {
     img.onerror = () => {
         img.src = 'images/image_placeholder.png';
     };
-    article.appendChild(img);
 
-    const label = createElement('label', {
-        className: 'song-metadata',
-        attributes: { htmlFor: 'song-select-' + songWithAlbum.song.idSong }
-    });
-    label.appendChild(createHeaderContainer(songWithAlbum.song.title, 'h3'));
-    label.appendChild(createParagraphElement(songWithAlbum.album.artist + ' • ' + songWithAlbum.album.name));
-    article.appendChild(label);
+    const textDiv = createElement('div', { className: 'song-text' });
+    textDiv.appendChild(createHeaderContainer(songWithAlbum.song.title, 'h3'));
+    textDiv.appendChild(createParagraphElement(songWithAlbum.album.artist + ' • ' + songWithAlbum.album.name));
+
+    label.appendChild(inputEl);
+    label.appendChild(img);
+    label.appendChild(textDiv);
 
     return article;
 }
@@ -87,7 +90,7 @@ export function renderSongs(appContainer, songWithAlbums) {
 
     const songListDiv = appContainer.querySelector('.song-list');
 
-    songListDiv.querySelectorAll('.song-item').forEach(item => item.remove);
+    songListDiv.innerHTML = '';
 
     if (songWithAlbums) {
         songWithAlbums = getSongsOrdered(songWithAlbums);
@@ -152,9 +155,9 @@ export function renderHomeView(appContainer) {
         attributes: { type: 'submit' }
     });
     newPlaylistForm.appendChild(newPlaylistSendButton);
-    const errorDiv = createElement('div', { className: 'error-message' });
+    const errorDiv = createElement('div', { className: 'general-error-message' });
     errorDiv.id = 'create-playlist-error';
-    newPlaylistForm.appendChild(errorDiv);
+    newPlaylistSection.appendChild(errorDiv);
     newPlaylistSection.appendChild(newPlaylistForm);
     homeGridDiv.appendChild(newPlaylistSection);
 
@@ -183,7 +186,7 @@ export function renderSongUploadSection(sectionContainer, genres, error = null) 
 function formatPlaylistDate(isoString) {
     const date = new Date(isoString);
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString(undefined, options); // Uses user's locale
+    return date.toLocaleDateString(undefined, options);
 }
 
 export function createReorderPopup(){

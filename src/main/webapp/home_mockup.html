@@ -13,214 +13,214 @@
 </head>
 
 <body>
-<header>
-    <div class="logo-and-title">
-        <img alt="Spolify Logo" class="icon" src="images/SpolifyIcon.png">
-        <h1>SPOLIFY</h1>
-    </div>
-    <nav id="navbar">
-        <!-- Navigation buttons will be dynamically shown/hidden by JS -->
-        <button class="styled-button" id="home-button">Home</button>
-        <button class="styled-button" id="my-playlists-button">My Playlists</button>
-        <button class="styled-button" id="logout-button">Logout</button>
-    </nav>
-</header>
+    <header>
+        <div class="logo-and-title">
+            <img alt="Spolify Logo" class="icon" src="images/SpolifyIcon.png">
+            <h1>SPOLIFY</h1>
+        </div>
+        <nav id="navbar">
+            <!-- Navigation buttons will be dynamically shown/hidden by JS -->
+            <button class="styled-button" id="home-button">Home</button>
+            <button class="styled-button" id="my-playlists-button">My Playlists</button>
+            <button class="styled-button" id="logout-button">Logout</button>
+        </nav>
+    </header>
 
-<main id="app">
-    <div class="grid home-grid">
-        <section id="user-playlists-section">
-            <h2>My Playlists</h2>
-            <div class="playlist-list">
-                <!-- Playlist items will be dynamically populated by JS -->
-                <article class="playlist-item">
-                    <div class="playlist-info">
-                        <h3>[Playlist Title 1 Placeholder]</h3>
-                        <p>Created: [Date Placeholder]</p>
-                    </div>
-                    <div class="playlist-actions">
-                        <button class="styled-button view-playlist-button" data-playlist-id="1">View</button>
-                        <button class="styled-button reorder-playlist-button" data-playlist-id="1">Reorder</button>
-                    </div>
-                </article>
-                <article class="playlist-item">
-                    <div class="playlist-info">
-                        <h3>[Playlist Title 2 Placeholder]</h3>
-                        <p>Created: [Date Placeholder]</p>
-                    </div>
-                    <div class="playlist-actions">
-                        <button class="styled-button view-playlist-button" data-playlist-id="2">View</button>
-                        <button class="styled-button reorder-playlist-button" data-playlist-id="2">Reorder</button>
-                    </div>
-                </article>
-                <!-- Add more placeholder playlists as needed or generate via JS -->
-            </div>
-        </section>
-
-        <section id="add-song-section">
-            <h2>Upload New Song</h2>
-            <form id="add-song-form-home">
-                <div class="form-field">
-                    <div>
-                        <label for="song-title">Song Title:</label>
-                        <input id="song-title" name="song-title" required type="text">
-                    </div>
-                    <span class="error-message" id="song-title-error"></span>
-                </div>
-
-                <div class="form-field">
-                    <div>
-                        <label for="album-title">Album Title:</label>
-                        <input id="album-title" name="album-title" required type="text">
-                    </div>
-                    <span class="error-message" id="album-title-error"></span>
-                </div>
-
-                <div class="form-field">
-                    <div>
-                        <label for="album-artist">Album Artist:</label>
-                        <input id="album-artist" name="album-artist" required type="text">
-                    </div>
-                    <span class="error-message" id="album-artist-error"></span>
-                </div>
-
-                <div class="form-field">
-                    <div>
-                        <label for="album-year">Album Year:</label>
-                        <input id="album-year" max="9999" min="1000" name="album-year" required type="number">
-                    </div>
-                    <span class="error-message" id="album-year-error"></span>
-                </div>
-
-                <div class="form-field">
-                    <div>
-                        <label for="album-image">Album Image:</label>
-                        <input accept="image/*" id="album-image" name="album-image" type="file">
-                    </div>
-                    <span class="error-message" id="album-image-error"></span>
-                </div>
-
-                <div class="form-field">
-                    <div>
-                        <label for="song-genre">Genre:</label>
-                        <select id="song-genre" name="song-genre" required>
-                            <option disabled selected value="">Select a genre</option>
-                            <option value="AFRICAN">Music of Africa</option>
-                            <option value="ALTERNATIVE_ROCK">Alternative rock</option>
-                            <option value="AMBIENT">Ambient music</option>
-                            <option value="AMERICAN_FOLK">American folk music</option>
-                            <option value="ASIAN">Music of Asia</option>
-                            <option value="BLUES">Blues</option>
-                            <option value="CHRISTIAN">Christian music</option>
-                            <option value="CLASSICAL">Classical music</option>
-                            <option value="COMMERCIAL">Commercial</option>
-                            <option value="COUNTRY">Country music</option>
-                            <option value="DANCE">Dance music</option>
-                            <option value="DISCO">Disco</option>
-                            <option value="EASY_LISTENING">Easy listening</option>
-                            <option value="EDM">Electronic dance music</option>
-                            <option value="ELECTRONIC">Electronic music</option>
-                            <option value="EXPERIMENTAL">Experimental music</option>
-                            <option value="FOLK">Folk music</option>
-                            <option value="FUNK">Funk</option>
-                            <option value="GENEALOGY">Genealogy of musical genres</option>
-                            <option value="GOSPEL">Gospel music</option>
-                            <option value="HARDCORE">Hardcore</option>
-                            <option value="HEAVY_METAL">Heavy metal</option>
-                            <option value="HIPHOP">Hip-hop</option>
-                            <option value="HIPHOP_CULTURE">Hip-hop culture</option>
-                            <option value="HOUSE">House music</option>
-                            <option value="INDEPENDENT">Independent music</option>
-                            <option value="INDIE_POP">Indie pop</option>
-                            <option value="INDIE_ROCK">Indie rock</option>
-                            <option value="JAZZ">Jazz</option>
-                            <option value="KPOP">K-pop</option>
-                            <option value="LATIN_AMERICAN">Music of Latin America</option>
-                            <option value="MIDDLE_EASTERN">Middle Eastern music</option>
-                            <option value="MODERNISM">Modernism</option>
-                            <option value="NEW_AGE">New-age music</option>
-                            <option value="NEW_WAVE">New wave</option>
-                            <option value="POP">Pop music</option>
-                            <option value="PSYCHEDELIC">Psychedelic music</option>
-                            <option value="PUNK_ROCK">Punk rock</option>
-                            <option value="REGGAE">Reggae</option>
-                            <option value="ROCK_AND_ROLL">Rock and roll</option>
-                            <option value="SKA">Ska</option>
-                            <option value="SOCA">Soca music</option>
-                            <option value="SOUL">Soul music</option>
-                            <option value="SYNTH_POP">Synth-pop</option>
-                            <option value="TECHNO">Techno</option>
-                            <option value="THRASH_METAL">Thrash metal</option>
-                            <option value="VAPOR_WAVE">Vapor-wave</option>
-                            <option value="VOCAL">Vocal music</option>
-                            <option value="WESTERN">Western music</option>
-                            <option value="WORLD">World music</option>
-                        </select>
-                    </div>
-                    <span class="error-message" id="song-genre-error"></span>
-                </div>
-
-                <div class="form-field">
-                    <div>
-                        <label for="song-audio">Audio File:</label>
-                        <input accept="audio/*" id="song-audio" name="song-audio" required type="file">
-                    </div>
-                    <span class="error-message" id="song-audio-error"></span>
-                </div>
-                <button class="styled-button" type="submit">Add Song</button>
-                <div id="create-song-error" class="error-message"></div>
-                
-            </form>
-        </section>
-
-        <section id="create-playlist-section">
-            <h2>Create New Playlist</h2>
-            <form id="create-playlist-form">
-                <div class="form-field">
-                    <div>
-                        <label for="new-playlist-title">Playlist Title:</label>
-                        <input id="new-playlist-title" name="new-playlist-title" required type="text">
-                    </div>
-                    <span class="error-message" id="new-playlist-title-error"></span>
-                </div>
-
-                <h3>Select Songs to Add:</h3>
-                <div class="song-list">
-                    <!-- Song items for selection will be dynamically populated by JS -->
-                    <article class="song-item">
-                        <input class="song-checkbox" id="song-select-1" name="selected-songs" type="checkbox"
-                               value="songId1">
-                        <img alt="[Song Title Placeholder]" src="images/image_placeholder.png">
-                        <label class="song-metadata" for="song-select-1">
-                            <h3>[Song Title Placeholder]</h3>
-                            <p>[Artist Name Placeholder] &bull; [Album Name Placeholder]</p>
-                        </label>
+    <main id="app">
+        <div class="grid home-grid">
+            <section id="user-playlists-section">
+                <h2>My Playlists</h2>
+                <div class="playlist-list">
+                    <!-- Playlist items will be dynamically populated by JS -->
+                    <article class="playlist-item">
+                        <div class="playlist-info">
+                            <h3>[Playlist Title 1 Placeholder]</h3>
+                            <p>Created: [Date Placeholder]</p>
+                        </div>
+                        <div class="playlist-actions">
+                            <button class="styled-button view-playlist-button" data-playlist-id="1">View</button>
+                            <button class="styled-button reorder-playlist-button" data-playlist-id="1">Reorder</button>
+                        </div>
                     </article>
-                    <article class="song-item">
-                        <input class="song-checkbox" id="song-select-2" name="selected-songs" type="checkbox"
-                               value="songId2">
-                        <img alt="[Song Title Placeholder 2]" src="images/image_placeholder.png">
-                        <label class="song-metadata" for="song-select-2">
-                            <h3>[Song Title Placeholder 2]</h3>
-                            <p>[Artist Name Placeholder 2] &bull; [Album Name Placeholder 2]</p>
-                        </label>
+                    <article class="playlist-item">
+                        <div class="playlist-info">
+                            <h3>[Playlist Title 2 Placeholder]</h3>
+                            <p>Created: [Date Placeholder]</p>
+                        </div>
+                        <div class="playlist-actions">
+                            <button class="styled-button view-playlist-button" data-playlist-id="2">View</button>
+                            <button class="styled-button reorder-playlist-button" data-playlist-id="2">Reorder</button>
+                        </div>
                     </article>
-                    <article class="song-item">
-                        <input class="song-checkbox" id="song-select-3" name="selected-songs" type="checkbox"
-                               value="songId2">
-                        <img alt="[Song Title Placeholder 2]" src="images/image_placeholder.png">
-                        <label class="song-metadata" for="song-select-3">
-                            <h3>[Song Title Placeholder 2]</h3>
-                            <p>[Artist Name Placeholder 2] &bull; [Album Name Placeholder 2]</p>
-                        </label>
-                    </article>
-                    <!-- Add more placeholder songs for selection as needed or generate via JS -->
+                    <!-- Add more placeholder playlists as needed or generate via JS -->
                 </div>
-                <button class="styled-button" type="submit">Create Playlist</button>
-				<div id="create-playlist-error" class="error-message"></div>
-            </form>
-        </section>
-    </div>
-</main>
+            </section>
+
+            <section id="add-song-section">
+                <h2>Upload New Song</h2>
+                <form id="add-song-form-home">
+                    <div class="form-field">
+                        <div>
+                            <label for="song-title">Song Title:</label>
+                            <input id="song-title" name="song-title" required type="text">
+                        </div>
+                        <span class="error-message" id="song-title-error"></span>
+                    </div>
+
+                    <div class="form-field">
+                        <div>
+                            <label for="album-title">Album Title:</label>
+                            <input id="album-title" name="album-title" required type="text">
+                        </div>
+                        <span class="error-message" id="album-title-error"></span>
+                    </div>
+
+                    <div class="form-field">
+                        <div>
+                            <label for="album-artist">Album Artist:</label>
+                            <input id="album-artist" name="album-artist" required type="text">
+                        </div>
+                        <span class="error-message" id="album-artist-error"></span>
+                    </div>
+
+                    <div class="form-field">
+                        <div>
+                            <label for="album-year">Album Year:</label>
+                            <input id="album-year" max="9999" min="1000" name="album-year" required type="number">
+                        </div>
+                        <span class="error-message" id="album-year-error"></span>
+                    </div>
+
+                    <div class="form-field">
+                        <div>
+                            <label for="album-image">Album Image:</label>
+                            <input accept="image/*" id="album-image" name="album-image" type="file">
+                        </div>
+                        <span class="error-message" id="album-image-error"></span>
+                    </div>
+
+                    <div class="form-field">
+                        <div>
+                            <label for="song-genre">Genre:</label>
+                            <select id="song-genre" name="song-genre" required>
+                                <option disabled selected value="">Select a genre</option>
+                                <option value="AFRICAN">Music of Africa</option>
+                                <option value="ALTERNATIVE_ROCK">Alternative rock</option>
+                                <option value="AMBIENT">Ambient music</option>
+                                <option value="AMERICAN_FOLK">American folk music</option>
+                                <option value="ASIAN">Music of Asia</option>
+                                <option value="BLUES">Blues</option>
+                                <option value="CHRISTIAN">Christian music</option>
+                                <option value="CLASSICAL">Classical music</option>
+                                <option value="COMMERCIAL">Commercial</option>
+                                <option value="COUNTRY">Country music</option>
+                                <option value="DANCE">Dance music</option>
+                                <option value="DISCO">Disco</option>
+                                <option value="EASY_LISTENING">Easy listening</option>
+                                <option value="EDM">Electronic dance music</option>
+                                <option value="ELECTRONIC">Electronic music</option>
+                                <option value="EXPERIMENTAL">Experimental music</option>
+                                <option value="FOLK">Folk music</option>
+                                <option value="FUNK">Funk</option>
+                                <option value="GENEALOGY">Genealogy of musical genres</option>
+                                <option value="GOSPEL">Gospel music</option>
+                                <option value="HARDCORE">Hardcore</option>
+                                <option value="HEAVY_METAL">Heavy metal</option>
+                                <option value="HIPHOP">Hip-hop</option>
+                                <option value="HIPHOP_CULTURE">Hip-hop culture</option>
+                                <option value="HOUSE">House music</option>
+                                <option value="INDEPENDENT">Independent music</option>
+                                <option value="INDIE_POP">Indie pop</option>
+                                <option value="INDIE_ROCK">Indie rock</option>
+                                <option value="JAZZ">Jazz</option>
+                                <option value="KPOP">K-pop</option>
+                                <option value="LATIN_AMERICAN">Music of Latin America</option>
+                                <option value="MIDDLE_EASTERN">Middle Eastern music</option>
+                                <option value="MODERNISM">Modernism</option>
+                                <option value="NEW_AGE">New-age music</option>
+                                <option value="NEW_WAVE">New wave</option>
+                                <option value="POP">Pop music</option>
+                                <option value="PSYCHEDELIC">Psychedelic music</option>
+                                <option value="PUNK_ROCK">Punk rock</option>
+                                <option value="REGGAE">Reggae</option>
+                                <option value="ROCK_AND_ROLL">Rock and roll</option>
+                                <option value="SKA">Ska</option>
+                                <option value="SOCA">Soca music</option>
+                                <option value="SOUL">Soul music</option>
+                                <option value="SYNTH_POP">Synth-pop</option>
+                                <option value="TECHNO">Techno</option>
+                                <option value="THRASH_METAL">Thrash metal</option>
+                                <option value="VAPOR_WAVE">Vapor-wave</option>
+                                <option value="VOCAL">Vocal music</option>
+                                <option value="WESTERN">Western music</option>
+                                <option value="WORLD">World music</option>
+                            </select>
+                        </div>
+                        <span class="error-message" id="song-genre-error"></span>
+                    </div>
+
+                    <div class="form-field">
+                        <div>
+                            <label for="song-audio">Audio File:</label>
+                            <input accept="audio/*" id="song-audio" name="song-audio" required type="file">
+                        </div>
+                        <span class="error-message" id="song-audio-error"></span>
+                    </div>
+                    <button class="styled-button" type="submit">Add Song</button>
+                    <div id="create-song-error" class="error-message"></div>
+
+                </form>
+            </section>
+
+            <section id="create-playlist-section">
+                <h2>Create New Playlist</h2>
+                <form id="create-playlist-form">
+                    <div class="form-field">
+                        <div>
+                            <label for="new-playlist-title">Playlist Title:</label>
+                            <input id="new-playlist-title" name="new-playlist-title" required type="text">
+                        </div>
+                        <span class="error-message" id="new-playlist-title-error"></span>
+                    </div>
+
+                    <h3>Select Songs to Add:</h3>
+                    <div class="song-list">
+                        <!-- Song items for selection will be dynamically populated by JS -->
+                        <article class="song-item">
+                            <label class="song-metadata" for="song-select-1">
+                                <input class="song-checkbox" id="song-select-1" name="selected-songs" type="checkbox"
+                                    value="songId1">
+                                <img alt="[Song Title Placeholder]" src="images/image_placeholder.png">
+                                <h3>[Song Title Placeholder]</h3>
+                                <p>[Artist Name Placeholder] &bull; [Album Name Placeholder]</p>
+                            </label>
+                        </article>
+                        <article class="song-item">
+                            <label class="song-metadata" for="song-select-2">
+                                <input class="song-checkbox" id="song-select-2" name="selected-songs" type="checkbox"
+                                    value="songId2">
+                                <img alt="[Song Title Placeholder 2]" src="images/image_placeholder.png">
+                                <h3>[Song Title Placeholder 2]</h3>
+                                <p>[Artist Name Placeholder 2] &bull; [Album Name Placeholder 2]</p>
+                            </label>
+                        </article>
+                        <article class="song-item">
+                            <label class="song-metadata" for="song-select-3">
+                                <input class="song-checkbox" id="song-select-3" name="selected-songs" type="checkbox"
+                                    value="songId2">
+                                <img alt="[Song Title Placeholder 2]" src="images/image_placeholder.png">
+                                <h3>[Song Title Placeholder 2]</h3>
+                                <p>[Artist Name Placeholder 2] &bull; [Album Name Placeholder 2]</p>
+                            </label>
+                        </article>
+                        <!-- Add more placeholder songs for selection as needed or generate via JS -->
+                    </div>
+                    <button class="styled-button" type="submit">Create Playlist</button>
+                    <div id="create-playlist-error" class="error-message"></div>
+                </form>
+            </section>
+        </div>
+    </main>
 </body>
 
 </html>

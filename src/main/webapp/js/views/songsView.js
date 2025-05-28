@@ -53,7 +53,7 @@ export function renderSongUploadSectionOnSongsPage(sectionContainer, genres, err
 /**
  * Renders the list of all user songs.
  * @param {HTMLElement} songListContainer The div where song items should be appended.
- * @param {Array<Object>|null} songs Array of songWithAlbum objects.
+ * @param {Array<Object|null} songs Array of songWithAlbum objects.
  * @param {Object|null} error Error object if song fetching failed.
  */
 export function renderAllUserSongsList(songListContainer, songs, error = null) {
@@ -76,6 +76,13 @@ export function renderAllUserSongsList(songListContainer, songs, error = null) {
         // TODO: Implement createSongArticleElement similar to homeView.js or songs_mockup.html structure
         // For now, a simple placeholder:
         const songArticle = createElement('article', { className: 'song-item' });
+        const playButton = createElement('button', { id: `song-action-${songWithAlbum.song.idSong}` });
+        playButton.style.display = 'none';
+
+        const label = createElement('label', {
+            className: 'song-metadata',
+            attributes: { htmlFor: `song-action-${songWithAlbum.song.idSong}` }
+        })
 
         const img = document.createElement('img');
         console.log(songWithAlbum.album);
@@ -85,19 +92,22 @@ export function renderAllUserSongsList(songListContainer, songs, error = null) {
             img.src = 'images/image_placeholder.png';
         };
 
-        const metadataDiv = createElement('div', { className: 'song-metadata' });
+        const metadataDiv = createElement('div', { className: 'song-text' });
 
         const titleH3 = createHeaderContainer(songWithAlbum.song.title, 'h3');
-        metadataDiv.appendChild(titleH3);
-
         const artistAlbumP = createParagraphElement(`${songWithAlbum.album.artist} • ${songWithAlbum.album.name}`);
-        metadataDiv.appendChild(artistAlbumP);
-
         const genreYearP = createParagraphElement(`${songWithAlbum.song.genre} • ${songWithAlbum.song.year}`);
+
+        metadataDiv.appendChild(titleH3);
+        metadataDiv.appendChild(artistAlbumP);
         metadataDiv.appendChild(genreYearP);
 
-        songArticle.appendChild(img);
-        songArticle.appendChild(metadataDiv);
+        label.appendChild(img);
+        label.appendChild(metadataDiv);
+
+        songArticle.appendChild(playButton);
+        songArticle.appendChild(label);
+
         songListContainer.appendChild(songArticle);
     });
 }

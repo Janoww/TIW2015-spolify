@@ -94,6 +94,7 @@
 .slider-metadata h3 {
     font-size: 1.1rem;
     margin: 0;
+    text-align: center;
 }
 
 .slider-metadata p {
@@ -117,7 +118,7 @@
 }
 
 .hidden {
-  display: none !important;
+    display: none !important;
 }
 
 .pre-carouselButton {

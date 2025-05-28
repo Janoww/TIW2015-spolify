@@ -66,7 +66,8 @@ form {
     height: 1vw;
 }
 
-.form-field input.input-error {
+.form-field input.input-error,
+.form-field select.input-error {
     border-color: #3b1e54;
     background-color: #d4bee4;
 }

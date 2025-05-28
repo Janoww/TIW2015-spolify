@@ -16,7 +16,6 @@
     margin-bottom: 15px;
     overflow-y: auto;
     flex-grow: 1;
-    padding: 5px;
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -25,14 +24,11 @@
 
 .song-item {
     margin: 5px;
-    display: flex;
-    align-items: center;
     border: 2px solid #3B1E54;
     border-radius: 15px;
-    padding: 10px;
+    padding: 0;
     background-color: #D4BEE4;
     color: #3B1E54;
-    cursor: pointer;
 }
 
 .song-item:hover {
@@ -49,9 +45,14 @@
 
 .song-metadata {
     flex: 1;
-    margin-left: 10px;
     color: #3B1E54;
     text-align: left;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .song-metadata p {
