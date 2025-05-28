@@ -259,11 +259,27 @@ export async function getSongs() {
 
 /**
  * Uploads a new song.
- * @param {FormData} formData - The song data as FormData (including title, genre, album info, audio file, etc.).
+ * @param {HTMLFormElement} formElement - The HTML form element containing the song data.
  * @returns {Promise<SongWithAlbum>} A promise that resolves to the newly created song with its album details.
  * @throws {ApiError} If upload fails (e.g., validation error, server error).
  */
-export async function uploadSong(formData) {
+export async function uploadSong(formElement) {
+    const formData = new FormData();
+
+    formData.append('title', formElement['song-title'].value);
+    formData.append('albumTitle', formElement['album-title'].value);
+    formData.append('albumArtist', formElement['album-artist'].value);
+    formData.append('albumYear', formElement['album-year'].value);
+    formData.append('genre', formElement['song-genre'].value);
+
+    // File fields - only append if a file is selected
+    if (formElement['album-image'].files && formElement['album-image'].files.length > 0) {
+        formData.append('albumImage', formElement['album-image'].files[0]);
+    }
+    if (formElement['song-audio'].files && formElement['song-audio'].files.length > 0) {
+        formData.append('audioFile', formElement['song-audio'].files[0]);
+    }
+
     return _fetchApi('/songs', { method: 'POST', body: formData }, true);
 }
 

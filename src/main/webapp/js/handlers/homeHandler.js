@@ -1,9 +1,10 @@
 
 import { renderHomeView, renderPlaylists, renderSongs, renderSongUploadSection, createReorderPopup, populateModal } from "../views/homeView.js";
 import { getPlaylists, createPlaylist, getSongs, uploadSong, getSongGenres as apiGetSongGenres, updatePlaylistOrder, getPlaylistSongOrder } from '../apiService.js';
-import { getOrderedSongs } from './playlistHandler.js'
+import { getOrderedSongs } from './playlistHandler.js';
 import { navigate } from '../router.js';
 import { validateForm } from '../utils/formUtils.js';
+import { handleSongUploadSubmit } from './sharedFormHandlers.js';
 
 
 /**
@@ -111,54 +112,30 @@ export async function initHomePage(appContainer) {
     }
 
     if (newSongForm) {
+        const fieldIds = ['song-title', 'album-title', 'album-artist', 'album-year', 'album-image', 'song-genre', 'song-audio'];
+        const errorDivId = 'create-song-error';
+
+        // Success callback specific to the home page
+        function homePageSongUploadSuccess(newSong, appContainerForRender, currentSongsList) {
+            if (currentSongsList && Array.isArray(currentSongsList)) {
+                currentSongsList.unshift(newSong);
+            }
+            // Ensure appContainerForRender and currentSongsList are valid before rendering
+            if (appContainerForRender && currentSongsList) {
+                renderSongs(appContainerForRender, currentSongsList);
+            }
+        }
+
         newSongForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const fieldIds = ['song-title', 'album-title', 'album-artist', 'album-year', 'album-image', 'song-genre', 'song-audio'];
-
-            const errorDiv = document.getElementById('create-song-error');
-            if (errorDiv) {
-                errorDiv.style.display = 'none';
-                errorDiv.textContent = '';
-            }
-
-            if (validateForm(newSongForm, fieldIds)) {
-                const form = event.target;
-                const formData = new FormData();
-
-                // Text fields
-                formData.append('title', form['song-title'].value);
-                formData.append('albumTitle', form['album-title'].value);
-                formData.append('albumArtist', form['album-artist'].value);
-                formData.append('albumYear', form['album-year'].value);
-                formData.append('genre', form['song-genre'].value);
-
-                // File fields
-                formData.append('albumImage', form['album-image'].files[0]);
-                formData.append('audioFile', form['song-audio'].files[0]);
-                // Submit via fetch
-                try {
-                    const newSong = await uploadSong(formData);
-                    console.log('Upload successful:', newSong);
-
-
-                    songsForPlaylistSelection.unshift(newSong);
-                    renderSongs(appContainer, songsForPlaylistSelection);
-
-                    newSongForm instanceof HTMLFormElement && newSongForm.reset();
-                    alert('Song uploaded successfully!');
-
-                } catch (error) {
-                    console.error(`Upload failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
-                    if (errorDiv) {
-                        errorDiv.textContent = error.message;
-                        errorDiv.style.display = 'block';
-                    }
-                }
-            } else {
-                console.log('NewSong form has errors.');
-                // TODO handle general error
-            }
-        })
+            await handleSongUploadSubmit(
+                event,
+                fieldIds,
+                errorDivId,
+                homePageSongUploadSuccess,
+                appContainer,
+                songsForPlaylistSelection
+            );
+        });
     }
 
     if (playlistsList) {

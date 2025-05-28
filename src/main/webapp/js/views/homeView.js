@@ -2,6 +2,7 @@ import { createFormField } from '../utils/formUtils.js';
 import { createSongUploadFormElement } from './sharedComponents.js';
 import { getSongImageURL } from '../apiService.js';
 import { createHeaderContainer, createParagraphElement, createElement } from '../utils/viewUtils.js';
+import { getSongsOrdered } from '../utils/orderUtils.js';
 
 // Helper function to create a playlist element
 function createPlaylistArticle(playlist) {
@@ -73,31 +74,14 @@ function createSongArticle(songWithAlbum) {
 // Function that adds the songs to the song list
 
 export function renderSongs(appContainer, songWithAlbums) {
-    function getSongsOrdered(songs) {
-        songs.sort((a, b) => {
-            // Compare artist names case-insensitive
-            const artistA = a.album.artist.toLowerCase();
-            const artistB = b.album.artist.toLowerCase();
+    const songListContainer = appContainer.querySelector('.song-list');
 
-            if (artistA < artistB) return -1;
-            if (artistA > artistB) return 1;
-
-            // If artist names are equal, compare album year
-            return a.album.year - b.album.year;
-        });
-        return songs;
-    }
-
-    const songListDiv = appContainer.querySelector('.song-list');
-
-    songListDiv.innerHTML = '';
+    songListContainer.innerHTML = '';
 
     if (songWithAlbums) {
         songWithAlbums = getSongsOrdered(songWithAlbums);
-        songWithAlbums.forEach(swa => {
-            const article = createSongArticle(swa);
-            songListDiv.appendChild(article);
-        })
+        const songArticles = songWithAlbums.map(createSongArticle);
+        songListContainer.append(...songArticles);
     }
 }
 
@@ -155,8 +139,7 @@ export function renderHomeView(appContainer) {
         attributes: { type: 'submit' }
     });
     newPlaylistForm.appendChild(newPlaylistSendButton);
-    const errorDiv = createElement('div', { className: 'general-error-message' });
-    errorDiv.id = 'create-playlist-error';
+    const errorDiv = createElement('div', { className: 'general-error-message', id: 'create-playlist-error' });
     newPlaylistSection.appendChild(errorDiv);
     newPlaylistSection.appendChild(newPlaylistForm);
     homeGridDiv.appendChild(newPlaylistSection);
@@ -165,21 +148,18 @@ export function renderHomeView(appContainer) {
 }
 
 // Function to specifically render the song upload form section
-export function renderSongUploadSection(sectionContainer, genres, error = null) {
+export function renderSongUploadSection(sectionContainer, genres, error = null, formId = 'add-song-form-home', errorDivId = 'create-song-error') {
     // Clear previous content (e.g., the "Loading form..." message)
     const loaderMessage = sectionContainer.querySelector('#song-form-loader-message');
     if (loaderMessage) loaderMessage.remove();
 
     // Remove any existing form or error message if re-rendering
-    const existingFormOrError = sectionContainer.querySelector('form, p.general-error-message');
-    if (existingFormOrError) existingFormOrError.remove();
 
-    const formElement = createSongUploadFormElement('add-song-form-home', genres, error);
+    const formElement = createSongUploadFormElement(formId, genres, error);
 
-    const errorDiv = createElement('div', { className: 'error-message' });
-    errorDiv.id = 'create-song-error';
-    formElement.appendChild(errorDiv);
+    const errorDiv = createElement('div', { className: 'general-error-message', id: errorDivId });
 
+    sectionContainer.appendChild(errorDiv);
     sectionContainer.appendChild(formElement);
 }
 
@@ -189,51 +169,50 @@ function formatPlaylistDate(isoString) {
     return date.toLocaleDateString(undefined, options);
 }
 
-export function createReorderPopup(){
-	
-	const modalContent = createElement('div', {className: 'modal-content'});
-	
-	// Close button
-	const closeButton = createElement('span', {className: 'close-button', id: 'closeReorderModal'});
-	closeButton.innerHTML = "&times;";
-	modalContent.appendChild(closeButton);
-	
-	// Title
-	const heading = createElement('h2', {textContent: 'Reorder Playlist:'});
-	modalContent.appendChild(heading);
-	
-	// Instructions
-	const instructions = createElement('p', {className: 'modal-instructions', textContent: 'Drag and drop songs to reorder them.'});
-	modalContent.appendChild(instructions);
-	
-	// Song list
-	const songList = createElement('ul', {className: 'song-list-reorder', id: 'reorderSongList'});
-	modalContent.appendChild(songList);
+export function createReorderPopup() {
 
-	// Action buttons
-	const modalActions = createElement('div', {className:'modal-actions'});
-	const saveButton = createElement('button', {className:'styled-button', id:'saveOrderButton', textContent:'Save Order'});
-	const cancelButton = createElement('button', {className:'styled-button styled-button-secondary', id:'cancelOrderButton', textContent:'Cancel'});
-	
-	modalActions.appendChild(saveButton);
-	modalActions.appendChild(cancelButton);
-	modalContent.appendChild(modalActions);
-	
-	return modalActions;
-	
+    const modalContent = createElement('div', { className: 'modal-content' });
+
+    // Close button
+    const closeButton = createElement('span', { className: 'close-button', id: 'closeReorderModal' });
+    closeButton.innerHTML = "&times;";
+    modalContent.appendChild(closeButton);
+
+    // Title
+    const heading = createElement('h2', { textContent: 'Reorder Playlist:' });
+    modalContent.appendChild(heading);
+
+    // Instructions
+    const instructions = createElement('p', { className: 'modal-instructions', textContent: 'Drag and drop songs to reorder them.' });
+    modalContent.appendChild(instructions);
+
+    // Song list
+    const songList = createElement('ul', { className: 'song-list-reorder', id: 'reorderSongList' });
+    modalContent.appendChild(songList);
+
+    // Action buttons
+    const modalActions = createElement('div', { className: 'modal-actions' });
+    const saveButton = createElement('button', { className: 'styled-button', id: 'saveOrderButton', textContent: 'Save Order' });
+    const cancelButton = createElement('button', { className: 'styled-button styled-button-secondary', id: 'cancelOrderButton', textContent: 'Cancel' });
+
+    modalActions.appendChild(saveButton);
+    modalActions.appendChild(cancelButton);
+    modalContent.appendChild(modalActions);
+
+    return modalActions;
+
 }
 
-export function populateModal(orderedSongs, modalContent){
-	
-	const songList = modalContent.querySelector('#reorderSongList');
-	
-	orderedSongs.forEach(swa => {
-		const liEl = createElement('li', {className:'reorder-song-item', textContent: swa.song.title });
-		liEl.setAttribute('data-song-id', swa.song.songId);
-		liEl.setAttribute('draggable', 'true');
-		
-		songList.appendChild(liEl);
-	})
-	
-}
+export function populateModal(orderedSongs, modalContent) {
 
+    const songList = modalContent.querySelector('#reorderSongList');
+
+    orderedSongs.forEach(swa => {
+        const liEl = createElement('li', { className: 'reorder-song-item', textContent: swa.song.title });
+        liEl.setAttribute('data-song-id', swa.song.songId);
+        liEl.setAttribute('draggable', 'true');
+
+        songList.appendChild(liEl);
+    })
+
+}

@@ -1,6 +1,7 @@
 import { createSongUploadFormElement } from './sharedComponents.js';
 import { getSongImageURL } from '../apiService.js';
 import { createHeaderContainer, createParagraphElement, createElement, createLoaderContainer } from '../utils/viewUtils.js';
+import { getSongsOrdered } from '../utils/orderUtils.js';
 
 /**
  * Renders the basic structure of the Songs page.
@@ -39,17 +40,22 @@ export function renderSongsView(appContainer) {
  * @param {HTMLElement} sectionContainer The container element for the song upload form.
  * @param {Array<Object>|null} genres Fetched genres.
  * @param {Object|null} error Error object if genre fetching failed.
+ * @param {string} formId The ID for the form element.
+ * @param {string} errorDivId The ID for the error message div.
  */
-export function renderSongUploadSectionOnSongsPage(sectionContainer, genres, error = null) {
+export function renderSongUploadSectionOnSongsPage(sectionContainer, genres, error = null, formId = 'add-song-form-songs-page', errorDivId = 'create-song-error-songs-page') {
     const loaderMessage = sectionContainer.querySelector('#song-form-loader-message-songs-page');
     if (loaderMessage) loaderMessage.remove();
 
-    const existingFormOrError = sectionContainer.querySelector('form, p.general-error-message');
-    if (existingFormOrError) existingFormOrError.remove();
+    // Remove any existing form or error message if re-rendering
+    sectionContainer.querySelectorAll('form, div.general-error-message').forEach(el => el.remove());
 
-    const formElement = createSongUploadFormElement('add-song-form', genres, error);
+    const formElement = createSongUploadFormElement(formId, genres, error);
+
+    const errorDiv = createElement('div', { className: 'general-error-message', id: errorDivId });
+
+    sectionContainer.appendChild(errorDiv);
     sectionContainer.appendChild(formElement);
-    // TODO: Event listener for this form ('add-song-form') submission needs to be attached in the handler.
 }
 
 /**
@@ -99,11 +105,10 @@ function createSongArticleElement(songWithAlbum) {
  * @param {Object|null} error Error object if song fetching failed.
  */
 export function renderAllUserSongsList(songListContainer, songs, error = null) {
-    const loaderMessage = songListContainer.querySelector('#all-songs-loader-message');
-    if (loaderMessage) loaderMessage.remove();
+    songListContainer.innerHTML = '';
 
     if (error) {
-        const errorP = createParagraphElement('Failed to load songs. Please try refreshing.', null, 'general-error-message');
+        const errorP = createElement('div', { textContent: 'Failed to load songs. Please try refreshing.', className: 'general-error-message' });
         songListContainer.appendChild(errorP);
         return;
     }
@@ -114,7 +119,7 @@ export function renderAllUserSongsList(songListContainer, songs, error = null) {
         return;
     }
 
-    const songArticles = songs.map(createSongArticleElement);
+    const songArticles = getSongsOrdered(songs)?.map(createSongArticleElement);
 
     songListContainer.append(...songArticles)
 }
