@@ -163,7 +163,7 @@ export async function initPlaylistPage(appContainer, params) {
 
 }
 
-async function getOrderedSongs(playlist, playlistOrder) {
+export async function getOrderedSongs(playlist, playlistOrder) {
 
 
 	function getSongsOrdered(songs) {

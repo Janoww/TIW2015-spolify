@@ -185,3 +185,52 @@ function formatPlaylistDate(isoString) {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString(undefined, options); // Uses user's locale
 }
+
+export function createReorderPopup(){
+	
+	const modalContent = createElement('div', {className: 'modal-content'});
+	
+	// Close button
+	const closeButton = createElement('span', {className: 'close-button', id: 'closeReorderModal'});
+	closeButton.innerHTML = "&times;";
+	modalContent.appendChild(closeButton);
+	
+	// Title
+	const heading = createElement('h2', {textContent: 'Reorder Playlist:'});
+	modalContent.appendChild(heading);
+	
+	// Instructions
+	const instructions = createElement('p', {className: 'modal-instructions', textContent: 'Drag and drop songs to reorder them.'});
+	modalContent.appendChild(instructions);
+	
+	// Song list
+	const songList = createElement('ul', {className: 'song-list-reorder', id: 'reorderSongList'});
+	modalContent.appendChild(songList);
+
+	// Action buttons
+	const modalActions = createElement('div', {className:'modal-actions'});
+	const saveButton = createElement('button', {className:'styled-button', id:'saveOrderButton', textContent:'Save Order'});
+	const cancelButton = createElement('button', {className:'styled-button styled-button-secondary', id:'cancelOrderButton', textContent:'Cancel'});
+	
+	modalActions.appendChild(saveButton);
+	modalActions.appendChild(cancelButton);
+	modalContent.appendChild(modalActions);
+	
+	return modalActions;
+	
+}
+
+export function populateModal(orderedSongs, modalContent){
+	
+	const songList = modalContent.querySelector('#reorderSongList');
+	
+	orderedSongs.forEach(swa => {
+		const liEl = createElement('li', {className:'reorder-song-item', textContent: swa.song.title });
+		liEl.setAttribute('data-song-id', swa.song.songId);
+		liEl.setAttribute('draggable', 'true');
+		
+		songList.appendChild(liEl);
+	})
+	
+}
+

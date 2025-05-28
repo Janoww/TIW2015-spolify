@@ -50,51 +50,55 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const reorderSongList = document.getElementById('reorderSongList');
-            let draggedItem = null;
+			const reorderSongList = document.getElementById('reorderSongList');
+			let draggedItem = null;
 
-            reorderSongList.addEventListener('dragstart', (event) => {
-                if (event.target.classList.contains('reorder-song-item')) {
-                    draggedItem = event.target;
-                    event.dataTransfer.setData('text/plain', event.target.dataset.songId);
-                    setTimeout(() => {
-                        event.target.classList.add('dragging');
-                    }, 0);
-                }
-            });
+			reorderSongList.addEventListener('dragstart', (event) => {
+			    if (event.target.classList.contains('reorder-song-item')) {
+					draggedItem = event.target;
+					let allItemsButOne = Array.from(document.querySelectorAll('.reorder-song-item'));
+					allItemsButOne = allItemsButOne.filter(item => item !== draggedItem);
+					allItemsButOne.forEach(item => item.classList.add('no-hover'));
 
-            reorderSongList.addEventListener('dragend', (event) => {
-                if (draggedItem && event.target.classList.contains('reorder-song-item')) {
-                    setTimeout(() => {
-                        draggedItem.classList.remove('dragging');
-                        draggedItem = null;
-                    }, 0);
-                }
-            });
+			        event.dataTransfer.setData('text/plain', event.target.dataset.songId);
+			        setTimeout(() => {
+			            event.target.classList.add('dragging');
+			        }, 0);
+			    }
+			});
 
-            reorderSongList.addEventListener('dragover', (event) => {
-                event.preventDefault(); // Necessary to allow dropping
-                const targetItem = event.target.closest('.reorder-song-item');
-                if (targetItem && targetItem !== draggedItem) {
-                    const bounding = targetItem.getBoundingClientRect();
-                    const offset = bounding.y + bounding.height / 2;
-                    if (event.clientY - offset > 0) {
-                        // Insert after target
-                        targetItem.parentNode.insertBefore(draggedItem, targetItem.nextSibling);
-                    } else {
-                        // Insert before target
-                        targetItem.parentNode.insertBefore(draggedItem, targetItem);
-                    }
-                } else if (!targetItem && draggedItem) { // If dragging over the list but not an item (e.g., empty space)
-                    reorderSongList.appendChild(draggedItem);
-                }
-            });
+			reorderSongList.addEventListener('dragend', () => {
+			    if (draggedItem) {
+					const allItems = Array.from(document.querySelectorAll('.reorder-song-item'));
+					allItems.forEach(item => item.classList.remove('no-hover'));
+					
+			        draggedItem.classList.remove('dragging');
+			        draggedItem = null;
+			    }
+			});
 
-            reorderSongList.addEventListener('drop', (event) => {
-                event.preventDefault(); // Prevent default action (open as link for some elements)
-                // The reordering is handled in dragover for immediate visual feedback.
-                // If an item was being dragged, its 'dragging' class is removed in dragend.
-            });
+
+			reorderSongList.addEventListener('dragover', (event) => {
+			    event.preventDefault();
+			    const targetItem = event.target.closest('.reorder-song-item');
+			    if (targetItem && targetItem !== draggedItem) {
+			        const bounding = targetItem.getBoundingClientRect();
+			        const offset = event.clientY - (bounding.top + bounding.height / 2);
+			        const parent = reorderSongList;
+
+			        if (offset > 0) {
+			            parent.insertBefore(draggedItem, targetItem.nextSibling);
+			        } else {
+			            parent.insertBefore(draggedItem, targetItem);
+			        }
+			    }
+			});
+
+			reorderSongList.addEventListener('drop', (event) => {
+			    event.preventDefault(); // Prevent default action (open as link for some elements)
+			    // The reordering is handled in dragover for immediate visual feedback.
+			    // If an item was being dragged, its 'dragging' class is removed in dragend.
+			});
 
             // Add event listeners to initially present items if they are added dynamically later
             // For this static test page, the above listeners on the parent are sufficient.

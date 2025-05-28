@@ -1,7 +1,8 @@
 
-import { renderHomeView, renderPlaylists, renderSongs, renderSongUploadSection } from "../views/homeView.js";
+import { renderHomeView, renderPlaylists, renderSongs, renderSongUploadSection, createReorderPopup, populateModal } from "../views/homeView.js";
 import { renderSongsView, renderSongUploadSectionOnSongsPage, renderAllUserSongsList } from "../views/songsView.js";
-import { getPlaylists, createPlaylist, getSongs, uploadSong, getSongGenres as apiGetSongGenres } from '../apiService.js';
+import { getPlaylists, createPlaylist, getSongs, uploadSong, getSongGenres as apiGetSongGenres, updatePlaylistOrder, getPlaylistSongOrder } from '../apiService.js';
+import { getOrderedSongs } from './playlistHandler.js'
 import { navigate } from '../router.js';
 
 
@@ -161,7 +162,7 @@ export async function initHomePage(appContainer) {
     }
 
     if (playlistsList) {
-        playlistsList.addEventListener('click', event => {
+        playlistsList.addEventListener('click', async event => {
             const target = event.target;
 
             if (target.classList.contains('view-playlist-button')) {
@@ -174,8 +175,116 @@ export async function initHomePage(appContainer) {
             }
 
             if (target.classList.contains('reorder-playlist-button')) {
-                const playlistId = target.dataset.playlistId;
-                console.log(`Reorder playlist ${playlistId}`); //TODO
+                const playlistId = parseInt(target.dataset.playlistId, 10);
+				
+				if (playlistId){
+					const modal = document.getElementById('reorderModal'); //TODO to add
+					const modalContent = createReorderPopup();
+					
+					const playlist = playlists.find(playlist => playlist.idPlaylist === playlistId);
+					
+					//TODO populate modalContent
+					let playlistOrder = await getPlaylistSongOrder(playlist.idPlaylist);
+					let orderedSongs = await getOrderedSongs(playlist, playlistOrder);
+					
+					console.log(modalContent.querySelector('#reorderSongList'));
+
+					
+					populateModal(orderedSongs, modalContent);
+					
+					modal.appendChild(modalContent);
+					
+					// 🔗 Add event listeners
+					const closeButton = modalContent.querySelector('#closeReorderModal');
+					const cancelButton = modalContent.querySelector('#cancelOrderButton');
+					const saveButton = modalContent.querySelector('#saveOrderButton');
+					
+					closeButton.addEventListener("click", () => {
+						modalContent.remove()
+						modal.style.display = 'hidden';
+					});
+					cancelButton.addEventListener("click", () => {
+						modalContent.remove();
+						modalContent = createReorderPopup();
+						modal.appendChild(modalContent);
+					});
+					saveButton.addEventListener("click", async () => {
+					  	const reorderedIds = Array.from(songList.children).map(li => li.getAttribute("data-song-id"));
+						try{
+							const response = await updatePlaylistOrder(playlistId, reorderedIds);				  
+
+						} catch (error){
+							//TODO to handle
+						}
+						
+					  	console.log("New order:", reorderedIds);
+					  	modalContent.remove();
+					});
+					
+					const reorderSongList = document.getElementById('reorderSongList');
+					let draggedItem = null;
+
+					reorderSongList.addEventListener('dragstart', (event) => {
+					    if (event.target.classList.contains('reorder-song-item')) {
+							draggedItem = event.target;
+							let allItemsButOne = Array.from(document.querySelectorAll('.reorder-song-item'));
+							allItemsButOne = allItemsButOne.filter(item => item !== draggedItem);
+							allItemsButOne.forEach(item => item.classList.add('no-hover'));
+							
+					        event.dataTransfer.setData('text/plain', event.target.dataset.songId);
+					        setTimeout(() => {
+					            event.target.classList.add('dragging');
+					        }, 0);
+					    }
+					});
+
+					reorderSongList.addEventListener('dragend', () => {
+					    if (draggedItem) {
+							const allItems = Array.from(document.querySelectorAll('.reorder-song-item'));
+							allItems.forEach(item => item.classList.remove('no-hover'));
+							
+					        draggedItem.classList.remove('dragging');
+					        draggedItem = null;
+					    }
+					});
+
+
+					reorderSongList.addEventListener('dragover', (event) => {
+					    event.preventDefault();
+					    const targetItem = event.target.closest('.reorder-song-item');
+					    if (targetItem && targetItem !== draggedItem) {
+					        const bounding = targetItem.getBoundingClientRect();
+					        const offset = event.clientY - (bounding.top + bounding.height / 2);
+					        const parent = reorderSongList;
+
+					        if (offset > 0) {
+					            parent.insertBefore(draggedItem, targetItem.nextSibling);
+					        } else {
+					            parent.insertBefore(draggedItem, targetItem);
+					        }
+					    }
+					});
+
+					reorderSongList.addEventListener('drop', (event) => {
+					    event.preventDefault(); // Prevent default action (open as link for some elements)
+					    // The reordering is handled in dragover for immediate visual feedback.
+					    // If an item was being dragged, its 'dragging' class is removed in dragend.
+					});
+
+					
+					
+				}
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
             }
         });
     }

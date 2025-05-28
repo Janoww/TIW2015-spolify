@@ -120,12 +120,15 @@
 
 .reorder-song-item:hover {
     background-color: #c8a2dc;
-    /* Consistent hover with playlist items */
+    /* Consistent hover with playlist items;*/
+}
+.reorder-song-item.no-hover:hover {
+    background-color: #D4BEE4; /* or a specific color like #D4BEE4 */
 }
 
 .reorder-song-item.dragging {
     opacity: 0.5;
-    background-color: #b08cc8;
+    background-color: #ffffff;
     border-style: dashed;
 }
 
