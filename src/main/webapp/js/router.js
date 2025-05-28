@@ -1,3 +1,4 @@
+import { delay } from "./utils/delayUtils.js";
 import { createElement } from "./utils/viewUtils.js";
 
 let routes = {};
@@ -78,7 +79,7 @@ async function handleRouteChange() {
     }
     showLoader();
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await delay();
 
     let handlerFound = false;
     let params = {};
