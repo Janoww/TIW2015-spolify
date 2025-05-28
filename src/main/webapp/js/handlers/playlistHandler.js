@@ -172,7 +172,7 @@ export async function getOrderedSongs(playlist, playlistOrder) {
 
 		if (playlistOrder.length < playlist.songs.length) {
 			const allTheSongs = await getListOfSongs(playlist.songs);
-			const filteredSongs = getSongsOrdered(allTheSongs.filter(swa => !orderedSongIds.has(swa.song.idSong)));
+			const filteredSongs = getSongsOrdered(allTheSongs.filter(swa => !playlistOrder.includes(swa.song.idSong)));
 			orderedSongs.push(...filteredSongs);
 		}
 	} else {

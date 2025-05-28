@@ -47,6 +47,8 @@ export async function initHomePage(appContainer) {
     } catch (error) {
         console.error(`Error loading or rendering songs for playlist creation: Status ${error.status}, Message: ${error.message}`, error.details || '');
     }
+	//Modal
+
 
     // Events
 
@@ -155,47 +157,41 @@ export async function initHomePage(appContainer) {
                 const playlistId = parseInt(target.dataset.playlistId, 10);
 
                 if (playlistId) {
-                    const modal = document.getElementById('reorderModal'); //TODO to add
-                    const modalContent = createReorderPopup();
-
+                    const modal = document.getElementById('reorderModal'); 
+					modal.style.display = 'block';
                     const playlist = playlists.find(playlist => playlist.idPlaylist === playlistId);
 
-                    //TODO populate modalContent
                     let playlistOrder = await getPlaylistSongOrder(playlist.idPlaylist);
                     let orderedSongs = await getOrderedSongs(playlist, playlistOrder);
-
-                    console.log(modalContent.querySelector('#reorderSongList'));
-
-
-                    populateModal(orderedSongs, modalContent);
-
-                    modal.appendChild(modalContent);
-
+                    populateModal(orderedSongs, modal.firstChild);
+					
                     // 🔗 Add event listeners
-                    const closeButton = modalContent.querySelector('#closeReorderModal');
-                    const cancelButton = modalContent.querySelector('#cancelOrderButton');
-                    const saveButton = modalContent.querySelector('#saveOrderButton');
+                    const closeButton = modal.querySelector('#closeReorderModal');
+                    const cancelButton = modal.querySelector('#cancelOrderButton');
+                    const saveButton = modal.querySelector('#saveOrderButton');
 
                     closeButton.addEventListener("click", () => {
-                        modalContent.remove()
-                        modal.style.display = 'hidden';
+                        modal.style.display = 'none';
+						modal.querySelectorAll('.reorder-song-item').forEach(item => item.remove());
                     });
                     cancelButton.addEventListener("click", () => {
-                        modalContent.remove();
-                        modalContent = createReorderPopup();
-                        modal.appendChild(modalContent);
+                        populateModal(orderedSongs, modal.firstChild);
                     });
                     saveButton.addEventListener("click", async () => {
-                        const reorderedIds = Array.from(songList.children).map(li => li.getAttribute("data-song-id"));
+						const songListItems = Array.from(modal.querySelectorAll('.reorder-song-item'));
+						console.log(songListItems);
+                        const reorderedIds = songListItems.map(li => li.getAttribute("data-song-id"));
+						
+						console.log("New order:", reorderedIds);
+
                         try {
                             const response = await updatePlaylistOrder(playlistId, reorderedIds);
-
                         } catch (error) {
                             //TODO to handle
                         }
 
-                        console.log("New order:", reorderedIds);
-                        modalContent.remove();
+						modal.style.display = 'none';
+						modal.querySelectorAll('.reorder-song-item').forEach(item => item.remove());
                     });
 
                     const reorderSongList = document.getElementById('reorderSongList');

@@ -145,6 +145,18 @@ export function renderHomeView(appContainer) {
     homeGridDiv.appendChild(newPlaylistSection);
 
     appContainer.appendChild(homeGridDiv);
+	
+	// Section 4: Modal Popup
+	const modalDiv = createElement('div', { className: 'modal', id:'reorderModal'});
+	modalDiv.style.display = 'none';
+	modalDiv.style.position = 'fixed';
+	modalDiv.style.marginTop = '50px';
+	const modalContent = createReorderPopup();
+	modalDiv.appendChild(modalContent);
+	
+	
+	document.body.appendChild(modalDiv);
+	
 }
 
 // Function to specifically render the song upload form section
@@ -199,17 +211,19 @@ export function createReorderPopup() {
     modalActions.appendChild(cancelButton);
     modalContent.appendChild(modalActions);
 
-    return modalActions;
+    return modalContent;
 
 }
 
 export function populateModal(orderedSongs, modalContent) {
 
     const songList = modalContent.querySelector('#reorderSongList');
+	
+	songList.querySelectorAll('.reorder-song-item').forEach(item => item.remove());
 
     orderedSongs.forEach(swa => {
         const liEl = createElement('li', { className: 'reorder-song-item', textContent: swa.song.title });
-        liEl.setAttribute('data-song-id', swa.song.songId);
+        liEl.setAttribute('data-song-id', swa.song.idSong);
         liEl.setAttribute('draggable', 'true');
 
         songList.appendChild(liEl);
