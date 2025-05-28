@@ -1,5 +1,4 @@
 
-import { createFormField } from '../utils/formUtils.js';
 import { createHeaderContainer, createParagraphElement, createElement } from '../utils/viewUtils.js';
 
 // Navigation buttons

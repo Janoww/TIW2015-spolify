@@ -70,19 +70,16 @@ async function checkUserSessionAndInitialize() {
         }
 
         // Log errors
-        if (error.status === 401) {
-            // This is expected if not logged in, so console.log might be too noisy if not debugging.
-            // console.log('No active session found or user not authenticated (401). Message:', error.message);
-        } else if (error.isNetworkError) {
+        if (error.isNetworkError) {
             console.error('Network error during session check:', error.message);
-        } else {
+        } else if (error.status !== 401) {
             console.error(`Error checking session: Status ${error.status}, Message: ${error.message}`, error.details || '');
         }
         return false;
     }
 }
 
-document.addEventListener('DOMContentLoaded', async () => { // Make outer listener async
+document.addEventListener('DOMContentLoaded', async () => {
     if (!appContainer) {
         console.error('App container not found! Cannot initialize router.');
         return;

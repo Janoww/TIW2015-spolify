@@ -58,6 +58,12 @@ export function createFormField(inputId, labelText, inputType, name, required = 
 
 // --- Validation Helper Functions ---
 
+/**
+ * Retrieves the label text for a given input element.
+ * Prioritizes the first label associated with the input.
+ * @param {HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement} inputElement - The input element.
+ * @returns {string} The label text or 'Field' if no label is found.
+ */
 function getFieldLabel(inputElement) {
     if (inputElement.labels && inputElement.labels.length > 0) {
         return inputElement.labels[0].textContent.replace(':', '');
@@ -65,6 +71,15 @@ function getFieldLabel(inputElement) {
     return 'Field';
 }
 
+/**
+ * Validates a radio button group.
+ * Checks if a selection is made when the group is required.
+ * @param {HTMLInputElement} inputElement - One of the radio input elements in the group (used to check `required` status).
+ * @param {HTMLFormElement} form - The form containing the radio group.
+ * @param {{id: string, name?: string, type?: 'radio'}} config - The configuration object for the radio group, must include `name`.
+ * @param {string} label - The label text for the radio group.
+ * @returns {string} An error message if validation fails, otherwise an empty string.
+ */
 function validateRadioGroup(inputElement, form, config, label) {
     if (typeof config === 'object' && config.type === 'radio' && config.name) {
         const radioGroup = form.querySelectorAll(`input[type="radio"][name="${config.name}"]`);
@@ -79,6 +94,13 @@ function validateRadioGroup(inputElement, form, config, label) {
     return '';
 }
 
+/**
+ * Validates a checkbox.
+ * Checks if the checkbox is checked when it's required.
+ * @param {HTMLInputElement} inputElement - The checkbox input element.
+ * @param {string} label - The label text for the checkbox.
+ * @returns {string} An error message if validation fails, otherwise an empty string.
+ */
 function validateCheckbox(inputElement, label) {
     if (inputElement.type === 'checkbox' && inputElement.required && !inputElement.checked) {
         return `You must accept the ${label.toLowerCase()}.`;
@@ -86,6 +108,13 @@ function validateCheckbox(inputElement, label) {
     return '';
 }
 
+/**
+ * Validates a file input.
+ * Checks if a file is selected when the input is required.
+ * @param {HTMLInputElement} inputElement - The file input element.
+ * @param {string} label - The label text for the file input.
+ * @returns {string} An error message if validation fails, otherwise an empty string.
+ */
 function validateFile(inputElement, label) {
     if (inputElement.type === 'file' && inputElement.required && inputElement.files.length === 0) {
         return `Please select a file for ${label.toLowerCase()}.`;
@@ -93,6 +122,13 @@ function validateFile(inputElement, label) {
     return '';
 }
 
+/**
+ * Validates a select (dropdown) input.
+ * Checks if an option is selected when the input is required.
+ * @param {HTMLSelectElement} inputElement - The select element.
+ * @param {string} label - The label text for the select input.
+ * @returns {string} An error message if validation fails, otherwise an empty string.
+ */
 function validateSelect(inputElement, label) {
     if (inputElement.tagName.toLowerCase() === 'select' && inputElement.required && !inputElement.value) {
         return `Please select an option for ${label.toLowerCase()}.`;
@@ -100,16 +136,23 @@ function validateSelect(inputElement, label) {
     return '';
 }
 
+/**
+ * Validates text-based input fields (text, number, email, password, etc.).
+ * Checks for required, min/max length, pattern, and numeric range.
+ * @param {HTMLInputElement|HTMLTextAreaElement} inputElement - The text-based input element.
+ * @param {string} label - The label text for the input.
+ * @returns {string} An error message if validation fails, otherwise an empty string.
+ */
 function validateTextBasedInput(inputElement, label) {
     const value = inputElement.value.trim();
-    const originalValue = inputElement.value; // For pattern matching, use non-trimmed
+    const originalValue = inputElement.value;
 
     if (inputElement.required && !value) {
         return `${label} is required.`;
     }
 
     // Only apply further validation if there's a value, or if it's not required but has a value that needs checking
-    if (originalValue) { // Check originalValue because a field might not be required but still have pattern/type validation
+    if (originalValue) {
         if (inputElement.type === 'number') {
             const num = Number(originalValue);
             const min = inputElement.min ? Number(inputElement.min) : null;
