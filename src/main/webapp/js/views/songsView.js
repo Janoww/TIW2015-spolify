@@ -43,14 +43,13 @@ export function renderSongsView(appContainer) {
  * @param {string} formId The ID for the form element.
  * @param {string} errorDivId The ID for the error message div.
  */
-export function renderSongUploadSectionOnSongsPage(sectionContainer, genres, error = null, formId = 'add-song-form-songs-page', errorDivId = 'create-song-error-songs-page') {
-    const loaderMessage = sectionContainer.querySelector('#song-form-loader-message-songs-page');
-    if (loaderMessage) loaderMessage.remove();
+export function renderSongUploadSectionOnSongsPage(sectionContainer, genres, albumSummaries, error = null, formId = 'add-song-form-songs-page', errorDivId = 'create-song-error-songs-page') {
+    ['song-form-loader-message-songs-page', formId, errorDivId].forEach(el => sectionContainer.querySelector(`#${el}`)?.remove());
 
     // Remove any existing form or error message if re-rendering
     sectionContainer.querySelectorAll('form, div.general-error-message').forEach(el => el.remove());
 
-    const formElement = createSongUploadFormElement(formId, genres, error);
+    const formElement = createSongUploadFormElement(formId, genres, albumSummaries, error);
 
     const errorDiv = createElement('div', { className: 'general-error-message', id: errorDivId });
 
@@ -83,7 +82,7 @@ function createSongArticleElement(songWithAlbum) {
     const metadataDiv = createElement('div', { className: 'song-text' });
     const titleH3 = createHeaderContainer(songWithAlbum.song.title, 'h3');
     const artistAlbumP = createParagraphElement(`${songWithAlbum.album.artist} • ${songWithAlbum.album.name}`);
-    const genreYearP = createParagraphElement(`${songWithAlbum.song.genre} • ${songWithAlbum.song.year}`);
+    const genreYearP = createParagraphElement(`${songWithAlbum.song.genre.replace('_', ' ')} • ${songWithAlbum.album.year}`);
 
     metadataDiv.appendChild(titleH3);
     metadataDiv.appendChild(artistAlbumP);

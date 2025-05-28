@@ -71,39 +71,6 @@ function createSongArticle(songWithAlbum) {
     return article;
 }
 
-// Function that adds the songs to the song list
-
-export function renderSongs(appContainer, songWithAlbums) {
-    const songListContainer = appContainer.querySelector('.song-list');
-
-    songListContainer.innerHTML = '';
-
-    if (songWithAlbums) {
-        songWithAlbums = getSongsOrdered(songWithAlbums);
-        const songArticles = songWithAlbums.map(createSongArticle);
-        songListContainer.append(...songArticles);
-    }
-}
-
-
-// Function that adds the playlists to the myPlaylists section
-export function renderPlaylists(appContainer, playlists) {
-
-    const playlistListDiv = appContainer.querySelector('.playlist-list');
-
-    playlistListDiv.querySelectorAll('.playlist-item').forEach(item => item.remove());
-
-    if (playlists) {
-        playlists.forEach(pl => {
-            const article = createPlaylistArticle(pl);
-            playlistListDiv.appendChild(article);
-        })
-    }
-
-
-}
-
-
 export function renderHomeView(appContainer) {
     appContainer.innerHTML = '';
     appContainer.style.maxWidth = '100%';
@@ -159,15 +126,45 @@ export function renderHomeView(appContainer) {
 	
 }
 
+// Function that adds the songs to the song list
+export function renderSongs(appContainer, songWithAlbums) {
+    const songListContainer = appContainer.querySelector('.song-list');
+
+    songListContainer.innerHTML = '';
+
+    if (songWithAlbums) {
+        songWithAlbums = getSongsOrdered(songWithAlbums);
+        const songArticles = songWithAlbums.map(createSongArticle);
+        songListContainer.append(...songArticles);
+    }
+}
+
+
+// Function that adds the playlists to the myPlaylists section
+export function renderPlaylists(appContainer, playlists) {
+
+    const playlistListDiv = appContainer.querySelector('.playlist-list');
+
+    playlistListDiv.innerHTML = '';
+
+    if (playlists) {
+        playlists.forEach(pl => {
+            const article = createPlaylistArticle(pl);
+            playlistListDiv.appendChild(article);
+        })
+    }
+}
+
+
+
 // Function to specifically render the song upload form section
-export function renderSongUploadSection(sectionContainer, genres, error = null, formId = 'add-song-form-home', errorDivId = 'create-song-error') {
+export function renderSongUploadSection(sectionContainer, genres, albumSummaries, error = null, formId = 'add-song-form-home', errorDivId = 'create-song-error') {
     // Clear previous content (e.g., the "Loading form..." message)
-    const loaderMessage = sectionContainer.querySelector('#song-form-loader-message');
-    if (loaderMessage) loaderMessage.remove();
+    ['song-form-loader-message', formId, errorDivId].forEach(el => sectionContainer.querySelector(`#${el}`)?.remove())
 
     // Remove any existing form or error message if re-rendering
 
-    const formElement = createSongUploadFormElement(formId, genres, error);
+    const formElement = createSongUploadFormElement(formId, genres, albumSummaries, error);
 
     const errorDiv = createElement('div', { className: 'general-error-message', id: errorDivId });
 

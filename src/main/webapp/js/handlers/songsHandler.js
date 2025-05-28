@@ -2,6 +2,7 @@ import { getSongGenres, getSongs } from "../apiService.js";
 import { delay } from "../utils/delayUtils.js";
 import { renderSongsView, renderSongUploadSectionOnSongsPage, renderAllUserSongsList } from "../views/songsView.js";
 import { handleSongUploadSubmit } from './sharedFormHandlers.js';
+import { extractUniqueAlbumSummaries, addAlbumSummaryIfNew } from '../utils/orderUtils.js';
 
 /**
  * Fetches song genres from the API with a built-in delay.
@@ -41,15 +42,38 @@ export async function initSongPage(appContainer) {
     renderSongsView(appContainer);
 
     let allUserSongs = [];
+    let albumSummaries = [];
+    let genres = null;
+    let genreError = null;
 
     // Define the success callback for the songs page song upload
-    function songsPageSongUploadSuccess(newSong, appContainerForRender, currentSongsList) {
+    function songsPageSongUploadSuccess(newSongWithAlbum, appContainerForRender, currentSongsList) {
+
+        // Update AllSongs section
         if (currentSongsList && Array.isArray(currentSongsList)) {
-            currentSongsList.unshift(newSong);
+            currentSongsList.unshift(newSongWithAlbum);
         }
         const songListContainerOnSongsPage = appContainerForRender.querySelector('#songs .song-list');
         if (songListContainerOnSongsPage && currentSongsList) {
             renderAllUserSongsList(songListContainerOnSongsPage, currentSongsList, null);
+        }
+
+        // Update albumSummaries and re-render song upload form
+        if (newSongWithAlbum.album) {
+            const result = addAlbumSummaryIfNew(albumSummaries, newSongWithAlbum.album);
+            if (result.wasAdded) {
+                albumSummaries = result.updatedSummaries;
+                // Re-render the song upload section with updated albumSummaries
+                const formSection = appContainerForRender.querySelector('#add-song');
+                if (formSection) {
+                    renderSongUploadSectionOnSongsPage(formSection, genres, albumSummaries, genreError);
+                    // Re-attach submit listener to the new form
+                    const newForm = document.getElementById('add-song-form-songs-page');
+                    if (newForm) {
+                        newForm.addEventListener('submit', songFormSubmitHandler);
+                    }
+                }
+            }
         }
     }
 
@@ -59,34 +83,41 @@ export async function initSongPage(appContainer) {
         _fetchSongsWithDelayInternal()
     ]);
 
-    // Render the song upload form section using fetched genres
-    const songFormSectionOnSongsPage = appContainer.querySelector('#add-song');
-    renderSongUploadSectionOnSongsPage(songFormSectionOnSongsPage, genreResult.genres, genreResult.error);
+    genres = genreResult.genres;
+    genreError = genreResult.error;
 
-    // Populate the allUserSongs list and render it
+    // Populate the allUserSongs list and derive albumSummaries
     if (songResult.songs && Array.isArray(songResult.songs)) {
         allUserSongs.push(...songResult.songs);
+        albumSummaries = extractUniqueAlbumSummaries(allUserSongs);
     }
+
+    // Render the song upload form section using fetched genres and derived albumSummaries
+    const songFormSectionOnSongsPage = appContainer.querySelector('#add-song');
+    renderSongUploadSectionOnSongsPage(songFormSectionOnSongsPage, genres, albumSummaries, genreError);
+
+    // Render the list of all user songs
     const songListContainer = appContainer.querySelector('#songs .song-list');
     renderAllUserSongsList(songListContainer, allUserSongs, songResult.error);
 
     // Add event listener for the song upload form on this page
-    // Default form ID from renderSongUploadSectionOnSongsPage is 'add-song-form-songs-page'
     const songFormOnSongsPage = document.getElementById('add-song-form-songs-page');
-    if (songFormOnSongsPage) {
-        const fieldIds = ['song-title', 'album-title', 'album-artist', 'album-year', 'album-image', 'song-genre', 'song-audio'];
-        // Default error div ID from renderSongUploadSectionOnSongsPage is 'create-song-error-songs-page'
-        const errorDivId = 'create-song-error-songs-page';
 
-        songFormOnSongsPage.addEventListener('submit', async (event) => {
-            await handleSongUploadSubmit(
-                event,
-                fieldIds,
-                errorDivId,
-                songsPageSongUploadSuccess,
-                appContainer,
-                allUserSongs
-            );
-        });
+    // Define the event handler separately to re-attach if the form is re-rendered
+    async function songFormSubmitHandler(event) {
+        const fieldIds = ['song-title', 'album-title', 'album-artist', 'album-year', 'album-image', 'song-genre', 'song-audio'];
+        const errorDivId = 'create-song-error-songs-page';
+        await handleSongUploadSubmit(
+            event,
+            fieldIds,
+            errorDivId,
+            songsPageSongUploadSuccess,
+            appContainer,
+            allUserSongs
+        );
+    }
+
+    if (songFormOnSongsPage) {
+        songFormOnSongsPage.addEventListener('submit', songFormSubmitHandler);
     }
 }

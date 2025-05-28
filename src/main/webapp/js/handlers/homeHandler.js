@@ -1,10 +1,11 @@
 
 import { renderHomeView, renderPlaylists, renderSongs, renderSongUploadSection, createReorderPopup, populateModal } from "../views/homeView.js";
-import { getPlaylists, createPlaylist, getSongs, uploadSong, getSongGenres as apiGetSongGenres, updatePlaylistOrder, getPlaylistSongOrder } from '../apiService.js';
+import { getPlaylists, createPlaylist, getSongs, getSongGenres, updatePlaylistOrder, getPlaylistSongOrder } from '../apiService.js';
 import { getOrderedSongs } from './playlistHandler.js';
 import { navigate } from '../router.js';
 import { validateForm } from '../utils/formUtils.js';
 import { handleSongUploadSubmit } from './sharedFormHandlers.js';
+import { extractUniqueAlbumSummaries, addAlbumSummaryIfNew } from '../utils/orderUtils.js';
 
 
 /**
@@ -13,20 +14,13 @@ import { handleSongUploadSubmit } from './sharedFormHandlers.js';
  */
 export async function initHomePage(appContainer) {
 
+    // Load basic elements
     renderHomeView(appContainer);
-
 
     const songFormSectionContainer = appContainer.querySelector('#add-song-section');
     let genres = null;
     let genreError = null;
-    try {
-        genres = await apiGetSongGenres();
-    } catch (error) {
-        console.error(`Failed to load genres for Home Page song form: Status ${error.status}, Message: ${error.message}`, error.details || '');
-        genreError = error;
-    }
-    renderSongUploadSection(songFormSectionContainer, genres, genreError);
-
+    let albumSummaries = [];
 
     // Load and render playlists
     let playlists;
@@ -40,15 +34,27 @@ export async function initHomePage(appContainer) {
     }
 
     // Load and render songs for the "Create New Playlist" form's song selection
+    // Also derive albumSummaries from these songs
     let songsForPlaylistSelection;
     try {
         songsForPlaylistSelection = await getSongs();
         renderSongs(appContainer, songsForPlaylistSelection);
+
+        albumSummaries = extractUniqueAlbumSummaries(songsForPlaylistSelection);
     } catch (error) {
         console.error(`Error loading or rendering songs for playlist creation: Status ${error.status}, Message: ${error.message}`, error.details || '');
     }
 	//Modal
 
+
+    try {
+        genres = await getSongGenres();
+    } catch (error) {
+        console.error(`Failed to load genres for Home Page song form: Status ${error.status}, Message: ${error.message}`, error.details || '');
+        genreError = error;
+    }
+
+    renderSongUploadSection(songFormSectionContainer, genres, albumSummaries, genreError);
 
     // Events
 
@@ -113,22 +119,42 @@ export async function initHomePage(appContainer) {
         })
     }
 
+    // Setting up Events listeners for SongForm
     if (newSongForm) {
         const fieldIds = ['song-title', 'album-title', 'album-artist', 'album-year', 'album-image', 'song-genre', 'song-audio'];
         const errorDivId = 'create-song-error';
 
         // Success callback specific to the home page
-        function homePageSongUploadSuccess(newSong, appContainerForRender, currentSongsList) {
+        function homePageSongUploadSuccess(newSongWithAlbum, appContainerForRender, currentSongsList) {
+            // Update currentSongsList for the playlist creation section
             if (currentSongsList && Array.isArray(currentSongsList)) {
-                currentSongsList.unshift(newSong);
+                currentSongsList.unshift(newSongWithAlbum);
             }
-            // Ensure appContainerForRender and currentSongsList are valid before rendering
             if (appContainerForRender && currentSongsList) {
                 renderSongs(appContainerForRender, currentSongsList);
             }
+
+            // Update albumSummaries and re-render song upload form
+            if (newSongWithAlbum.album.name) {
+                const result = addAlbumSummaryIfNew(albumSummaries, newSongWithAlbum.album);
+                if (result.wasAdded) {
+                    albumSummaries = result.updatedSummaries;
+                    // Re-render the song upload section with updated albumSummaries
+                    const formSection = appContainerForRender.querySelector('#add-song-section');
+                    if (formSection) {
+                        renderSongUploadSection(formSection, genres, albumSummaries, genreError);
+
+                        const newForm = document.getElementById('add-song-form-home');
+                        if (newForm) {
+                            newForm.addEventListener('submit', newSongFormSubmitHandler);
+                        }
+                    }
+                }
+            }
         }
 
-        newSongForm.addEventListener('submit', async (event) => {
+        // Define the event handler separately to re-attach if the form is re-rendered
+        async function newSongFormSubmitHandler(event) {
             await handleSongUploadSubmit(
                 event,
                 fieldIds,
@@ -137,7 +163,9 @@ export async function initHomePage(appContainer) {
                 appContainer,
                 songsForPlaylistSelection
             );
-        });
+        }
+
+        newSongForm.addEventListener('submit', newSongFormSubmitHandler);
     }
 
     if (playlistsList) {

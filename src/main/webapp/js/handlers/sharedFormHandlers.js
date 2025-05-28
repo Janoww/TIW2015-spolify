@@ -17,17 +17,16 @@ export async function handleSongUploadSubmit(event, fieldIds, errorDivId, onSucc
 
     const errorDiv = document.getElementById(errorDivId);
     if (errorDiv) {
-        errorDiv.style.display = 'none';
         errorDiv.textContent = '';
     }
 
     if (validateForm(form, fieldIds)) {
         try {
-            const newSong = await uploadSong(form);
-            console.log('Upload successful:', newSong);
+            const newSongWithAlbum = await uploadSong(form);
+            console.log('Upload successful:', newSongWithAlbum);
 
             if (typeof onSuccessCallback === 'function') {
-                onSuccessCallback(newSong, appContainer, songsList);
+                onSuccessCallback(newSongWithAlbum, appContainer, songsList);
             }
 
             if (form instanceof HTMLFormElement) {
