@@ -146,6 +146,13 @@ section {
     cursor: pointer;
     margin-top: 10px;
     margin-left: 10px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a.styled-button:link,
+a.styled-button:visited {
+    color: #EEEEEE;
 }
 
 .styled-button:hover {

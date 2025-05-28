@@ -4,6 +4,7 @@ import { initLoginPage, logoutUser, initSignupPage } from './handlers/loginHandl
 import { initPlaylistPage } from './handlers/playlistHandler.js';
 import { checkAuthStatus } from './apiService.js';
 import { initSongPage } from './handlers/songsHandler.js';
+import { createElement } from './utils/viewUtils.js';
 
 const appContainer = document.getElementById('app');
 
@@ -15,8 +16,24 @@ const routeDefinitions = {
     'signup': initSignupPage,
     'songs': initSongPage,
     'playlist-:idplaylist': initPlaylistPage
-    // Add other routes here as needed
 };
+
+/**
+ *
+ * @param {HTMLElement} navbar
+ */
+function addNavLinks(navbar) {
+
+    const availableLinks = ['Home', 'Songs'];
+
+    availableLinks.map(linkText => {
+        return createElement('a', {
+            className: 'styled-button',
+            textContent: linkText,
+            attributes: { href: `#${linkText.toLowerCase()}` }
+        })
+    }).forEach(element => { navbar.appendChild(element) });
+}
 
 async function checkUserSessionAndInitialize() {
     if (!appContainer) {
@@ -76,30 +93,24 @@ document.addEventListener('DOMContentLoaded', async () => { // Make outer listen
 
     await checkUserSessionAndInitialize();
 
-    const logoutButton = document.getElementById('logout-button');
+    const navbar = document.getElementById('navbar');
+    navbar.innerHTML = '';
+
+    addNavLinks(navbar);
+
+    const logoutButton = createElement('button', {
+        id: 'logout-button',
+        className: 'styled-button',
+        textContent: 'Logout'
+    });
+
     if (logoutButton) {
         logoutButton.addEventListener('click', async () => {
             await logoutUser(appContainer);
         });
     } else {
-        console.error("Logout button not found in the DOM on initial load.");
+        console.error("Logout button not created");
     }
 
-    const homeButton = document.getElementById('home-button');
-    if (homeButton) {
-        homeButton.addEventListener('click', () => {
-            navigate('home');
-        });
-    } else {
-        console.error("Home button not found in the DOM on initial load.");
-    }
-
-    const songButton = document.getElementById('songs-button');
-    if (songButton) {
-        songButton.addEventListener('click', () => {
-            navigate('songs');
-        });
-    } else {
-        console.error("Song button not found in the DOM on initial load.");
-    }
+    navbar.appendChild(logoutButton);
 });
