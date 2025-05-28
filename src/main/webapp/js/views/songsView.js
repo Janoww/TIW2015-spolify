@@ -14,7 +14,7 @@ export function renderSongsView(appContainer) {
 
     // Section 1: All Songs
     const allSongsSection = createElement('section', { id: 'songs' });
-    allSongsSection.appendChild(createHeaderContainer('All Songs'));
+    allSongsSection.appendChild(createHeaderContainer('All Songs', 'h2'));
 
     const songListDiv = createElement('div', { className: 'song-list' });
 
@@ -25,7 +25,7 @@ export function renderSongsView(appContainer) {
 
     // Section 2: Upload New Song
     const uploadSongSection = createElement('section', { id: 'add-song' });
-    uploadSongSection.appendChild(createHeaderContainer('Upload New Song'));
+    uploadSongSection.appendChild(createHeaderContainer('Upload New Song', 'h2'));
 
     const formLoader = createLoaderContainer('Loading song form...', 'song-form-loader-message-songs-page')
     uploadSongSection.appendChild(formLoader);
@@ -77,7 +77,7 @@ function createSongArticleElement(songWithAlbum) {
     const metadataDiv = createElement('div', { className: 'song-text' });
     const titleH3 = createHeaderContainer(songWithAlbum.song.title, 'h3');
     const artistAlbumP = createParagraphElement(`${songWithAlbum.album.artist} • ${songWithAlbum.album.name}`);
-    const genreYearP = createParagraphElement(`${songWithAlbum.song.genre} • ${songWithAlbum.song.year}`); // Assuming song.year exists
+    const genreYearP = createParagraphElement(`${songWithAlbum.song.genre} • ${songWithAlbum.song.year}`);
 
     metadataDiv.appendChild(titleH3);
     metadataDiv.appendChild(artistAlbumP);
