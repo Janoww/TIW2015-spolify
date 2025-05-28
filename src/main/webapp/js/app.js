@@ -1,8 +1,9 @@
 import { initRouter, navigate } from './router.js';
-import { initHomePage, initSongPage } from './handlers/homeHandler.js';
+import { initHomePage } from './handlers/homeHandler.js';
 import { initLoginPage, logoutUser, initSignupPage } from './handlers/loginHandler.js';
 import { initPlaylistPage } from './handlers/playlistHandler.js';
 import { checkAuthStatus } from './apiService.js';
+import { initSongPage } from './handlers/songsHandler.js';
 
 const appContainer = document.getElementById('app');
 
