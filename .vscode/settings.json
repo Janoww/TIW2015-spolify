@@ -50,5 +50,6 @@
     "javax.annotation.Nullable",
     "org.eclipse.jdt.annotation.Nullable",
     "org.springframework.lang.Nullable"
-  ]
+  ],
+  "geminicodeassist.codeGenerationPaneViewEnabled": true
 }
