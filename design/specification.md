@@ -205,16 +205,32 @@ _Error Handling:_ APIs should return appropriate HTTP status codes (e.g., 200, 2
 
 ## 5. Frontend Components (Conceptual)
 
-The JavaScript SPA will manage different views/components:
+The JavaScript SPA will manage different views/components, dynamically rendered within the main application container (`<main id="app">` in `index.html`):
 
-- **Login/Signup View:** Forms for user authentication and registration.
-- **Main Application View (Single Page):**
-  - **Navigation/Header:** User info, logout button.
-  - **Home Section:** Displays user's playlists (list, sorted by date desc), song upload form, new playlist creation form (with sortable song list).
-  - **Playlist View Section:** Displays songs of the selected playlist (5 at a time), Previous/Next buttons (client-side logic), "Add Songs" form, "Reorder" button.
-  - **Player Section:** Displays details of the selected song and an HTML5 audio player.
-  - **Reorder Modal:** Activated from Playlist View. Shows a list of songs in the playlist, allowing drag-and-drop reordering. Includes a "Save Order" button.
-  - **Color Palette** Background color: #EEEEEE, alternative background color: #D4BEE4, text: #9B7EBD, highlight color: #3B1E54.
+- **Login/Signup View:** Forms for user authentication (`#login` route) and registration (`#signup` route). Managed by `loginHandler.js` and `loginView.js`.
+- **Main Application Structure (Single Page):**
+  - **Navigation/Header:** Contains navigation links (e.g., "Home", "Songs" - managed by `app.js`) and a "Logout" button. User-specific information might be displayed within the content of authenticated views rather than fixed in the global header.
+  - **Home View (`#home` route):** Managed by `homeHandler.js` and `homeView.js`. This is the main landing page after login. It displays:
+    - The user's playlists, sorted by creation date (descending). Each playlist entry links to its specific Playlist View and provides access to the Reorder Modal.
+    - A form for uploading new songs.
+    - A form for creating new playlists, including a list of the user's available songs (sorted alphabetically by artist, then by album year) to select from.
+  - **Songs View (`#songs` route):** Managed by `songsHandler.js` and `songsView.js`. This view displays a comprehensive list of all songs uploaded by the user. Selecting a song from this list will trigger the Player Functionality.
+  - **Playlist View (`#playlist-:idplaylist` route):** Managed by `playlistHandler.js` and `playlistView.js`. Accessed by selecting a specific playlist from the Home View. It displays:
+    - Songs belonging to the selected playlist, presented 5 at a time. The songs are initially displayed according to their default order (alphabetically by artist/group, then by album publication year ascending) or a previously saved custom order.
+    - "Previous" and "Next" buttons for client-side pagination through the playlist's songs.
+    - A form to add more songs (from the user's collection) to the current playlist. After new songs are added, the view refreshes, typically displaying the first page/block of songs.
+  - **Player Functionality:** This is not a static "section" but a dynamic update of the UI that occurs when a user selects a song title (e.g., from the Playlist View or Songs View). It will display:
+    - Full details of the selected song.
+    - An HTML5 audio player for playback.
+  - **Reorder Modal:** Activated from the Home View via a link/button associated with each playlist. Managed by the relevant handler (e.g., `homeHandler.js`) and uses `sharedComponents.js` for the modal structure. It displays:
+    - A complete list of songs for the selected playlist, initially shown in their current order (default or custom).
+    - Functionality for users to drag-and-drop songs to define a custom order. This reordering happens client-side.
+    - A "Save Order" button to persist the custom sequence to the server via `apiService.updatePlaylistOrder()`. Once a custom order is saved, it becomes the default display order for that playlist in subsequent views. If new songs are added to a playlist that has a custom order, they are appended to the end of this custom order.
+  - **Color Palette:**
+    - Background color: ![Background](/design/EEEEEE.svg) #EEEEEE
+    - Alternative background color: ![Alt Background](/design/D4BEE4.svg) #D4BEE4
+    - Text: ![Text](/design/9B7EBD.svg) #9B7EBD
+    - Highlight color: ![High Text](/design/3B1E54.svg) #3B1E54.
 
 ## 6. Key Features (SPA Specifics)
 
@@ -224,3 +240,94 @@ The JavaScript SPA will manage different views/components:
 - **Client-Side Reordering:** Drag-and-drop reordering of songs in the modal happens client-side. The final order is sent to the server only when the user clicks "Save Order".
 - **Dynamic Updates:** Forms (song upload, playlist creation, add song to playlist) update relevant sections of the page asynchronously upon success.
 - **State Management:** JavaScript will manage the application state (current view, user data, playlists, songs, etc.).
+
+## 7. Frontend JavaScript Architecture and Structure
+
+The frontend is a Vanilla JavaScript Single Page Application (SPA) built with a modular structure. It dynamically updates the content of `index.html` without full page reloads. The core JavaScript files (`app.js`, `router.js`, `apiService.js`) and the directory structure (`handlers/`, `views/`, `utils/`) define its architecture.
+
+### Core Modules & Responsibilities
+
+1. **`app.js` (Main Entry Point):**
+
+   - Initializes the application upon `DOMContentLoaded`.
+   - Sets up the client-side router (`router.js`) by defining route-to-handler mappings.
+   - Manages the initial user session state by calling `apiService.checkAuthStatus()`. Authenticated user data is stored in `sessionStorage`.
+   - Redirects users to the login page if they attempt to access protected routes without an active session.
+   - Dynamically populates and manages the global navigation bar (`#navbar`), including navigation links (e.g., Home, Songs) and the logout button.
+   - Orchestrates the loading of different views into the main application container (`<main id="app">`) based on the current route and authentication status.
+
+2. **`router.js` (Client-Side Routing):**
+
+   - Implements a hash-based routing system (e.g., `#home`, `#playlist-123`).
+   - Listens for `hashchange` events to trigger route transitions.
+   - Parses route parameters from the URL hash (e.g., `idplaylist` from `#playlist-:idplaylist`).
+   - Maps URL patterns to specific handler functions (defined in `app.js` and sourced from `handlers/`).
+   - Manages a visual loader element during page transitions to indicate activity.
+   - Controls the visibility of the global navigation bar based on whether the current route is public (e.g., login, signup) or protected.
+   - Handles unknown routes by displaying a "404 - Page Not Found" message within the application container.
+
+3. **`apiService.js` (API Communication Layer):**
+
+   - Centralizes all HTTP requests to the backend REST API (prefixed with `api/v1`).
+   - Uses the `fetch` API for asynchronous communication.
+   - Provides a generic `_fetchApi` helper function that handles:
+     - Setting appropriate request headers (`Content-Type: application/json`, `Accept: application/json`).
+     - Serializing request bodies to JSON (or handling `FormData` for file uploads, e.g., in `uploadSong`).
+     - Parsing JSON responses from the server.
+     - Comprehensive error handling: It catches network errors and non-OK HTTP responses, creating custom `ApiError` objects that include status codes, messages, and detailed error information from the server's JSON response.
+   - Exports dedicated, JSDoc-typed functions for each API endpoint (e.g., `login()`, `getPlaylists()`, `uploadSong()`, `updatePlaylistOrder()`), making API calls clean, type-hinted, and reusable throughout the application.
+   - Includes URL builder functions for constructing media URLs (e.g., `getSongImageURL()`, `getSongAudioURL()`).
+
+### Directory Structure and Component Roles (`src/main/webapp/js/`)
+
+- **`handlers/` (Controller/Presenter Logic):**
+
+  - Modules in this directory (e.g., `homeHandler.js`, `loginHandler.js`, `playlistHandler.js`, `songsHandler.js`) are responsible for the logic associated with specific views or application "pages".
+  - They are invoked by the router when a corresponding route is matched.
+  - Typical responsibilities include:
+    - Fetching necessary data from the backend using functions from `apiService.js`.
+    - Processing user input and handling events delegated from the UI elements.
+    - Managing view-specific state or data transformations, including client-side state for features like playlist pagination or song reordering within a modal.
+    - Coordinating with modules in the `views/` directory to render or update the UI within the main application container (`#app`).
+  - `sharedFormHandlers.js` provides reusable logic for common form submission patterns (e.g., handling song uploads, playlist creation).
+
+- **`views/` (View Rendering Logic):**
+
+  - Modules here (e.g., `homeView.js`, `loginView.js`, `playlistView.js`, `songsView.js`) are primarily concerned with generating and manipulating the DOM for different sections of the application.
+  - They typically export functions that take data (provided by handlers) and return HTML structures (often as DOM elements created via `utils/viewUtils.js`) or directly update existing DOM elements.
+  - Event listeners for UI elements are often attached within these modules, delegating actions to handler functions.
+  - `playlistView.js`, in conjunction with `playlistHandler.js`, manages the display of paginated songs (e.g., 5 at a time) and the "Previous/Next" buttons for client-side navigation through a playlist's songs. It also integrates with the reorder modal functionality.
+  - `songsView.js` is responsible for rendering the page that lists all user songs (accessed via the `#songs` route). The "Player Section" functionality, for playing a selected song, is a conceptual component that would be updated with song details and an audio player when a song is selected from any list.
+  - `sharedComponents.js` provides functions to create reusable UI elements such as modals (e.g., for song reordering), buttons, and lists, ensuring consistency across different views.
+
+- **`utils/` (Utility Functions):**
+  - This directory contains helper modules that provide common, reusable functionalities to support other parts of the application.
+  - Examples include:
+    - `viewUtils.js`: DOM manipulation helpers (e.g., `createElement` for creating elements, functions to clear containers).
+    - `formUtils.js`: Utilities for form validation, data extraction from forms, or resetting forms.
+    - `delayUtils.js`: Functions for adding artificial delays, possibly for UI effects or simulating network latency during development/testing.
+    - `orderUtils.js`: Provides utilities to support drag-and-drop reordering logic for song lists, particularly within the reorder modal.
+
+### Data Flow and State Management
+
+- **Authentication State:** Primarily managed in `app.js` and `router.js`. User information for an active session is stored in `sessionStorage`. Access to protected routes is conditional on this stored state.
+- **View-Specific Data:** Fetched asynchronously by handler modules (from `handlers/`) using `apiService.js` when a view is loaded or requires new data. For features like client-side playlist pagination or reordering, `playlistHandler.js` may fetch the full list of songs for a playlist once and cache it client-side to avoid repeated server requests for these operations.
+- **UI Updates:** Data is passed from handlers to view modules. View modules are responsible for rendering this data into the DOM. Updates typically involve clearing and re-rendering sections of the `#app` container or specific components within it.
+- **State Management:** There is no centralized state management library (like Redux or Vuex). Application state is primarily managed locally within handler modules (e.g., current page index for pagination, temporary song order during reordering), or passed between modules as function arguments. `sessionStorage` is used for persistent session state (user data).
+
+### Key Architectural Characteristics
+
+- **Modularity:** The codebase is organized into distinct JavaScript modules with specific responsibilities (API interaction, routing, view rendering, business logic/handlers, utilities), imported/exported using ES6 module syntax.
+- **Single Page Application (SPA):** Achieved through client-side hash-based routing, which prevents full page reloads and provides a smoother user experience.
+- **Asynchronous Operations:** Extensive use of `async/await` and Promises for non-blocking API calls and other asynchronous tasks, ensuring the UI remains responsive.
+- **Vanilla JavaScript:** The application is built using plain JavaScript, HTML, and CSS, without relying on large frontend frameworks (like React, Angular, or Vue). DOM manipulation is done directly or via helper utilities.
+- **Separation of Concerns (SoC):**
+  - API interaction logic is strictly isolated in `apiService.js`.
+  - Routing and navigation logic is encapsulated in `router.js`.
+  - UI rendering and DOM manipulation are primarily handled by modules in the `views/` directory.
+  - Application flow, event handling coordination, and view-specific data management are primarily the responsibility of modules in the `handlers/` directory.
+
+### Client-Side Feature Implementation
+
+- **Playlist Pagination:** When viewing a playlist, `playlistHandler.js` fetches the complete list of song IDs (or full song objects if needed for display without further lookups) for that playlist via `apiService.getPlaylistSongOrder()` (or `apiService.getSongs()` filtered by playlist). This list is stored client-side. `playlistView.js` then renders a "page" of songs (e.g., 5 items) based on a current page index managed by `playlistHandler.js`. "Previous" and "Next" button clicks in the view update this index in the handler, which then instructs the view to re-render the appropriate slice of songs, all without further server requests.
+- **Song Reordering Modal:** From the Home page (or Playlist page), a "Reorder" action for a playlist (handled by `homeHandler.js` or `playlistHandler.js`) triggers the display of a modal (likely created using `sharedComponents.js`). This modal, managed by the respective handler, lists all songs in the playlist. Users can drag and drop songs to change their order; this reordering is handled client-side (potentially using `utils/orderUtils.js` and native HTML5 drag-and-drop APIs). The temporary new order is maintained in the handler. Upon clicking a "Save Order" button in the modal, the handler calls `apiService.updatePlaylistOrder()` with the new sequence of song IDs to persist the changes on the server.
