@@ -1,5 +1,6 @@
 import { renderPlaylistView, writeSliderHeader, renderButtons } from '../views/playlistView.js';
 import { getPlaylists, getPlaylistSongOrder, getSongDetails, getSongImageURL, getSongs, addSongsToPlaylist } from '../apiService.js';
+import { getSongsOrdered } from '../utils/orderUtils.js';
 
 
 /**
@@ -164,24 +165,7 @@ export async function initPlaylistPage(appContainer, params) {
 }
 
 export async function getOrderedSongs(playlist, playlistOrder) {
-
-
-	function getSongsOrdered(songs) {
-		songs.sort((a, b) => {
-			// Compare artist names case-insensitive
-			const artistA = a.album.artist.toLowerCase();
-			const artistB = b.album.artist.toLowerCase();
-
-			if (artistA < artistB) return -1;
-			if (artistA > artistB) return 1;
-
-			// If artist names are equal, compare album year
-			return a.album.year - b.album.year;
-		});
-		return songs;
-	}
-
-	let orderedSongs = undefined;
+	let orderedSongs;
 
 	if (playlistOrder && playlistOrder.length > 0) {
 		orderedSongs = await getListOfSongs(playlistOrder);
