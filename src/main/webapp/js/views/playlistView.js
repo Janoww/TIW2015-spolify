@@ -1,11 +1,11 @@
-import {createElement, createHeaderContainer, createParagraphElement} from '../utils/viewUtils.js';
-import {createSongArticleWithCheckboxElement} from './sharedComponents.js';
+import { createElement, createHeaderContainer, createParagraphElement } from '../utils/viewUtils.js';
+import { createSongArticleWithCheckboxElement } from './sharedComponents.js';
 
 // Navigation buttons
 function createNavButton(className, imgSrc, altText) {
-    const btn = createElement('button', {className: className});
-    const wrapper = createElement('div', {className: 'arrow-wrapper'});
-    const img = createElement('img', {className: 'arrow', attributes: {src: imgSrc, alt: altText}});
+    const btn = createElement('button', { className: className });
+    const wrapper = createElement('div', { className: 'arrow-wrapper' });
+    const img = createElement('img', { className: 'arrow', attributes: { src: imgSrc, alt: altText } });
 
     wrapper.appendChild(img);
     btn.appendChild(wrapper);
@@ -18,7 +18,7 @@ export function renderPlaylistView(appContainer) {
     appContainer.style.maxWidth = '100%';
 
     // Section 1: slider
-    const sliderSection = createElement('section', {className: 'slider'});
+    const sliderSection = createElement('section', { className: 'slider' });
 
     // 1.1 Header
     const sliderHeader = createHeaderContainer('', 'h2');
@@ -26,12 +26,9 @@ export function renderPlaylistView(appContainer) {
     sliderSection.appendChild(sliderHeader);
 
     // 1.2 SlideShow
-    const sliderContainer = createElement('div', {className: 'slider-container'});
+    const sliderContainer = createElement('div', { className: 'slider-container' });
 
     // Placeholder for song items
-    const loadingSongsP = createParagraphElement('Loading songs...', 'all-songs-loader-message');
-    sliderContainer.appendChild(loadingSongsP);
-
     sliderContainer.appendChild(createNavButton('pre-carouselButton', 'images/circle-left-regular.svg', '<'));
     sliderContainer.appendChild(createNavButton('next-carouselButton', 'images/circle-right-regular.svg', '>'));
 
@@ -39,17 +36,17 @@ export function renderPlaylistView(appContainer) {
     appContainer.appendChild(sliderSection);
 
     // Section 2: Add song
-    const addSongSection = createElement('section', {className: 'addSong'});
+    const addSongSection = createElement('section', { className: 'addSong' });
 
     // 2.1 Header
     addSongSection.appendChild(createHeaderContainer('Add Song', 'h2'));
 
     // 2.2: Form
-    const addSongsForm = createElement('form', {id: 'add-song-form'});
+    const addSongsForm = createElement('form', { id: 'add-song-form' });
 
     // Input: song list
     addSongsForm.appendChild(createHeaderContainer('Select Songs to Add:', 'h3'));
-    const songListDiv = createElement('div', {className: 'song-list'});
+    const songListDiv = createElement('div', { className: 'song-list' });
     songListDiv.style.maxHeight = '20vh';
     addSongsForm.appendChild(songListDiv);
 
@@ -57,12 +54,12 @@ export function renderPlaylistView(appContainer) {
     const addSongSendButton = createElement('button', {
         textContent: 'Add Song',
         className: 'styled-button',
-        attributes: {type: 'submit'}
+        attributes: { type: 'submit' }
     });
     addSongsForm.appendChild(addSongSendButton);
 
     // Error
-    const errorDiv = createElement('div', {className: 'error-message'});
+    const errorDiv = createElement('div', { className: 'error-message' });
     errorDiv.id = 'add-song-error';
     addSongsForm.appendChild(errorDiv);
 

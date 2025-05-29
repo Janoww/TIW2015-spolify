@@ -1,4 +1,4 @@
-import {renderButtons, renderPlaylistView, renderSongs, writeSliderHeader} from '../views/playlistView.js';
+import { renderButtons, renderPlaylistView, renderSongs, writeSliderHeader } from '../views/playlistView.js';
 import {
     addSongsToPlaylist,
     getPlaylists,
@@ -7,7 +7,7 @@ import {
     getSongImageURL,
     getSongs
 } from '../apiService.js';
-import {getSongsOrdered} from '../utils/orderUtils.js';
+import { getSongsOrdered } from '../utils/orderUtils.js';
 
 
 /**
@@ -16,16 +16,13 @@ import {getSongsOrdered} from '../utils/orderUtils.js';
  */
 export async function initPlaylistPage(appContainer, params) {
 
-    const {idplaylist} = params;
+    const { idplaylist } = params;
 
     if (!idplaylist) {
         console.error("Playlist ID is missing from params.");
         navigate('home');
         return;
     }
-
-    // Navbar display is handled by the router
-    appContainer.innerHTML = '<div class="loader">Loading playlist details...</div>';
 
     // Fetch all playlists and find the current one by ID
     const allPlaylists = await getPlaylists();
@@ -205,10 +202,6 @@ async function getListOfSongs(songIdList) {
 
 // Function that fills the slider with the song's cards
 function populateSlider(orderedSongs, page) {
-    const loaderMessage = document.querySelector('#all-songs-loader-message');
-    if (loaderMessage) {
-        loaderMessage.remove();
-    }
 
     const sliderContainer = document.querySelector('.slider-container');
     // Remove all elements with class 'slider-item' inside sliderContainer
@@ -250,7 +243,7 @@ function generateAndPopulateForm(orderedSongs, allSongs, appContainer) {
 
 // Helper function to create an element of the slider
 function createSliderItem(songWithAlbum) {
-    const {song, album} = songWithAlbum;
+    const { song, album } = songWithAlbum;
 
     // <article class="slider-item">
     const article = document.createElement('article');
