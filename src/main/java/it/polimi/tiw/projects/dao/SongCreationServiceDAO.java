@@ -106,8 +106,8 @@ public class SongCreationServiceDAO {
 
     private Song saveSongDetails(@NotNull User user, @NotNull SongCreationParameters params, int albumId,
             @NotBlank String audioFileStorageName) throws DAOException {
-        Song createdSong = songDAO.createSong(params.songTitle(), albumId, params.albumYear(), params.genre(),
-                audioFileStorageName, user.getIdUser());
+        Song createdSong = songDAO.createSong(params.songTitle(), albumId, params.genre(), audioFileStorageName,
+                user.getIdUser());
         logger.info("Song '{}' (ID: {}) created and associated with album ID {} for user {}", createdSong.getTitle(),
                 createdSong.getIdSong(), albumId, user.getUsername());
         return createdSong;

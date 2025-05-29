@@ -14,7 +14,6 @@ public class Song implements Serializable {
     @NotBlank
     private String title;
     private int idAlbum;
-    private int year;
     private Genre genre;
     @JsonIgnore
     @NotBlank
@@ -46,14 +45,6 @@ public class Song implements Serializable {
 
     public void setIdAlbum(int idAlbum) {
         this.idAlbum = idAlbum;
-    }
-
-    public int getYear() {
-        return year;
-    }
-
-    public void setYear(int year) {
-        this.year = year;
     }
 
     public Genre getGenre() {

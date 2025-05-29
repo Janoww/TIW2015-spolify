@@ -27,7 +27,6 @@ class SongDAOTest {
     // Test Data - Use unique values
     private static final String TEST_SONG_TITLE_1 = "JUnit Test Song 1 - " + System.currentTimeMillis();
     private static final String TEST_SONG_TITLE_2 = "JUnit Test Song 2 - " + System.currentTimeMillis();
-    private static final int TEST_SONG_YEAR = 2025;
     private static final Genre TEST_GENRE = Genre.POP;
     private static final String TEST_AUDIO_FILE_1 = "/audio/junit_test1.mp3";
     private static final String TEST_AUDIO_FILE_2 = "/audio/junit_test2.mp3";
@@ -249,8 +248,8 @@ class SongDAOTest {
     @DisplayName("Test successful song creation")
     void testCreateSong_Success() throws SQLException {
         assertNotNull(testAlbumId, "Test Album ID must be set before creating a song.");
-        Song createdSong = assertDoesNotThrow(() -> songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR,
-                TEST_GENRE, TEST_AUDIO_FILE_1, testUserId));
+        Song createdSong = assertDoesNotThrow(
+                () -> songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_1, testUserId));
 
         assertNotNull(createdSong, "Created song object should not be null.");
         assertTrue(createdSong.getIdSong() > 0, "Created song ID should be positive.");
@@ -258,7 +257,6 @@ class SongDAOTest {
 
         assertEquals(TEST_SONG_TITLE_1, createdSong.getTitle());
         assertEquals(testAlbumId, createdSong.getIdAlbum()); // Use dynamic album ID
-        assertEquals(TEST_SONG_YEAR, createdSong.getYear());
         assertEquals(TEST_GENRE, createdSong.getGenre());
         assertEquals(TEST_AUDIO_FILE_1, createdSong.getAudioFile());
         assertEquals(testUserId, createdSong.getIdUser());
@@ -284,9 +282,9 @@ class SongDAOTest {
     void testFindSongsByUser_Success() throws DAOException, SQLException {
         assertNotNull(testAlbumId, "Test Album ID must be set before creating songs.");
         // Create two songs for the test user
-        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-                testUserId);
-        Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR + 1, TEST_GENRE,
+        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_1, testUserId);
+        Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_GENRE, // Assuming same genre for
+                                                                                    // simplicity, year is from album
                 TEST_AUDIO_FILE_2, testUserId);
         createdSongId1 = song1.getIdSong();
         createdSongId2 = song2.getIdSong();
@@ -322,9 +320,8 @@ class SongDAOTest {
     void testFindAllSongs_Success() throws DAOException, SQLException {
         assertNotNull(testAlbumId, "Test Album ID must be set before creating songs.");
         // Create two songs
-        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-                testUserId);
-        Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR + 1, TEST_GENRE,
+        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_1, testUserId);
+        Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_GENRE, // Assuming same genre
                 TEST_AUDIO_FILE_2, testUserId);
         createdSongId1 = song1.getIdSong();
         createdSongId2 = song2.getIdSong();
@@ -369,8 +366,8 @@ class SongDAOTest {
     void testDeleteSong_Success() throws DAOException, SQLException {
         assertNotNull(testAlbumId, "Test Album ID must be set before creating a song.");
         // Create a song
-        Song songToDelete = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE,
-                TEST_AUDIO_FILE_1, testUserId);
+        Song songToDelete = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_1,
+                testUserId);
         createdSongId1 = songToDelete.getIdSong(); // Store ID for verification
         connection.commit();
 
@@ -412,8 +409,7 @@ class SongDAOTest {
         int nonExistentAlbumId = -999;
 
         DAOException exception = assertThrows(DAOException.class, () -> {
-            songDAO.createSong(TEST_SONG_TITLE_1, nonExistentAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-                    testUserId);
+            songDAO.createSong(TEST_SONG_TITLE_1, nonExistentAlbumId, TEST_GENRE, TEST_AUDIO_FILE_1, testUserId);
             // Rollback will happen in @AfterEach
         }, "Creating a song with a non-existent album ID should throw DAOException.");
 
@@ -431,10 +427,8 @@ class SongDAOTest {
         assertNotNull(testUserId, "Test User ID must be set.");
 
         // Create two songs for user 1
-        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-                testUserId);
-        Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR + 1, TEST_GENRE,
-                TEST_AUDIO_FILE_2, testUserId);
+        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_1, testUserId);
+        Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_2, testUserId);
         createdSongId1 = song1.getIdSong();
         createdSongId2 = song2.getIdSong();
         connection.commit();
@@ -457,8 +451,7 @@ class SongDAOTest {
         int nonExistentId = -555;
 
         // Create one song for user 1
-        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-                testUserId);
+        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_1, testUserId);
         createdSongId1 = song1.getIdSong();
         connection.commit();
 
@@ -479,12 +472,10 @@ class SongDAOTest {
         assertNotNull(testUserId2, "Test User ID 2 must be set.");
 
         // Create one song for user 1
-        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-                testUserId);
+        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_1, testUserId);
         createdSongId1 = song1.getIdSong();
         // Create one song for user 2
-        Song song3 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_3,
-                testUserId2);
+        Song song3 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_3, testUserId2);
         createdSongId3 = song3.getIdSong();
         connection.commit();
 
@@ -526,8 +517,7 @@ class SongDAOTest {
         assertNotNull(testUserId2, "Test User ID 2 must be set.");
 
         // Create one song for user 2
-        Song song3 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_3,
-                testUserId2);
+        Song song3 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_3, testUserId2);
         createdSongId3 = song3.getIdSong();
         connection.commit();
 
@@ -546,19 +536,11 @@ class SongDAOTest {
         assertNotNull(testAlbumId, "Test Album ID must be set.");
         UUID nonExistentUserId = UUID.randomUUID();
 
-        DAOException exception = assertThrows(DAOException.class, () -> songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-                nonExistentUserId), "Creating a song with a non-existent user ID should throw DAOException.");
+        DAOException exception = assertThrows(
+                DAOException.class, () -> songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_GENRE,
+                        TEST_AUDIO_FILE_1, nonExistentUserId),
+                "Creating a song with a non-existent user ID should throw DAOException.");
 
-        // MySQL error code for FK violation is 1452. SQLState is '23000'.
-        // SongDAO's createSong currently only specifically checks 1452 for idAlbum.
-        // Other 23000 errors or generic SQLExceptions become GENERIC_ERROR.
-        // If the DB enforces the FK on idUser, it should result in a GENERIC_ERROR from
-        // the current DAO.
-        // Or, if we want to be more specific, the DAO could catch SQLState '23000' and
-        // check message for user FK.
-        // For now, let's assume it might be a generic error or a constraint violation
-        // if SQLState is 23000.
-        // The important part is that it fails and doesn't insert the song.
         assertTrue(
                 exception.getErrorType() == DAOException.DAOErrorType.GENERIC_ERROR
                         || exception.getErrorType() == DAOException.DAOErrorType.CONSTRAINT_VIOLATION
@@ -585,8 +567,7 @@ class SongDAOTest {
         assertNotNull(testUserId, "Test User ID 1 must be set.");
 
         // Create a song for user 1
-        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_SONG_YEAR, TEST_GENRE, TEST_AUDIO_FILE_1,
-                testUserId);
+        Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_1, testUserId);
         createdSongId1 = song1.getIdSong();
         connection.commit();
 
@@ -600,7 +581,7 @@ class SongDAOTest {
 
     // --- Helper method for direct DB verification ---
     private Song findSongByIdDirectly(int songId) throws SQLException {
-        String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idSong = ?";
+        String query = "SELECT idSong, title, idAlbum, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idSong = ?";
         try (PreparedStatement pStatement = connection.prepareStatement(query)) {
             pStatement.setInt(1, songId);
             try (ResultSet result = pStatement.executeQuery()) {
@@ -609,7 +590,6 @@ class SongDAOTest {
                     song.setIdSong(result.getInt("idSong"));
                     song.setTitle(result.getString("title"));
                     song.setIdAlbum(result.getInt("idAlbum"));
-                    song.setYear(result.getInt("year"));
                     // Convert the string from DB to Genre enum
                     song.setGenre(Enum.valueOf(Genre.class, result.getString("genre")));
                     song.setAudioFile(result.getString("audioFile"));

@@ -355,7 +355,7 @@ function createSliderItem(songWithAlbum) {
 
 	// <p>[Genre Placeholder] • [Year Placeholder]</p>
 	const p2 = document.createElement('p');
-	p2.textContent = `${song.genre} • ${song.year}`;
+	p2.textContent = `${song.genre} • ${album.year}`;
 
 	// Assemble metadata
 	metadataDiv.appendChild(h3);

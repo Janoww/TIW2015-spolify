@@ -45,10 +45,10 @@ The database consists of the following tables:
   - `idSong` (PK, INT, Auto-Increment, NOT NULL)
   - `title` (VARCHAR(100), NOT NULL)
   - `idAlbum` (FK, INT, NOT NULL - References Album.idAlbum)
-  - `year` (INT, NOT NULL) - _Year of the song, potentially different from album year_
   - `genre` (VARCHAR(100))
   - `audioFile` (VARCHAR(255), NOT NULL - _Audio filename_)
   - `idUser` (FK, BINARY(16), NOT NULL - References User.idUser)
+  - _Note: The 'year' for a song is derived from its associated Album's year._
 - **playlist_metadata:** Stores playlist metadata. Each playlist is created by a user.
   - `idPlaylist` (PK, INT, Auto-Increment, NOT NULL)
   - `name` (VARCHAR(100), NOT NULL) - _Unique per user_
@@ -104,7 +104,7 @@ The backend will expose RESTful API endpoints, all prefixed with `/api/v1/`. The
     - `genre` (text, required): The genre of the song (must be one of the predefined values, see `GET /songs/genres`).
     - `albumTitle` (text, required): The title of the album.
     - `albumArtist` (text, required): The artist of the album.
-    - `albumYear` (number, required): The year of the album. This year is also used as the song's year upon creation.
+    - `albumYear` (number, required): The year of the album.
     - `audioFile` (file, required): The audio file for the song (e.g., `audio.mp3`).
     - `albumImage` (file, optional): The cover image for the album (e.g., `cover.jpg`). This is used if a new album is being created and this part is provided.
   - Response (201 CREATED): JSON `SongWithAlbum` object representing the newly created song and its (potentially new) album.

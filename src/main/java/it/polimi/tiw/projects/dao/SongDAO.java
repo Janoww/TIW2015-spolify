@@ -26,7 +26,6 @@ public class SongDAO {
      *
      * @param title     The title of the song.
      * @param idAlbum   The ID of the album the song belongs to.
-     * @param year      The release year of the song.
      * @param genre     The genre of the song. (Can be null based on DB)
      * @param audioFile The path or URL to the audio file.
      * @param idUser    The UUID of the user who uploaded the song.
@@ -36,24 +35,23 @@ public class SongDAO {
      *                      or another database access error occurs
      *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
      */
-    public Song createSong(@NotBlank String title, int idAlbum, int year, Genre genre, @NotBlank String audioFile,
+    public Song createSong(@NotBlank String title, int idAlbum, Genre genre, @NotBlank String audioFile,
             @NotNull UUID idUser) throws DAOException {
-        logger.debug("Attempting to create song: title={}, idAlbum={}, year={}, genre={}, audioFile={}, userId={}",
-                title, idAlbum, year, genre, audioFile, idUser);
-        String query = "INSERT into Song (title, idAlbum, year, genre, audioFile, idUser) VALUES(?, ?, ?, ?, ?, UUID_TO_BIN(?))";
+        logger.debug("Attempting to create song: title={}, idAlbum={}, genre={}, audioFile={}, userId={}", title,
+                idAlbum, genre, audioFile, idUser);
+        String query = "INSERT into Song (title, idAlbum, genre, audioFile, idUser) VALUES(?, ?, ?, ?, UUID_TO_BIN(?))";
         Song newSong;
 
         try (PreparedStatement pStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             pStatement.setString(1, title);
             pStatement.setInt(2, idAlbum);
-            pStatement.setInt(3, year);
             if (genre != null) {
-                pStatement.setString(4, genre.name());
+                pStatement.setString(3, genre.name());
             } else {
-                pStatement.setNull(4, Types.VARCHAR);
+                pStatement.setNull(3, Types.VARCHAR);
             }
-            pStatement.setString(5, audioFile);
-            pStatement.setString(6, idUser.toString());
+            pStatement.setString(4, audioFile);
+            pStatement.setString(5, idUser.toString());
             int affectedRows = pStatement.executeUpdate();
 
             if (affectedRows == 0) {
@@ -69,7 +67,6 @@ public class SongDAO {
                     newSong.setIdSong(newId);
                     newSong.setTitle(title);
                     newSong.setIdAlbum(idAlbum);
-                    newSong.setYear(year);
                     newSong.setGenre(genre);
                     newSong.setAudioFile(audioFile);
                     newSong.setIdUser(idUser);
@@ -110,7 +107,7 @@ public class SongDAO {
     public List<Song> findSongsByUser(@NotNull UUID userId) throws DAOException {
         logger.debug("Attempting to find songs for user ID: {}", userId);
         List<Song> songs = new ArrayList<>();
-        String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?)";
+        String query = "SELECT idSong, title, idAlbum, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?)";
         try (PreparedStatement pStatement = connection.prepareStatement(query)) {
             pStatement.setString(1, userId.toString());
             try (ResultSet result = pStatement.executeQuery()) {
@@ -119,7 +116,6 @@ public class SongDAO {
                     song.setIdSong(result.getInt("idSong"));
                     song.setTitle(result.getString("title"));
                     song.setIdAlbum(result.getInt("idAlbum"));
-                    song.setYear(result.getInt("year"));
                     String genreStr = result.getString("genre");
                     if (genreStr != null) {
                         song.setGenre(Enum.valueOf(Genre.class, genreStr));
@@ -155,14 +151,13 @@ public class SongDAO {
     public List<Song> findAllSongs() throws DAOException {
         logger.debug("Attempting to find all songs");
         List<Song> songs = new ArrayList<>();
-        String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song";
+        String query = "SELECT idSong, title, idAlbum, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song";
         try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(query)) {
             while (result.next()) {
                 Song song = new Song();
                 song.setIdSong(result.getInt("idSong"));
                 song.setTitle(result.getString("title"));
                 song.setIdAlbum(result.getInt("idAlbum"));
-                song.setYear(result.getInt("year"));
                 String genreStr = result.getString("genre");
                 if (genreStr != null) {
                     song.setGenre(Enum.valueOf(Genre.class, genreStr));
@@ -242,7 +237,7 @@ public class SongDAO {
         // Using StringBuilder for efficiency, especially with potentially long lists of
         // IDs.
         StringBuilder queryBuilder = new StringBuilder(
-                "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?) AND idSong IN (");
+                "SELECT idSong, title, idAlbum, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?) AND idSong IN (");
         for (int i = 0; i < songIds.size(); i++) {
             queryBuilder.append("?");
             if (i < songIds.size() - 1) {
@@ -270,7 +265,6 @@ public class SongDAO {
                     song.setIdSong(result.getInt("idSong"));
                     song.setTitle(result.getString("title"));
                     song.setIdAlbum(result.getInt("idAlbum"));
-                    song.setYear(result.getInt("year"));
                     String genreStr = result.getString("genre");
                     if (genreStr != null) {
                         song.setGenre(Enum.valueOf(Genre.class, genreStr));

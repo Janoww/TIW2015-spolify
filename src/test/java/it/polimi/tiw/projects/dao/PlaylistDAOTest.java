@@ -35,7 +35,6 @@ class PlaylistDAOTest {
     private static final String TEST_PLAYLIST_NAME = "JUnit Test Playlist";
     private static final String TEST_PLAYLIST_NAME_DUPLICATE = "JUnit Test Playlist Duplicate";
     private static final String TEST_SONG_TITLE = "JUnit Test Song";
-    private static final int TEST_SONG_YEAR = 2025;
     private static final Genre TEST_SONG_GENRE = Genre.POP;
     private static final String TEST_SONG_FILE = "/audio/test.mp3";
     private static final String TEST_ALBUM_NAME = "JUnit Test Album";
@@ -98,16 +97,16 @@ class PlaylistDAOTest {
             logger.info("Test album created with ID: {} for user 1", createdAlbumId);
 
             // Create test song for user 1
-            Song songUser1 = songDAO.createSong(TEST_SONG_TITLE, createdAlbumId, TEST_SONG_YEAR, TEST_SONG_GENRE,
-                    TEST_SONG_FILE, testUserId);
+            Song songUser1 = songDAO.createSong(TEST_SONG_TITLE, createdAlbumId, TEST_SONG_GENRE, TEST_SONG_FILE,
+                    testUserId);
             connection.commit();
             createdSongId = songUser1.getIdSong();
             assertNotNull(createdSongId, "Created song ID for user 1 should not be null.");
             logger.info("Test song created with ID: {} for user 1", createdSongId);
 
             String songTitleUser2 = "JUnit Test Song User2 - " + System.currentTimeMillis();
-            Song songUser2 = songDAO.createSong(songTitleUser2, createdAlbumId, TEST_SONG_YEAR, Genre.BLUES,
-                    "/audio/test_user2.mp3", testUserId2);
+            Song songUser2 = songDAO.createSong(songTitleUser2, createdAlbumId, Genre.BLUES, "/audio/test_user2.mp3",
+                    testUserId2);
             connection.commit();
             createdSongIdUser2 = songUser2.getIdSong();
             assertNotNull(createdSongIdUser2, "Created song ID for user 2 should not be null.");
@@ -479,7 +478,7 @@ class PlaylistDAOTest {
         assertTrue(playlistId > 0, "Playlist ID must be valid");
 
         // 2. Create a second song to add
-        Song secondSong = songDAO.createSong("Second JUnit Song", createdAlbumId, TEST_SONG_YEAR, TEST_SONG_GENRE,
+        Song secondSong = songDAO.createSong("Second JUnit Song", createdAlbumId, TEST_SONG_GENRE,
                 "/audio/second_test.mp3", testUserId);
         connection.commit();
         assertNotNull(secondSong, "Second song should be created");
@@ -551,8 +550,8 @@ class PlaylistDAOTest {
     @Order(8)
     void testRemoveSongFromPlaylist() throws Exception {
         // 1. Create a second song
-        Song secondSong = songDAO.createSong("Second JUnit Song For Removal", createdAlbumId, TEST_SONG_YEAR,
-                TEST_SONG_GENRE, "/audio/second_removal_test.mp3", testUserId);
+        Song secondSong = songDAO.createSong("Second JUnit Song For Removal", createdAlbumId, TEST_SONG_GENRE,
+                "/audio/second_removal_test.mp3", testUserId);
         connection.commit();
         assertNotNull(secondSong, "Second song for removal should be created");
         int secondSongId = secondSong.getIdSong();
