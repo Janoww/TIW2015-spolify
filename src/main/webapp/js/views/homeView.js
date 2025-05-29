@@ -112,18 +112,18 @@ export function renderHomeView(appContainer) {
     homeGridDiv.appendChild(newPlaylistSection);
 
     appContainer.appendChild(homeGridDiv);
-	
-	// Section 4: Modal Popup
-	const modalDiv = createElement('div', { className: 'modal', id:'reorderModal'});
-	modalDiv.style.display = 'none';
-	modalDiv.style.position = 'fixed';
-	modalDiv.style.marginTop = '50px';
-	const modalContent = createReorderPopup();
-	modalDiv.appendChild(modalContent);
-	
-	
-	document.body.appendChild(modalDiv);
-	
+
+    // Section 4: Modal Popup
+    const modalDiv = createElement('div', { className: 'modal', id: 'reorderModal' });
+    modalDiv.style.display = 'none';
+    modalDiv.style.position = 'fixed';
+    modalDiv.style.marginTop = '50px';
+    const modalContent = createReorderPopup();
+    modalDiv.appendChild(modalContent);
+
+
+    appContainer.appendChild(modalDiv);
+
 }
 
 // Function that adds the songs to the song list
@@ -215,8 +215,8 @@ export function createReorderPopup() {
 export function populateModal(orderedSongs, modalContent) {
 
     const songList = modalContent.querySelector('#reorderSongList');
-	
-	songList.querySelectorAll('.reorder-song-item').forEach(item => item.remove());
+
+    songList.querySelectorAll('.reorder-song-item').forEach(item => item.remove());
 
     orderedSongs.forEach(swa => {
         const liEl = createElement('li', { className: 'reorder-song-item', textContent: swa.song.title });
