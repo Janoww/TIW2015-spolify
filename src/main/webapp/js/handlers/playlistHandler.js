@@ -1,4 +1,4 @@
-import { renderPlaylistView, writeSliderHeader, renderButtons } from '../views/playlistView.js';
+import { renderPlaylistView, writeSliderHeader, renderButtons, renderSongs } from '../views/playlistView.js';
 import { getPlaylists, getPlaylistSongOrder, getSongDetails, getSongImageURL, getSongs, addSongsToPlaylist } from '../apiService.js';
 import { getSongsOrdered } from '../utils/orderUtils.js';
 
@@ -181,60 +181,6 @@ export async function getOrderedSongs(playlist, playlistOrder) {
 	}
 	return orderedSongs;
 }
-
-function renderSongs(appContainer, songWithAlbums) {
-	const songListDiv = appContainer.querySelector('.song-list');
-
-	// Remove all elements with class 'slider-item' inside sliderContainer
-	if (songListDiv) {
-		const songItems = songListDiv.querySelectorAll('.song-item');
-		songItems.forEach(item => item.remove());
-	}
-
-	if (songWithAlbums) {
-		songWithAlbums.forEach(swa => {
-			const article = createSongArticle(appContainer, swa);
-			songListDiv.appendChild(article);
-		})
-	}
-}
-
-function createSongArticle(appContainer, songWithAlbum) {
-	const article = document.createElement('article');
-	article.className = 'song-item';
-
-	const inputEl = document.createElement('input');
-	inputEl.type = 'checkbox';
-	inputEl.id = 'song-select-' + songWithAlbum.song.idSong;
-	inputEl.name = 'selected-songs';
-	inputEl.value = songWithAlbum.song.idSong;
-	inputEl.className = 'song-checkbox';
-
-	article.appendChild(inputEl);
-
-	const img = document.createElement('img');
-
-	img.src = getSongImageURL(songWithAlbum.song.idSong);
-	img.alt = songWithAlbum.song.title || "Song cover";
-	img.onerror = () => {
-		img.src = 'images/image_placeholder.png';
-	};
-
-
-	article.appendChild(img);
-
-	const label = document.createElement('label');
-	label.htmlFor = 'song-select-' + songWithAlbum.song.idSong;
-	label.className = 'song-metadata';
-
-	label.appendChild(createHeaderContainer(songWithAlbum.song.title, 'h3'));
-	label.appendChild(createParagraphElement(songWithAlbum.album.artist + ' • ' + songWithAlbum.album.name));
-
-	article.appendChild(label);
-
-	return article;
-}
-
 
 async function getListOfSongs(songIdList) {
 	const orderedSongs = [];

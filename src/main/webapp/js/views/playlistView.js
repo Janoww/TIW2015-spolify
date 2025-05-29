@@ -1,5 +1,6 @@
 
 import { createHeaderContainer, createParagraphElement, createElement } from '../utils/viewUtils.js';
+import { getSongImageURL } from '../apiService.js';
 
 // Navigation buttons
 function createNavButton(className, imgSrc, altText) {
@@ -50,6 +51,7 @@ export function renderPlaylistView(appContainer) {
 	// Input: song list
 	addSongsForm.appendChild(createHeaderContainer('Select Songs to Add:', 'h3'));
 	const songListDiv = createElement('div', { className: 'song-list' });
+	songListDiv.style.maxHeight = '20vh';
 	addSongsForm.appendChild(songListDiv);
 
 	// Button
@@ -69,7 +71,7 @@ export function renderPlaylistView(appContainer) {
 	appContainer.appendChild(addSongSection);
 }
 
-// Function that writes the thext on the header of the slider
+// Function that writes the text on the header of the slider
 export function writeSliderHeader(text) {
 	const sliderHeader = document.getElementById('sliderHeader');
 	if (sliderHeader) {
@@ -104,4 +106,58 @@ export function renderButtons(page, totPages) {
 
 	}
 
+}
+
+/**
+ * 
+ * @param {HTMLElement} appContainer - The container of the entire app
+ * @param {Object} songWithAlbums - List of songs to render
+ */
+export function renderSongs(appContainer, songWithAlbums) {
+	const songListDiv = appContainer.querySelector('.song-list');
+
+	// Remove all elements with class 'slider-item' inside sliderContainer
+	if (songListDiv) {
+		const songItems = songListDiv.querySelectorAll('.song-item');
+		songItems.forEach(item => item.remove());
+	}
+
+	if (songWithAlbums) {
+		songWithAlbums.forEach(swa => {
+			const article = createSongArticle(swa);
+			songListDiv.appendChild(article);
+		})
+	}
+}
+
+function createSongArticle(songWithAlbum) {
+	const article = createElement('article', { className: 'song-item' });
+	const label = createElement('label', { className: 'song-metadata', attributes: { htmlFor: `song-select-${songWithAlbum.song.idSong}` } });
+	article.appendChild(label);
+
+	const inputEl = createElement('input', { id: `song-select-${songWithAlbum.song.idSong}`, className: 'song-checkbox' });
+	inputEl.type = 'checkbox';
+	inputEl.name = 'selected-songs';
+	inputEl.value = songWithAlbum.song.idSong;
+
+	label.appendChild(inputEl);
+
+	const img = document.createElement('img');
+
+	img.src = getSongImageURL(songWithAlbum.song.idSong);
+	img.alt = songWithAlbum.song.title || "Song cover";
+	img.onerror = () => {
+		img.src = 'images/image_placeholder.png';
+	};
+
+	label.appendChild(img);
+
+	const textDiv = createElement('div', { className: 'song-text' });
+
+	textDiv.appendChild(createHeaderContainer(songWithAlbum.song.title, 'h3'));
+	textDiv.appendChild(createParagraphElement(songWithAlbum.album.artist + ' • ' + songWithAlbum.album.name));
+
+	label.appendChild(textDiv);
+
+	return article;
 }
