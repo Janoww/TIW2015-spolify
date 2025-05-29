@@ -1,6 +1,6 @@
 # Music Playlist Application - Design Specification
 
-## 1. Introduction
+## Introduction
 
 This document outlines the design for a web-based music playlist management application. Users can upload songs, organize them into playlists, and play them. This specification focuses on the Single Page Application (SPA) version, providing a seamless user experience without full page reloads.
 
@@ -11,7 +11,7 @@ This document outlines the design for a web-based music playlist management appl
 - **Database:** MySQL
 - **API Format:** RESTful APIs exchanging JSON data
 
-## 2. Architecture
+## Architecture
 
 The application follows a standard client-server SPA architecture:
 
@@ -22,7 +22,7 @@ The application follows a standard client-server SPA architecture:
 
 (See Component Diagram: [component_diagram.puml](/design/component_diagram.puml))
 
-## 3. Database Schema
+## Database Schema
 
 The database consists of the following tables:
 
@@ -59,7 +59,7 @@ The database consists of the following tables:
   - `idSong` (PK, FK, INT, NOT NULL - References Song.idSong)
   - _Unique constraint on (`idSong`, `idPlaylist`)_
 
-## 4. API Endpoints (Servlets)
+## API Endpoints (Servlets)
 
 The backend will expose RESTful API endpoints, all prefixed with `/api/v1/`. The primary servlets and their functionalities are:
 
@@ -203,7 +203,7 @@ The backend will expose RESTful API endpoints, all prefixed with `/api/v1/`. The
 
 _Error Handling:_ APIs should return appropriate HTTP status codes (e.g., 200, 201, 400, 401, 403, 404, 500) and JSON error messages.
 
-## 5. Frontend Components (Conceptual)
+## Frontend Components (Conceptual)
 
 The JavaScript SPA will manage different views/components, dynamically rendered within the main application container (`<main id="app">` in `index.html`):
 
@@ -232,7 +232,7 @@ The JavaScript SPA will manage different views/components, dynamically rendered 
     - Text: ![Text](/design/9B7EBD.svg) #9B7EBD
     - Highlight color: ![High Text](/design/3B1E54.svg) #3B1E54.
 
-## 6. Key Features (SPA Specifics)
+## Key Features (SPA Specifics)
 
 - **Single Page Experience:** All interactions happen within one HTML page, dynamically updating content via JavaScript without full reloads.
 - **Asynchronous Communication:** Uses `fetch` or similar for all backend communication.
@@ -241,7 +241,7 @@ The JavaScript SPA will manage different views/components, dynamically rendered 
 - **Dynamic Updates:** Forms (song upload, playlist creation, add song to playlist) update relevant sections of the page asynchronously upon success.
 - **State Management:** JavaScript will manage the application state (current view, user data, playlists, songs, etc.).
 
-## 7. Frontend JavaScript Architecture and Structure
+## Frontend JavaScript Architecture and Structure
 
 The frontend is a Vanilla JavaScript Single Page Application (SPA) built with a modular structure. It dynamically updates the content of `index.html` without full page reloads. The core JavaScript files (`app.js`, `router.js`, `apiService.js`) and the directory structure (`handlers/`, `views/`, `utils/`) define its architecture.
 
@@ -331,3 +331,8 @@ The frontend is a Vanilla JavaScript Single Page Application (SPA) built with a 
 
 - **Playlist Pagination:** When viewing a playlist, `playlistHandler.js` fetches the complete list of song IDs (or full song objects if needed for display without further lookups) for that playlist via `apiService.getPlaylistSongOrder()` (or `apiService.getSongs()` filtered by playlist). This list is stored client-side. `playlistView.js` then renders a "page" of songs (e.g., 5 items) based on a current page index managed by `playlistHandler.js`. "Previous" and "Next" button clicks in the view update this index in the handler, which then instructs the view to re-render the appropriate slice of songs, all without further server requests.
 - **Song Reordering Modal:** From the Home page (or Playlist page), a "Reorder" action for a playlist (handled by `homeHandler.js` or `playlistHandler.js`) triggers the display of a modal (likely created using `sharedComponents.js`). This modal, managed by the respective handler, lists all songs in the playlist. Users can drag and drop songs to change their order; this reordering is handled client-side (potentially using `utils/orderUtils.js` and native HTML5 drag-and-drop APIs). The temporary new order is maintained in the handler. Upon clicking a "Save Order" button in the modal, the handler calls `apiService.updatePlaylistOrder()` with the new sequence of song IDs to persist the changes on the server.
+
+## Testing tools
+
+- **Generating mock data:** `mvn compile exec:java -Pgenerate`
+- **Deleting mock data:** `mvn compile exec:java -Pcleanup`
