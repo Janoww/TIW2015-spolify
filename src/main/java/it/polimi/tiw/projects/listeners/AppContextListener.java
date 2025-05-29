@@ -106,7 +106,7 @@ public class AppContextListener implements ServletContextListener {
     }
 
     private void loadRegexPattern(ServletContext context, String paramName, String attributeKey,
-            String patternDescriptionForLogs) {
+                                  String patternDescriptionForLogs) {
         String regexStr = context.getInitParameter(paramName);
         if (regexStr != null && !regexStr.isBlank()) {
             try {
@@ -123,7 +123,7 @@ public class AppContextListener implements ServletContextListener {
     }
 
     private void loadIntegerValidation(ServletContext context, String paramName, String attributeKey,
-            String valueDescriptionForLogs, IntPredicate validator, String validationFailureMessage) {
+                                       String valueDescriptionForLogs, IntPredicate validator, String validationFailureMessage) {
         String valueStr = context.getInitParameter(paramName);
         if (valueStr != null && !valueStr.isBlank()) {
             try {

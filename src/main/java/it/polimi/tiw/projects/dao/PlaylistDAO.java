@@ -205,7 +205,7 @@ public class PlaylistDAO {
     }
 
     private DAOException translateCreatePlaylistSQLException(SQLException e, @NotBlank String name,
-            @NotNull UUID idUser, int newPlaylistId) {
+                                                             @NotNull UUID idUser, int newPlaylistId) {
         String errorMessage = e.getMessage().toLowerCase();
 
         if ("23000".equals(e.getSQLState())) { // Integrity constraint violation
@@ -323,7 +323,7 @@ public class PlaylistDAO {
      * Translates SQLExceptions occurring during addSongToPlaylist operations.
      */
     private DAOException translateAddSongToPlaylistSQLException(SQLException e, int playlistId, @NotNull UUID userId,
-            int songId) {
+                                                                int songId) {
         String errorMessage = e.getMessage().toLowerCase();
         if ("23000".equals(e.getSQLState())) {
             if (errorMessage.contains("unique_playlist_and_song")
@@ -613,7 +613,7 @@ public class PlaylistDAO {
      * @param userId     The UUID of the user who must own the playlist.
      * @param songId     The ID of the song to remove.
      * @return true if the song was present and removed successfully, false if the
-     *         song was not in the playlist.
+     * song was not in the playlist.
      * @throws DAOException if the playlist is not found
      *                      ({@link DAOErrorType#NOT_FOUND}), the user is not
      *                      authorized for the playlist
@@ -670,14 +670,14 @@ public class PlaylistDAO {
      *                     songs.
      * @param songIdsToAdd A list of song IDs to add.
      * @return AddSongsToPlaylistResult containing lists of successfully added and
-     *         duplicate song IDs if the transaction is successful.
+     * duplicate song IDs if the transaction is successful.
      * @throws DAOException if the playlist is not found, the user is not authorized
      *                      for the playlist, any of the songs (excluding
      *                      duplicates) are not found or not owned by the user, or a
      *                      database error occurs that forces a rollback.
      */
     public AddSongsToPlaylistResult addSongsToPlaylist(int playlistId, @NotNull UUID userId,
-            @NotNull List<Integer> songIdsToAdd) throws DAOException {
+                                                       @NotNull List<Integer> songIdsToAdd) throws DAOException {
         logger.debug("Attempting to add {} songs to playlist ID: {} by user ID: {}", songIdsToAdd.size(), playlistId,
                 userId);
         AddSongsToPlaylistResult result = new AddSongsToPlaylistResult();
@@ -733,7 +733,7 @@ public class PlaylistDAO {
     }
 
     private void handleSongAddition(int playlistId, UUID userId, List<Integer> songIdsToAdd,
-            AddSongsToPlaylistResult result) throws DAOException {
+                                    AddSongsToPlaylistResult result) throws DAOException {
         for (Integer songId : songIdsToAdd) {
             if (songId == null) {
                 logger.warn("Null song ID provided in list for playlist {}, user {}", playlistId, userId);

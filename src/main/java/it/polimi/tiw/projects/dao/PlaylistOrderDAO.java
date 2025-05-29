@@ -108,7 +108,7 @@ public class PlaylistOrderDAO {
      *
      * @param idPlaylist The ID of the playlist.
      * @return A list of song IDs in custom order, or null if no custom order
-     *         exists.
+     * exists.
      * @throws DAOException If an I/O error occurs or if the playlist ID is invalid.
      */
     public @NotNull List<Integer> getPlaylistOrder(int idPlaylist) throws DAOException {

@@ -181,25 +181,25 @@ public class SongApiServlet extends HttpServlet {
 
         try {
             switch (route) {
-            case GET_ALL_SONGS:
-                handleGetAllSongs(response, user);
-                break;
-            case GET_SONG_BY_ID:
-                handleGetSongById(response, user, songIdStr);
-                break;
-            case GET_SONG_AUDIO:
-                handleGetSongAudio(response, user, songIdStr);
-                break;
-            case GET_SONG_IMAGE:
-                handleGetSongImage(response, user, songIdStr);
-                break;
-            case GET_SONG_GENRES:
-                handleGetSongGenres(response, user);
-                break;
-            default:
-                ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                        "Invalid API path or method not supported for this GET path.");
-                break;
+                case GET_ALL_SONGS:
+                    handleGetAllSongs(response, user);
+                    break;
+                case GET_SONG_BY_ID:
+                    handleGetSongById(response, user, songIdStr);
+                    break;
+                case GET_SONG_AUDIO:
+                    handleGetSongAudio(response, user, songIdStr);
+                    break;
+                case GET_SONG_IMAGE:
+                    handleGetSongImage(response, user, songIdStr);
+                    break;
+                case GET_SONG_GENRES:
+                    handleGetSongGenres(response, user);
+                    break;
+                default:
+                    ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
+                            "Invalid API path or method not supported for this GET path.");
+                    break;
             }
         } catch (DAOException e) {
             logger.error("DAOException in doGet for user {}: Type={}, Message={}", user.getUsername(), e.getErrorType(),
@@ -317,8 +317,8 @@ public class SongApiServlet extends HttpServlet {
             response.setHeader("Content-Disposition", "inline; filename=\"" + audioStorageName + "\"");
 
             try (InputStream audioStream = audioFileData.content();
-                    BufferedOutputStream bufferedResponseStream = new BufferedOutputStream(
-                            response.getOutputStream())) {
+                 BufferedOutputStream bufferedResponseStream = new BufferedOutputStream(
+                         response.getOutputStream())) {
                 audioStream.transferTo(bufferedResponseStream);
                 bufferedResponseStream.flush();
                 logger.debug("Successfully streamed audio for song ID {} for user {}", songIdInt, user.getUsername());
@@ -405,8 +405,8 @@ public class SongApiServlet extends HttpServlet {
             response.setHeader("Content-Disposition", "inline; filename=\"" + albumNameForFile + "\"");
 
             try (InputStream imageStream = imageFileData.content();
-                    BufferedOutputStream bufferedResponseStream = new BufferedOutputStream(
-                            response.getOutputStream())) {
+                 BufferedOutputStream bufferedResponseStream = new BufferedOutputStream(
+                         response.getOutputStream())) {
                 imageStream.transferTo(bufferedResponseStream);
                 bufferedResponseStream.flush();
                 logger.debug("Successfully streamed image for album ID {} (from song ID {}) for user {}", albumId,
@@ -469,7 +469,7 @@ public class SongApiServlet extends HttpServlet {
     }
 
     private Optional<String> validateStandardTextField(@NotBlank String rawValue, @NotBlank String fieldName,
-            HttpServletResponse response, @NotNull Pattern pattern, int minLength, int maxLength) {
+                                                       HttpServletResponse response, @NotNull Pattern pattern, int minLength, int maxLength) {
         String trimmedValue = rawValue.trim();
         if (trimmedValue.isEmpty() || trimmedValue.length() < minLength || trimmedValue.length() > maxLength) {
             ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
@@ -485,7 +485,7 @@ public class SongApiServlet extends HttpServlet {
     }
 
     private Optional<SongCreationParameters> parseAndValidateSongCreationParameters(HttpServletRequest request,
-            HttpServletResponse response, User user) {
+                                                                                    HttpServletResponse response, User user) {
 
         String songTitleRaw = request.getParameter("title");
         String albumTitleRaw = request.getParameter("albumTitle");
@@ -592,14 +592,14 @@ public class SongApiServlet extends HttpServlet {
 
             int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
             switch (e.getErrorType()) {
-            case DUPLICATE_ENTRY, NOT_FOUND, NAME_ALREADY_EXISTS, IMAGE_SAVE_FAILED, AUDIO_SAVE_FAILED:
-                statusCode = HttpServletResponse.SC_BAD_REQUEST;
-                break;
-            case CONSTRAINT_VIOLATION:
-                statusCode = HttpServletResponse.SC_CONFLICT;
-                break;
-            default:
-                break;
+                case DUPLICATE_ENTRY, NOT_FOUND, NAME_ALREADY_EXISTS, IMAGE_SAVE_FAILED, AUDIO_SAVE_FAILED:
+                    statusCode = HttpServletResponse.SC_BAD_REQUEST;
+                    break;
+                case CONSTRAINT_VIOLATION:
+                    statusCode = HttpServletResponse.SC_CONFLICT;
+                    break;
+                default:
+                    break;
             }
             ResponseUtils.sendError(response, statusCode, "Error creating song: " + e.getMessage());
         }

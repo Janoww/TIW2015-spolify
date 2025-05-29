@@ -284,7 +284,7 @@ class SongDAOTest {
         // Create two songs for the test user
         Song song1 = songDAO.createSong(TEST_SONG_TITLE_1, testAlbumId, TEST_GENRE, TEST_AUDIO_FILE_1, testUserId);
         Song song2 = songDAO.createSong(TEST_SONG_TITLE_2, testAlbumId, TEST_GENRE, // Assuming same genre for
-                                                                                    // simplicity, year is from album
+                // simplicity, year is from album
                 TEST_AUDIO_FILE_2, testUserId);
         createdSongId1 = song1.getIdSong();
         createdSongId2 = song2.getIdSong();

@@ -142,17 +142,17 @@ public class PlaylistApiServlet extends HttpServlet {
 
         try {
             switch (route) {
-            case GET_USER_PLAYLISTS:
-                handleGetUserPlaylists(response, user);
-                break;
-            case GET_PLAYLIST_ORDER:
-                handleGetPlaylistOrder(response, user, pathParts[0]);
-                break;
-            default:
-                logger.warn("Invalid route for GET request by user {}: Path='{}', Resolved='{}'", user.getUsername(),
-                        pathInfo, route);
-                ResponseUtils.sendError(response, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
-                break;
+                case GET_USER_PLAYLISTS:
+                    handleGetUserPlaylists(response, user);
+                    break;
+                case GET_PLAYLIST_ORDER:
+                    handleGetPlaylistOrder(response, user, pathParts[0]);
+                    break;
+                default:
+                    logger.warn("Invalid route for GET request by user {}: Path='{}', Resolved='{}'", user.getUsername(),
+                            pathInfo, route);
+                    ResponseUtils.sendError(response, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
+                    break;
             }
         } catch (DAOException e) {
             logger.error("DAOException in GET for user {}: Type={}, Message={}", user.getUsername(), e.getErrorType(),
@@ -224,17 +224,17 @@ public class PlaylistApiServlet extends HttpServlet {
                 : new String[0];
 
         switch (route) {
-        case CREATE_PLAYLIST:
-            handleCreatePlaylist(request, response, user);
-            break;
-        case ADD_SONGS_TO_PLAYLIST:
-            handleAddSongsToPlaylist(request, response, user, pathParts[0]);
-            break;
-        default:
-            logger.warn("Invalid route for POST request by user {}: Path='{}', Resolved='{}'", user.getUsername(),
-                    pathInfo, route);
-            ResponseUtils.sendError(response, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
-            break;
+            case CREATE_PLAYLIST:
+                handleCreatePlaylist(request, response, user);
+                break;
+            case ADD_SONGS_TO_PLAYLIST:
+                handleAddSongsToPlaylist(request, response, user, pathParts[0]);
+                break;
+            default:
+                logger.warn("Invalid route for POST request by user {}: Path='{}', Resolved='{}'", user.getUsername(),
+                        pathInfo, route);
+                ResponseUtils.sendError(response, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
+                break;
         }
     }
 
@@ -274,7 +274,7 @@ public class PlaylistApiServlet extends HttpServlet {
     }
 
     private Optional<Integer> parseAndValidatePlaylistId(String playlistIdStr, HttpServletResponse response,
-            User user) {
+                                                         User user) {
         try {
             int playlistId = Integer.parseInt(playlistIdStr);
             if (playlistId <= 0) {
@@ -294,7 +294,7 @@ public class PlaylistApiServlet extends HttpServlet {
     }
 
     private Optional<Playlist> verifyPlaylistOwnershipAndExistence(int playlistId, User user,
-            HttpServletResponse response) {
+                                                                   HttpServletResponse response) {
         try {
             Playlist dbPlaylist = playlistDAO.findPlaylistById(playlistId, user.getIdUser());
             return Optional.of(dbPlaylist);
@@ -316,7 +316,7 @@ public class PlaylistApiServlet extends HttpServlet {
     }
 
     private Optional<List<Integer>> parseSongIdsFromRequest(HttpServletRequest request, HttpServletResponse response,
-            User user, int playlistId) {
+                                                            User user, int playlistId) {
         try {
             List<Integer> rawClientSongIds = ObjectMapperUtils.getMapper().readValue(request.getInputStream(),
                     new TypeReference<>() {
@@ -344,7 +344,7 @@ public class PlaylistApiServlet extends HttpServlet {
     }
 
     private Optional<List<Integer>> processAndValidateSongOrder(List<Integer> rawClientSongIds, Playlist dbPlaylist,
-            HttpServletResponse response, User user, int playlistId) {
+                                                                HttpServletResponse response, User user, int playlistId) {
         Set<Integer> uniqueOrderedSongIdsSet = new LinkedHashSet<>(rawClientSongIds);
 
         if (rawClientSongIds.size() != uniqueOrderedSongIdsSet.size()) {
@@ -389,7 +389,7 @@ public class PlaylistApiServlet extends HttpServlet {
     }
 
     private void handleUpdatePlaylistOrder(HttpServletRequest request, HttpServletResponse response, User user,
-            String playlistIdStr) {
+                                           String playlistIdStr) {
         logger.debug("User {} attempting to update order for playlist ID string: {}", user.getUsername(),
                 playlistIdStr);
 
@@ -470,9 +470,9 @@ public class PlaylistApiServlet extends HttpServlet {
                         user.getUsername(), e.getErrorType(), e.getMessage());
             }
             int statusCode = switch (e.getErrorType()) {
-            case NAME_ALREADY_EXISTS -> HttpServletResponse.SC_CONFLICT;
-            case NOT_FOUND, CONSTRAINT_VIOLATION, DUPLICATE_ENTRY -> HttpServletResponse.SC_BAD_REQUEST;
-            default -> HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+                case NAME_ALREADY_EXISTS -> HttpServletResponse.SC_CONFLICT;
+                case NOT_FOUND, CONSTRAINT_VIOLATION, DUPLICATE_ENTRY -> HttpServletResponse.SC_BAD_REQUEST;
+                default -> HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
             };
             ResponseUtils.sendError(response, statusCode, e.getMessage());
         } catch (Exception e) {
@@ -484,7 +484,7 @@ public class PlaylistApiServlet extends HttpServlet {
     }
 
     private void handleAddSongsToPlaylist(HttpServletRequest request, HttpServletResponse response, User user,
-            String playlistIdStr) {
+                                          String playlistIdStr) {
         int playlistId;
         try {
             playlistId = Integer.parseInt(playlistIdStr);
@@ -553,19 +553,19 @@ public class PlaylistApiServlet extends HttpServlet {
                         playlistId, user.getUsername(), e.getErrorType(), e.getMessage());
             }
             switch (e.getErrorType()) {
-            case NOT_FOUND:
-                ResponseUtils.sendError(response, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
-                break;
-            case ACCESS_DENIED:
-                ResponseUtils.sendError(response, HttpServletResponse.SC_FORBIDDEN, e.getMessage());
-                break;
-            case CONSTRAINT_VIOLATION:
-                ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-                break;
-            default:
-                ResponseUtils.sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                        "Error adding songs to playlist: " + e.getMessage());
-                break;
+                case NOT_FOUND:
+                    ResponseUtils.sendError(response, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+                    break;
+                case ACCESS_DENIED:
+                    ResponseUtils.sendError(response, HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+                    break;
+                case CONSTRAINT_VIOLATION:
+                    ResponseUtils.sendError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+                    break;
+                default:
+                    ResponseUtils.sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                            "Error adding songs to playlist: " + e.getMessage());
+                    break;
             }
         }
     }

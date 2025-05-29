@@ -45,12 +45,12 @@ public class UserDAO {
      *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
      */
     public User createUser(@NotBlank String username, @NotBlank String pwd, @NotBlank String name,
-            @NotBlank String surname) throws DAOException {
+                           @NotBlank String surname) throws DAOException {
         logger.debug("Attempting to create user: username={}, name={}, surname={}", username, name, surname);
         String insertQuery = "INSERT INTO User (idUser, username, password, name, surname) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)";
         String checkExistence = "SELECT * FROM User WHERE username = ?";
         try (PreparedStatement checkStatement = connection.prepareStatement(checkExistence);
-                PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
+             PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
             checkStatement.setString(1, username);
             try (ResultSet result = checkStatement.executeQuery()) {
                 if (result.next()) {

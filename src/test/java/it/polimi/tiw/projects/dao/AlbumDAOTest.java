@@ -279,7 +279,7 @@ class AlbumDAOTest {
             // Create album with the SAME NAME but for the DIFFERENT USER (without image)
             UUID finalTempUserId = tempUserId; // Final variable for lambda
             Album secondAlbum = assertDoesNotThrow(() -> albumDAO.createAlbum(TEST_ALBUM_NAME_1, TEST_ALBUM_YEAR_2,
-                    TEST_ALBUM_ARTIST_2, null, finalTempUserId),
+                            TEST_ALBUM_ARTIST_2, null, finalTempUserId),
                     "Creating album with same name for different user should succeed.");
 
             assertNotNull(secondAlbum);

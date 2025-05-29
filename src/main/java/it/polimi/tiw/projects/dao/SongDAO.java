@@ -36,7 +36,7 @@ public class SongDAO {
      *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
      */
     public Song createSong(@NotBlank String title, int idAlbum, Genre genre, @NotBlank String audioFile,
-            @NotNull UUID idUser) throws DAOException {
+                           @NotNull UUID idUser) throws DAOException {
         logger.debug("Attempting to create song: title={}, idAlbum={}, genre={}, audioFile={}, userId={}", title,
                 idAlbum, genre, audioFile, idUser);
         String query = "INSERT into Song (title, idAlbum, genre, audioFile, idUser) VALUES(?, ?, ?, ?, UUID_TO_BIN(?))";
@@ -219,8 +219,8 @@ public class SongDAO {
      * @param songIds The list of song IDs to retrieve.
      * @param userId  The UUID of the user who must own the songs.
      * @return A list of {@link Song} objects matching the criteria. Returns an
-     *         empty list if songIds is null or empty, or if no matching songs are
-     *         found for this user.
+     * empty list if songIds is null or empty, or if no matching songs are
+     * found for this user.
      * @throws DAOException if a database access error occurs
      *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
      */

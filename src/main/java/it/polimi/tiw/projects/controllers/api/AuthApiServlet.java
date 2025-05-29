@@ -91,16 +91,16 @@ public class AuthApiServlet extends HttpServlet {
                 route);
 
         switch (route) {
-        case LOGIN:
-            handleLogin(req, resp);
-            break;
-        case LOGOUT:
-            handleLogout(req, resp);
-            break;
-        default:
-            logger.warn("Invalid path for POST request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
-            ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
-            break;
+            case LOGIN:
+                handleLogin(req, resp);
+                break;
+            case LOGOUT:
+                handleLogout(req, resp);
+                break;
+            default:
+                logger.warn("Invalid path for POST request: /api/v1/auth{}", (pathInfo != null ? pathInfo : ""));
+                ResponseUtils.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found.");
+                break;
         }
     }
 
