@@ -127,7 +127,8 @@ export function createSongArticleWithCheckboxElement(songWithAlbum) {
         className: 'song-metadata',
         attributes: {htmlFor: `song-select-${songWithAlbum.song.idSong}`}
     });
-
+	
+	console.log(songWithAlbum);
     const inputEl = createElement('input', {
         id: 'song-select-' + songWithAlbum.song.idSong,
         className: 'song-checkbox',
