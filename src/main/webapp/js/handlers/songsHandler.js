@@ -1,8 +1,9 @@
-import {getSongGenres, getSongs} from "../apiService.js";
-import {delay} from "../utils/delayUtils.js";
-import {renderAllUserSongsList, renderSongsView, renderSongUploadSectionOnSongsPage} from "../views/songsView.js";
-import {handleSongUploadSubmit} from './sharedFormHandlers.js';
-import {addAlbumSummaryIfNew, extractUniqueAlbumSummaries} from '../utils/orderUtils.js';
+import { getSongGenres, getSongs } from "../apiService.js";
+import { delay } from "../utils/delayUtils.js";
+import { renderAllUserSongsList, renderSongsView, renderSongUploadSectionOnSongsPage } from "../views/songsView.js";
+import { handleSongUploadSubmit } from './sharedFormHandlers.js';
+import { startPlayback } from './playerHandler.js';
+import { addAlbumSummaryIfNew, extractUniqueAlbumSummaries } from '../utils/orderUtils.js';
 
 /**
  * Fetches song genres from the API with a built-in delay.
@@ -11,10 +12,10 @@ import {addAlbumSummaryIfNew, extractUniqueAlbumSummaries} from '../utils/orderU
 async function _fetchGenresWithDelayInternal() {
     try {
         const [genres,] = await Promise.all([getSongGenres(), delay()]);
-        return {genres, error: null};
+        return { genres, error: null };
     } catch (error) {
         console.error(`Failed to load genres for Songs Page song form: Status ${error.status}, Message: ${error.message}`, error.details || '');
-        return {genres: null, error};
+        return { genres: null, error };
     }
 }
 
@@ -25,10 +26,10 @@ async function _fetchGenresWithDelayInternal() {
 async function _fetchSongsWithDelayInternal() {
     try {
         const [songs,] = await Promise.all([getSongs(), delay()]);
-        return {songs, error: null};
+        return { songs, error: null };
     } catch (error) {
         console.error(`Error loading all user songs for Songs page: Status ${error.status}, Message: ${error.message}`, error.details || '');
-        return {songs: [], error};
+        return { songs: [], error };
     }
 }
 
@@ -119,5 +120,16 @@ export async function initSongPage(appContainer) {
 
     if (songFormOnSongsPage) {
         songFormOnSongsPage.addEventListener('submit', songFormSubmitHandler);
+    }
+
+    // Add event listener for playing songs
+    if (songListContainer) {
+        songListContainer.addEventListener('click', (event) => {
+            const clickedLabel = event.target.closest('label.song-metadata');
+            if (clickedLabel?.dataset.songId) {
+                const songId = clickedLabel.dataset.songId;
+                startPlayback(songId);
+            }
+        });
     }
 }
