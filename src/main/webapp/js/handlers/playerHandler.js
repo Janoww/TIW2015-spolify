@@ -78,7 +78,7 @@ export function startPlayback(songId, songIdList = []) {
     if (songIdList && songIdList.length > 0) {
         currentQueue = [...songIdList];
         const initialIndex = currentQueue.findIndex(id => id === songId || String(id) === String(songId));
-        currentIndex = (initialIndex !== -1) ? initialIndex : 0; // Default to first if songId not in list
+        currentIndex = (initialIndex !== -1) ? initialIndex : 0;
     } else {
         currentQueue = [songId];
         currentIndex = 0;
