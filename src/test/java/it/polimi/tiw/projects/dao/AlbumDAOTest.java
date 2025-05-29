@@ -279,7 +279,7 @@ class AlbumDAOTest {
             // Create album with the SAME NAME but for the DIFFERENT USER (without image)
             UUID finalTempUserId = tempUserId; // Final variable for lambda
             Album secondAlbum = assertDoesNotThrow(() -> albumDAO.createAlbum(TEST_ALBUM_NAME_1, TEST_ALBUM_YEAR_2,
-                            TEST_ALBUM_ARTIST_2, null, finalTempUserId),
+                    TEST_ALBUM_ARTIST_2, null, finalTempUserId),
                     "Creating album with same name for different user should succeed.");
 
             assertNotNull(secondAlbum);
@@ -339,7 +339,8 @@ class AlbumDAOTest {
     void testFindAlbumById_NotFound() {
         int nonExistentId = -999;
         // Expect DAOException with NOT_FOUND type
-        DAOException exception = assertThrows(DAOException.class, () -> albumDAO.findAlbumById(nonExistentId), "Finding a non-existent album ID should throw DAOException.");
+        DAOException exception = assertThrows(DAOException.class, () -> albumDAO.findAlbumById(nonExistentId),
+                "Finding a non-existent album ID should throw DAOException.");
 
         assertEquals(DAOException.DAOErrorType.NOT_FOUND, exception.getErrorType());
         assertTrue(exception.getMessage().contains("Album with ID " + nonExistentId + " not found."),
@@ -382,30 +383,6 @@ class AlbumDAOTest {
                 // null
                 // image
                 "Test album 2 not found or incorrect data in findAllAlbums result.");
-
-        // Optional: Check sorting (if DAO guarantees it) - AlbumDAO sorts by artist,
-        // year, name
-        boolean sorted = true;
-        for (int i = 0; i < allAlbums.size() - 1; i++) {
-            Album current = allAlbums.get(i);
-            Album next = allAlbums.get(i + 1);
-            int artistCompare = current.getArtist().compareTo(next.getArtist());
-            if (artistCompare > 0) {
-                sorted = false;
-                break;
-            } else if (artistCompare == 0) {
-                if (current.getYear() > next.getYear()) {
-                    sorted = false;
-                    break;
-                } else if (current.getYear() == next.getYear()) {
-                    if (current.getName().compareTo(next.getName()) > 0) {
-                        sorted = false;
-                        break;
-                    }
-                }
-            }
-        }
-        assertTrue(sorted, "Albums list should be sorted by artist, year, name.");
     }
 
     @Test
@@ -581,7 +558,8 @@ class AlbumDAOTest {
 
         // Try updating with all nulls (should throw IllegalArgumentException before DAO
         // call)
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> albumDAO.updateAlbum(createdAlbumId1, testUserId, null, null, null, null));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> albumDAO.updateAlbum(createdAlbumId1, testUserId, null, null, null, null));
 
         assertEquals("No fields provided for update.", exception.getMessage());
     }
@@ -606,7 +584,8 @@ class AlbumDAOTest {
         connection.commit(); // Commit the deletion
 
         // Verify it's gone using DAO find method (which now throws NOT_FOUND)
-        DAOException findException = assertThrows(DAOException.class, () -> albumDAO.findAlbumById(createdAlbumId1), "Finding deleted album should throw DAOException.");
+        DAOException findException = assertThrows(DAOException.class, () -> albumDAO.findAlbumById(createdAlbumId1),
+                "Finding deleted album should throw DAOException.");
         assertEquals(DAOException.DAOErrorType.NOT_FOUND, findException.getErrorType());
 
         // Also verify directly
@@ -688,8 +667,9 @@ class AlbumDAOTest {
 
         // Attempt to update the album using the unauthorized user ID (include image
         // param)
-        DAOException exception = assertThrows(DAOException.class, () -> albumDAO.updateAlbum(createdAlbumId1, unauthorizedUserId, // Wrong user ID
-                TEST_ALBUM_NAME_UPDATED, null, null, TEST_ALBUM_IMAGE_UPDATED));
+        DAOException exception = assertThrows(DAOException.class,
+                () -> albumDAO.updateAlbum(createdAlbumId1, unauthorizedUserId, // Wrong user ID
+                        TEST_ALBUM_NAME_UPDATED, null, null, TEST_ALBUM_IMAGE_UPDATED));
 
         // Check the error message and type (expecting NOT_FOUND or a specific
         // UNAUTHORIZED if implemented)

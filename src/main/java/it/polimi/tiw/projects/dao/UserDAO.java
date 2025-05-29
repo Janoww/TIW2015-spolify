@@ -98,6 +98,44 @@ public class UserDAO {
     }
 
     /**
+     * Finds a user by their username.
+     *
+     * @param username the username to search for.
+     * @return a User object if found, null otherwise.
+     * @throws DAOException if a database access error occurs.
+     */
+    public User findUserByUsername(@NotBlank String username) throws DAOException {
+        logger.debug("Attempting to find user by username: {}", username);
+        String query = "SELECT BIN_TO_UUID(idUser) as idUser, username, name, surname FROM User WHERE username = ?";
+        try (PreparedStatement pStatement = connection.prepareStatement(query)) {
+            pStatement.setString(1, username);
+            try (ResultSet result = pStatement.executeQuery()) {
+                if (result.next()) {
+                    User user = new User();
+                    String userIdStr = result.getString("idUser");
+                    user.setIdUser(UUID.fromString(userIdStr));
+                    user.setUsername(result.getString("username"));
+                    user.setName(result.getString("name"));
+                    user.setSurname(result.getString("surname"));
+                    logger.info("User found with username: {}", username);
+                    return user;
+                } else {
+                    logger.info("No user found with username: {}", username);
+                    return null;
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("SQL error finding user by username {}: {}", username, e.getMessage(), e);
+            throw new DAOException("Error finding user by username: " + e.getMessage(), e,
+                    DAOException.DAOErrorType.GENERIC_ERROR);
+        } catch (IllegalArgumentException e) {
+            logger.error("Error parsing UUID for user {} during findByUsername: {}", username, e.getMessage(), e);
+            throw new DAOException("Error processing user data during findByUsername: " + e.getMessage(), e,
+                    DAOException.DAOErrorType.GENERIC_ERROR);
+        }
+    }
+
+    /**
      * Checks if the provided username and password match a user in the database.
      *
      * @param username the username to check.
@@ -182,6 +220,34 @@ public class UserDAO {
         } catch (SQLException e) {
             logger.error("SQL error modifying user ID {}: {}", user.getIdUser(), e.getMessage(), e);
             throw new DAOException("Error modifying user: " + e.getMessage(), e,
+                    DAOException.DAOErrorType.GENERIC_ERROR);
+        }
+    }
+
+    /**
+     * Deletes a user from the database by their ID. Relies on ON DELETE CASCADE
+     * constraints in the database to remove associated data.
+     *
+     * @param userId The UUID of the user to delete.
+     * @throws DAOException if the user is not found or a database error occurs.
+     */
+    public void deleteUser(@NotNull UUID userId) throws DAOException {
+        logger.debug("Attempting to delete user with ID: {}", userId);
+        String query = "DELETE FROM User WHERE idUser = UUID_TO_BIN(?)";
+
+        try (PreparedStatement pStatement = connection.prepareStatement(query)) {
+            pStatement.setString(1, userId.toString());
+            int affectedRows = pStatement.executeUpdate();
+
+            if (affectedRows == 0) {
+                logger.warn("User deletion failed: User ID {} not found.", userId);
+                throw new DAOException("User with ID " + userId + " not found for deletion.",
+                        DAOException.DAOErrorType.NOT_FOUND);
+            }
+            logger.info("User with ID {} deleted successfully.", userId);
+        } catch (SQLException e) {
+            logger.error("SQL error deleting user ID {}: {}", userId, e.getMessage(), e);
+            throw new DAOException("Error deleting user: " + e.getMessage(), e,
                     DAOException.DAOErrorType.GENERIC_ERROR);
         }
     }

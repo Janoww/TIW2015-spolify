@@ -31,9 +31,34 @@
         <artifactId>maven-war-plugin</artifactId>
         <version>3.4.0</version>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <mainClass>it.polimi.tiw.projects.tools.MockDataGenerator</mainClass>
+          <arguments>
+            <argument>${generator.action}</argument>
+          </arguments>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
+  <profiles>
+    <profile>
+      <id>generate</id>
+      <properties>
+        <generator.action>generate</generator.action>
+      </properties>
+    </profile>
+    <profile>
+      <id>cleanup</id>
+      <properties>
+        <generator.action>cleanup</generator.action>
+      </properties>
+    </profile>
+  </profiles>
 
   <dependencies>
 
@@ -139,6 +164,13 @@
       <artifactId>junit-jupiter-api</artifactId>
       <version>5.13.0-M2</version>
       <scope>test</scope>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/com.github.javafaker/javafaker -->
+    <dependency>
+      <groupId>com.github.javafaker</groupId>
+      <artifactId>javafaker</artifactId>
+      <version>1.0.2</version>
     </dependency>
 
   </dependencies>
