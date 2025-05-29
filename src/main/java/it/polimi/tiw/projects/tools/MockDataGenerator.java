@@ -1,21 +1,14 @@
 package it.polimi.tiw.projects.tools;
 
+import com.github.javafaker.Faker;
 import it.polimi.tiw.projects.beans.Album;
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.beans.User;
-import it.polimi.tiw.projects.dao.AlbumDAO;
-import it.polimi.tiw.projects.dao.AudioDAO;
-import it.polimi.tiw.projects.dao.PlaylistDAO;
-import it.polimi.tiw.projects.dao.PlaylistOrderDAO;
-import it.polimi.tiw.projects.dao.SongDAO;
-import it.polimi.tiw.projects.dao.UserDAO;
+import it.polimi.tiw.projects.dao.*;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.Genre;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.github.javafaker.Faker;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,12 +16,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class MockDataGenerator {
 
@@ -70,6 +58,22 @@ public class MockDataGenerator {
 
     public MockDataGenerator() {
         // Only used for creating mock data.
+    }
+
+    public static void main(String[] args) {
+        if (args.length != 1 || (!"generate".equalsIgnoreCase(args[0]) && !"cleanup".equalsIgnoreCase(args[0]))) {
+            logger.error(
+                    "Usage: java -cp <classpath> it.polimi.tiw.projects.tools.MockDataGenerator <generate|cleanup>");
+            System.exit(1);
+        }
+
+        logger.info("Attempting to run MockDataGenerator with action: {}", args[0]);
+        logger.info("Using DB_URL: {}", DB_URL);
+        logger.info("Using STORAGE_BASE_DIRECTORY_PATH_CONFIG: {}", STORAGE_BASE_DIRECTORY_PATH_CONFIG);
+        logger.info("Using DUMMY_AUDIO_SOURCE_FILE_PATH_CONFIG: {}", DUMMY_AUDIO_SOURCE_FILENAME);
+
+        MockDataGenerator generator = new MockDataGenerator();
+        generator.performAction(args[0]);
     }
 
     private void setupDAOs() {
@@ -256,21 +260,5 @@ public class MockDataGenerator {
                 logger.info("Mock user {} not found for cleanup.", username);
             }
         }
-    }
-
-    public static void main(String[] args) {
-        if (args.length != 1 || (!"generate".equalsIgnoreCase(args[0]) && !"cleanup".equalsIgnoreCase(args[0]))) {
-            logger.error(
-                    "Usage: java -cp <classpath> it.polimi.tiw.projects.tools.MockDataGenerator <generate|cleanup>");
-            System.exit(1);
-        }
-
-        logger.info("Attempting to run MockDataGenerator with action: {}", args[0]);
-        logger.info("Using DB_URL: {}", DB_URL);
-        logger.info("Using STORAGE_BASE_DIRECTORY_PATH_CONFIG: {}", STORAGE_BASE_DIRECTORY_PATH_CONFIG);
-        logger.info("Using DUMMY_AUDIO_SOURCE_FILE_PATH_CONFIG: {}", DUMMY_AUDIO_SOURCE_FILENAME);
-
-        MockDataGenerator generator = new MockDataGenerator();
-        generator.performAction(args[0]);
     }
 }
