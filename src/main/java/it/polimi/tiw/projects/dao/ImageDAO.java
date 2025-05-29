@@ -64,7 +64,7 @@ public class ImageDAO {
      * @param originalFileName The original filename provided by the client (used
      *                         for prefix).
      * @return The unique filename (e.g., "filename_uuid.jpg") of the saved image
-     * file within the 'image' directory.
+     *         file within the 'image' directory.
      * @throws DAOException             If an I/O error occurs during file
      *                                  operations.
      * @throws IllegalArgumentException If the file content is not a valid/supported
@@ -126,7 +126,7 @@ public class ImageDAO {
      *
      * @param imageFile Path to the temporary image file to validate.
      * @return The canonical file extension (e.g., ".jpg", ".png") corresponding to
-     * the detected and allowed MIME type.
+     *         the detected and allowed MIME type.
      * @throws IllegalArgumentException if the file is not detected as a supported
      *                                  image format based on the
      *                                  ALLOWED_MIME_TYPES_MAP.
