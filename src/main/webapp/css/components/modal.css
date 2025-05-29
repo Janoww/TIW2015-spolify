@@ -2,19 +2,14 @@
 
 .modal {
     display: none;
-    /* Hidden by default, set to block for testing or via JS */
     position: fixed;
-    /* Stay in place */
+    margin-top: 50px;
     z-index: 1000;
-    /* Sit on top */
     left: 0;
     top: 0;
     width: 100%;
-    /* Full width */
     height: 100%;
-    /* Full height */
     overflow: auto;
-    /* Enable scroll if needed */
 }
 
 .modal-overlay {
@@ -122,8 +117,10 @@
     background-color: #c8a2dc;
     /* Consistent hover with playlist items;*/
 }
+
 .reorder-song-item.no-hover:hover {
-    background-color: #D4BEE4; /* or a specific color like #D4BEE4 */
+    background-color: #D4BEE4;
+    /* or a specific color like #D4BEE4 */
 }
 
 .reorder-song-item.dragging {
