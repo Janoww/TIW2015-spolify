@@ -1,4 +1,4 @@
-import { createElement } from "./viewUtils.js";
+import {createElement} from "./viewUtils.js";
 
 /**
  * Creates a div element containing a labeled form input field.
@@ -21,27 +21,29 @@ export function createFormField(inputId, labelText, inputType, name, required = 
 
     const labelEl = createElement('label', {
         textContent: labelText,
-        attributes: { htmlFor: inputId }
+        attributes: {htmlFor: inputId}
     });
     innerDiv.appendChild(labelEl);
 
     let inputEl;
-    const commonInputAttributes = { ...attributes, name: name };
+    const commonInputAttributes = {...attributes, name: name};
     if (required) {
         commonInputAttributes.required = true;
     }
 
     if (inputType === 'select') {
-        inputEl = createElement('select', { id: inputId, attributes: commonInputAttributes });
+        inputEl = createElement('select', {id: inputId, attributes: commonInputAttributes});
         options?.map(optConfig => {
-            const optionAttrs = { value: optConfig.value };
+            const optionAttrs = {value: optConfig.value};
             optConfig.disabled && (optionAttrs.disabled = true);
             optConfig.selected && (optionAttrs.selected = true);
-            return createElement('option', { textContent: optConfig.text, attributes: optionAttrs });
-        }).forEach(optionEl => { inputEl.appendChild(optionEl); });
+            return createElement('option', {textContent: optConfig.text, attributes: optionAttrs});
+        }).forEach(optionEl => {
+            inputEl.appendChild(optionEl);
+        });
     } else {
         commonInputAttributes.type = inputType;
-        inputEl = createElement('input', { id: inputId, attributes: commonInputAttributes });
+        inputEl = createElement('input', {id: inputId, attributes: commonInputAttributes});
     }
 
     innerDiv.appendChild(inputEl);

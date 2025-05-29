@@ -1,4 +1,3 @@
-
 /**
  * Wrapper for setTimeout function
  * @param {number} [time] - The time in milliseconds to delay or default to 100ms

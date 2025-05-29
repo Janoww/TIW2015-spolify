@@ -44,7 +44,7 @@ export function extractUniqueAlbumSummaries(songs) {
  */
 export function addAlbumSummaryIfNew(currentAlbumSummaries, newAlbum) {
     if (!newAlbum?.name) {
-        return { updatedSummaries: currentAlbumSummaries, wasAdded: false };
+        return {updatedSummaries: currentAlbumSummaries, wasAdded: false};
     }
 
     const existingAlbumIndex = currentAlbumSummaries.findIndex(
@@ -57,7 +57,7 @@ export function addAlbumSummaryIfNew(currentAlbumSummaries, newAlbum) {
             artist: newAlbum.artist,
             year: newAlbum.year
         };
-        return { updatedSummaries: [...currentAlbumSummaries, newSummary], wasAdded: true };
+        return {updatedSummaries: [...currentAlbumSummaries, newSummary], wasAdded: true};
     }
-    return { updatedSummaries: currentAlbumSummaries, wasAdded: false };
+    return {updatedSummaries: currentAlbumSummaries, wasAdded: false};
 }

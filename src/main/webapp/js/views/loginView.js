@@ -1,9 +1,9 @@
-import { createFormField } from '../utils/formUtils.js';
-import { createHeaderContainer, createElement } from '../utils/viewUtils.js';
+import {createFormField} from '../utils/formUtils.js';
+import {createElement, createHeaderContainer} from '../utils/viewUtils.js';
 
 // Helper function to create a link block (div > p > text + a)
 function createLinkBlock(baseText, linkId, linkTextContent, linkHref = '#') {
-    const linkContainerDiv = createElement('div', { className: 'link-container' });
+    const linkContainerDiv = createElement('div', {className: 'link-container'});
 
     const pElement = createElement('p');
     pElement.appendChild(document.createTextNode(baseText));
@@ -11,7 +11,7 @@ function createLinkBlock(baseText, linkId, linkTextContent, linkHref = '#') {
     const linkElement = createElement('a', {
         id: linkId,
         textContent: linkTextContent,
-        attributes: { href: linkHref }
+        attributes: {href: linkHref}
     });
 
     pElement.appendChild(linkElement);
@@ -30,22 +30,22 @@ export function renderLoginView(appContainer) {
     appContainer.innerHTML = '';
     appContainer.style.maxWidth = '60vw';
 
-    const loginSection = createElement('section', { id: 'login-section', className: 'container' });
+    const loginSection = createElement('section', {id: 'login-section', className: 'container'});
     loginSection.appendChild(createHeaderContainer('LOGIN', 'h1'));
 
-    const loginGeneralErrorDiv = createElement('div', { id: 'login-general-error', className: 'general-error-message' });
+    const loginGeneralErrorDiv = createElement('div', {id: 'login-general-error', className: 'general-error-message'});
     loginSection.appendChild(loginGeneralErrorDiv);
 
-    const loginForm = createElement('form', { id: 'loginForm', attributes: { noValidate: true } });
+    const loginForm = createElement('form', {id: 'loginForm', attributes: {noValidate: true}});
     loginForm.appendChild(createFormField('username', 'Username:', 'text', 'username', true, [], {}));
     loginForm.appendChild(createFormField('password', 'Password:', 'password', 'password', true, [], {}));
 
-    const buttonFieldDiv = createElement('div', { className: 'form-field' });
+    const buttonFieldDiv = createElement('div', {className: 'form-field'});
     const loginButton = createElement('button', {
         id: 'loginButton',
         textContent: 'Login',
         className: 'styled-button',
-        attributes: { type: 'submit', style: 'font-size: 1.2em;' }
+        attributes: {type: 'submit', style: 'font-size: 1.2em;'}
     });
     buttonFieldDiv.appendChild(loginButton);
     loginForm.appendChild(buttonFieldDiv);
@@ -67,23 +67,26 @@ export function renderSignupView(appContainer) {
     appContainer.innerHTML = '';
     appContainer.style.maxWidth = '60vw';
 
-    const signupSection = createElement('section', { id: 'signup-section', className: 'container' });
+    const signupSection = createElement('section', {id: 'signup-section', className: 'container'});
     signupSection.appendChild(createHeaderContainer('SIGN UP', 'h1'));
 
-    const signupGeneralErrorDiv = createElement('div', { id: 'signup-general-error', className: 'general-error-message' });
+    const signupGeneralErrorDiv = createElement('div', {
+        id: 'signup-general-error',
+        className: 'general-error-message'
+    });
     signupSection.appendChild(signupGeneralErrorDiv);
 
-    const signupForm = createElement('form', { id: 'signupForm', attributes: { noValidate: true } });
+    const signupForm = createElement('form', {id: 'signupForm', attributes: {noValidate: true}});
     signupForm.appendChild(createFormField('signupUsername', 'Username:', 'text', 'username', true, [], {}));
     signupForm.appendChild(createFormField('name', 'Name:', 'text', 'name', true, [], {}));
     signupForm.appendChild(createFormField('surname', 'Surname:', 'text', 'surname', true, [], {}));
     signupForm.appendChild(createFormField('signupPassword', 'Password:', 'password', 'password', true, [], {}));
 
-    const buttonFieldDiv = createElement('div', { className: 'form-field' });
+    const buttonFieldDiv = createElement('div', {className: 'form-field'});
     const signupButton = createElement('button', {
         textContent: 'Sign Up',
         className: 'styled-button',
-        attributes: { type: 'submit', style: 'font-size: 1.2em;' }
+        attributes: {type: 'submit', style: 'font-size: 1.2em;'}
     });
     buttonFieldDiv.appendChild(signupButton);
     signupForm.appendChild(buttonFieldDiv);

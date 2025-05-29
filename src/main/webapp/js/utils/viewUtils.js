@@ -42,7 +42,7 @@ export function createElement(tagName, options = {}) {
  * @returns {HTMLElement} The created header element.
  */
 export function createHeaderContainer(titleText, size) {
-    return createElement(size, { textContent: titleText });
+    return createElement(size, {textContent: titleText});
 }
 
 /**
@@ -53,7 +53,7 @@ export function createHeaderContainer(titleText, size) {
  * @returns {HTMLParagraphElement} The created paragraph element.
  */
 export function createParagraphElement(text, id, className) {
-    const opts = { textContent: text };
+    const opts = {textContent: text};
     id && (opts.id = id);
     className && (opts.className = className);
     return createElement('p', opts);
@@ -66,13 +66,13 @@ export function createParagraphElement(text, id, className) {
  * @returns {HTMLDivElement} The created loader container element
  */
 export function createLoaderContainer(text, id) {
-    const loaderContainer = createElement('div', { className: 'loader-container' });
+    const loaderContainer = createElement('div', {className: 'loader-container'});
     id && (loaderContainer.id = id);
 
-    const loader = createElement('div', { className: 'loader' });
+    const loader = createElement('div', {className: 'loader'});
     loaderContainer.appendChild(loader);
 
-    const textElement = createElement('h3', { textContent: text || "Loading..." });
+    const textElement = createElement('h3', {textContent: text || "Loading..."});
     loaderContainer.appendChild(textElement);
 
     return loaderContainer;

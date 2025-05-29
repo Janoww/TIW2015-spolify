@@ -1,8 +1,8 @@
-import { getSongGenres, getSongs } from "../apiService.js";
-import { delay } from "../utils/delayUtils.js";
-import { renderSongsView, renderSongUploadSectionOnSongsPage, renderAllUserSongsList } from "../views/songsView.js";
-import { handleSongUploadSubmit } from './sharedFormHandlers.js';
-import { extractUniqueAlbumSummaries, addAlbumSummaryIfNew } from '../utils/orderUtils.js';
+import {getSongGenres, getSongs} from "../apiService.js";
+import {delay} from "../utils/delayUtils.js";
+import {renderAllUserSongsList, renderSongsView, renderSongUploadSectionOnSongsPage} from "../views/songsView.js";
+import {handleSongUploadSubmit} from './sharedFormHandlers.js';
+import {addAlbumSummaryIfNew, extractUniqueAlbumSummaries} from '../utils/orderUtils.js';
 
 /**
  * Fetches song genres from the API with a built-in delay.
@@ -11,10 +11,10 @@ import { extractUniqueAlbumSummaries, addAlbumSummaryIfNew } from '../utils/orde
 async function _fetchGenresWithDelayInternal() {
     try {
         const [genres,] = await Promise.all([getSongGenres(), delay()]);
-        return { genres, error: null };
+        return {genres, error: null};
     } catch (error) {
         console.error(`Failed to load genres for Songs Page song form: Status ${error.status}, Message: ${error.message}`, error.details || '');
-        return { genres: null, error };
+        return {genres: null, error};
     }
 }
 
@@ -25,10 +25,10 @@ async function _fetchGenresWithDelayInternal() {
 async function _fetchSongsWithDelayInternal() {
     try {
         const [songs,] = await Promise.all([getSongs(), delay()]);
-        return { songs, error: null };
+        return {songs, error: null};
     } catch (error) {
         console.error(`Error loading all user songs for Songs page: Status ${error.status}, Message: ${error.message}`, error.details || '');
-        return { songs: [], error };
+        return {songs: [], error};
     }
 }
 

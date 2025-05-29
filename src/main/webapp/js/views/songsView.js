@@ -1,7 +1,12 @@
-import { createSongUploadFormElement } from './sharedComponents.js';
-import { getSongImageURL } from '../apiService.js';
-import { createHeaderContainer, createParagraphElement, createElement, createLoaderContainer } from '../utils/viewUtils.js';
-import { getSongsOrdered } from '../utils/orderUtils.js';
+import {createSongUploadFormElement} from './sharedComponents.js';
+import {getSongImageURL} from '../apiService.js';
+import {
+    createElement,
+    createHeaderContainer,
+    createLoaderContainer,
+    createParagraphElement
+} from '../utils/viewUtils.js';
+import {getSongsOrdered} from '../utils/orderUtils.js';
 
 /**
  * Renders the basic structure of the Songs page.
@@ -11,13 +16,13 @@ export function renderSongsView(appContainer) {
     appContainer.innerHTML = '';
     appContainer.style.maxWidth = '100%';
 
-    const songGrid = createElement('div', { className: 'grid song-grid' });
+    const songGrid = createElement('div', {className: 'grid song-grid'});
 
     // Section 1: All Songs
-    const allSongsSection = createElement('section', { id: 'songs' });
+    const allSongsSection = createElement('section', {id: 'songs'});
     allSongsSection.appendChild(createHeaderContainer('All Songs', 'h2'));
 
-    const songListDiv = createElement('div', { className: 'song-list' });
+    const songListDiv = createElement('div', {className: 'song-list'});
 
     const allSongsLoader = createLoaderContainer('Loading songs...', 'all-songs-loader-message')
     songListDiv.appendChild(allSongsLoader);
@@ -25,7 +30,7 @@ export function renderSongsView(appContainer) {
     songGrid.appendChild(allSongsSection);
 
     // Section 2: Upload New Song
-    const uploadSongSection = createElement('section', { id: 'add-song' });
+    const uploadSongSection = createElement('section', {id: 'add-song'});
     uploadSongSection.appendChild(createHeaderContainer('Upload New Song', 'h2'));
 
     const formLoader = createLoaderContainer('Loading song form...', 'song-form-loader-message-songs-page')
@@ -51,25 +56,25 @@ export function renderSongUploadSectionOnSongsPage(sectionContainer, genres, alb
 
     const formElement = createSongUploadFormElement(formId, genres, albumSummaries, error);
 
-    const errorDiv = createElement('div', { className: 'general-error-message', id: errorDivId });
+    const errorDiv = createElement('div', {className: 'general-error-message', id: errorDivId});
 
     sectionContainer.appendChild(errorDiv);
     sectionContainer.appendChild(formElement);
 }
 
 /**
- * Creates an article element for a single song.
+ * Creates an article element without checkbox for a single song.
  * @param {Object} songWithAlbum - An object containing song and album details.
  * @returns {HTMLElement} The created article element for the song.
  */
 function createSongArticleElement(songWithAlbum) {
-    const songArticle = createElement('article', { className: 'song-item' });
-    const playButton = createElement('button', { id: `song-action-${songWithAlbum.song.idSong}` });
+    const songArticle = createElement('article', {className: 'song-item'});
+    const playButton = createElement('button', {id: `song-action-${songWithAlbum.song.idSong}`});
     playButton.style.display = 'none'; // Or handle visibility via CSS classes
 
     const label = createElement('label', {
         className: 'song-metadata',
-        attributes: { htmlFor: `song-action-${songWithAlbum.song.idSong}` }
+        attributes: {htmlFor: `song-action-${songWithAlbum.song.idSong}`}
     });
 
     const img = document.createElement('img');
@@ -79,7 +84,7 @@ function createSongArticleElement(songWithAlbum) {
         img.src = 'images/image_placeholder.png';
     };
 
-    const metadataDiv = createElement('div', { className: 'song-text' });
+    const metadataDiv = createElement('div', {className: 'song-text'});
     const titleH3 = createHeaderContainer(songWithAlbum.song.title, 'h3');
     const artistAlbumP = createParagraphElement(`${songWithAlbum.album.artist} • ${songWithAlbum.album.name}`);
     const genreYearP = createParagraphElement(`${songWithAlbum.song.genre.replace('_', ' ')} • ${songWithAlbum.album.year}`);
@@ -107,7 +112,10 @@ export function renderAllUserSongsList(songListContainer, songs, error = null) {
     songListContainer.innerHTML = '';
 
     if (error) {
-        const errorP = createElement('div', { textContent: 'Failed to load songs. Please try refreshing.', className: 'general-error-message' });
+        const errorP = createElement('div', {
+            textContent: 'Failed to load songs. Please try refreshing.',
+            className: 'general-error-message'
+        });
         songListContainer.appendChild(errorP);
         return;
     }

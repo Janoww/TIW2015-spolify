@@ -101,9 +101,9 @@ const API_BASE_URL = 'api/v1';
  */
 async function _fetchApi(endpoint, options = {}, isFormData = false) {
     const url = `${API_BASE_URL}${endpoint}`;
-    const fetchOptions = { ...options };
+    const fetchOptions = {...options};
 
-    fetchOptions.headers = { ...fetchOptions.headers };
+    fetchOptions.headers = {...fetchOptions.headers};
 
     if (!isFormData) {
         fetchOptions.headers['Accept'] = 'application/json';
@@ -161,7 +161,7 @@ async function _fetchApi(endpoint, options = {}, isFormData = false) {
  * @throws {ApiError} If the user is not authenticated or if there's a server error.
  */
 export async function checkAuthStatus() {
-    return _fetchApi('/auth/me', { method: 'GET' });
+    return _fetchApi('/auth/me', {method: 'GET'});
 }
 
 /**
@@ -171,7 +171,7 @@ export async function checkAuthStatus() {
  * @throws {ApiError} If login fails (e.g., invalid credentials, server error).
  */
 export async function login(credentials) {
-    return _fetchApi('/auth/login', { method: 'POST', body: credentials });
+    return _fetchApi('/auth/login', {method: 'POST', body: credentials});
 }
 
 /**
@@ -180,7 +180,7 @@ export async function login(credentials) {
  * @throws {ApiError} If logout fails or if there's a server error.
  */
 export async function logout() {
-    return _fetchApi('/auth/logout', { method: 'POST' });
+    return _fetchApi('/auth/logout', {method: 'POST'});
 }
 
 /**
@@ -190,7 +190,7 @@ export async function logout() {
  * @throws {ApiError} If registration fails (e.g., username exists, validation error, server error).
  */
 export async function signup(userData) {
-    return _fetchApi('/users', { method: 'POST', body: userData });
+    return _fetchApi('/users', {method: 'POST', body: userData});
 }
 
 // --- Playlists ---
@@ -201,7 +201,7 @@ export async function signup(userData) {
  * @throws {ApiError} If fetching fails or if there's a server error.
  */
 export async function getPlaylists() {
-    return _fetchApi('/playlists', { method: 'GET' });
+    return _fetchApi('/playlists', {method: 'GET'});
 }
 
 /**
@@ -211,7 +211,7 @@ export async function getPlaylists() {
  * @throws {ApiError} If creation fails (e.g., validation error, server error).
  */
 export async function createPlaylist(playlistData) {
-    return _fetchApi('/playlists', { method: 'POST', body: playlistData });
+    return _fetchApi('/playlists', {method: 'POST', body: playlistData});
 }
 
 /**
@@ -221,7 +221,7 @@ export async function createPlaylist(playlistData) {
  * @throws {ApiError} If fetching fails (e.g., playlist not found, server error).
  */
 export async function getPlaylistSongOrder(playlistId) {
-    return _fetchApi(`/playlists/${playlistId}/order`, { method: 'GET' });
+    return _fetchApi(`/playlists/${playlistId}/order`, {method: 'GET'});
 }
 
 /**
@@ -232,7 +232,7 @@ export async function getPlaylistSongOrder(playlistId) {
  * @throws {ApiError} If adding songs fails (e.g., playlist/song not found, server error).
  */
 export async function addSongsToPlaylist(playlistId, songIdsData) {
-    return _fetchApi(`/playlists/${playlistId}/songs`, { method: 'POST', body: songIdsData });
+    return _fetchApi(`/playlists/${playlistId}/songs`, {method: 'POST', body: songIdsData});
 }
 
 /**
@@ -243,7 +243,7 @@ export async function addSongsToPlaylist(playlistId, songIdsData) {
  * @throws {ApiError} If updating order fails (e.g., invalid data, playlist not found, server error).
  */
 export async function updatePlaylistOrder(playlistId, orderedSongIdsData) {
-    return _fetchApi(`/playlists/${playlistId}/order`, { method: 'PUT', body: orderedSongIdsData });
+    return _fetchApi(`/playlists/${playlistId}/order`, {method: 'PUT', body: orderedSongIdsData});
 }
 
 // --- Songs ---
@@ -254,7 +254,7 @@ export async function updatePlaylistOrder(playlistId, orderedSongIdsData) {
  * @throws {ApiError} If fetching fails or if there's a server error.
  */
 export async function getSongs() {
-    return _fetchApi('/songs', { method: 'GET' });
+    return _fetchApi('/songs', {method: 'GET'});
 }
 
 /**
@@ -280,7 +280,7 @@ export async function uploadSong(formElement) {
         formData.append('audioFile', formElement['song-audio'].files[0]);
     }
 
-    return _fetchApi('/songs', { method: 'POST', body: formData }, true);
+    return _fetchApi('/songs', {method: 'POST', body: formData}, true);
 }
 
 /**
@@ -290,7 +290,7 @@ export async function uploadSong(formElement) {
  * @throws {ApiError} If fetching fails (e.g., song not found, server error).
  */
 export async function getSongDetails(songId) {
-    return _fetchApi(`/songs/${songId}`, { method: 'GET' });
+    return _fetchApi(`/songs/${songId}`, {method: 'GET'});
 }
 
 /**
@@ -299,7 +299,7 @@ export async function getSongDetails(songId) {
  * @throws {ApiError} If fetching fails or if there's a server error.
  */
 export async function getSongGenres() {
-    return _fetchApi('/songs/genres', { method: 'GET' });
+    return _fetchApi('/songs/genres', {method: 'GET'});
 }
 
 // --- URL Builders ---
