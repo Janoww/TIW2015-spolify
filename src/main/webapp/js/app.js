@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (logoutButton) {
         logoutButton.addEventListener('click', async () => {
-            await logoutUser(appContainer);
+            await logoutUser();
         });
     } else {
         console.error("Logout button not created");
