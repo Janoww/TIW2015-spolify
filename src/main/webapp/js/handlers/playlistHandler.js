@@ -1,13 +1,13 @@
-import { renderButtons, renderPlaylistView, renderSongs, writeSliderHeader } from '../views/playlistView.js';
+import { renderButtons, renderPlaylistView, renderSliderItem, renderSongs, writeSliderHeader } from '../views/playlistView.js';
 import {
     addSongsToPlaylist,
     getPlaylists,
     getPlaylistSongOrder,
     getSongDetails,
-    getSongImageURL,
     getSongs
 } from '../apiService.js';
 import { getSongsOrdered } from '../utils/orderUtils.js';
+import { startPlayback } from './playerHandler.js';
 
 
 /**
@@ -57,6 +57,22 @@ export async function initPlaylistPage(appContainer, params) {
 
     // Events
 
+    const sliderContainer = appContainer.querySelector('.slider-container');
+    if (sliderContainer) {
+        sliderContainer.addEventListener('click', (event) => {
+            const playButton = event.target.closest('.card-btn');
+            if (playButton) {
+                const songIdToPlay = playButton.dataset.songId;
+                if (songIdToPlay && orderedSongs && orderedSongs.length > 0) {
+                    const songIdListForQueue = orderedSongs.map(swa => swa.song.idSong);
+                    console.log(`Play button clicked for songId: ${songIdToPlay}. Queue:`, songIdListForQueue);
+                    startPlayback(songIdToPlay, songIdListForQueue);
+                } else {
+                    console.warn('Could not start playback. Missing songId or orderedSongs list.');
+                }
+            }
+        });
+    }
 
     const addSongForm = document.getElementById('add-song-form');
     const preButton = appContainer.querySelector('.pre-carouselButton');
@@ -78,7 +94,7 @@ export async function initPlaylistPage(appContainer, params) {
 
                 // Add new songs
                 songWithAlbumDisplayed.forEach(swa => {
-                    sliderContainer.append(createSliderItem(swa));
+                    sliderContainer.append(renderSliderItem(swa));
                 })
 
                 renderButtons(page, totPages);
@@ -102,7 +118,7 @@ export async function initPlaylistPage(appContainer, params) {
 
                 // Add new songs
                 songWithAlbumDisplayed.forEach(swa => {
-                    sliderContainer.append(createSliderItem(swa));
+                    sliderContainer.append(renderSliderItem(swa));
                 })
 
                 renderButtons(page, totPages);
@@ -131,33 +147,33 @@ export async function initPlaylistPage(appContainer, params) {
             }
 
             if (selectedCheckboxes.length > 0) {
-            }
-            const songIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
 
-            const payload = {
-                songIds
-            }
+                const songIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
 
+                const payload = {
+                    songIds
+                }
 
-            try {
-                const response = await addSongsToPlaylist(playlist.idPlaylist, payload)
-                playlist.songs.push(...response.addedSongIds);
+                try {
+                    const response = await addSongsToPlaylist(playlist.idPlaylist, payload)
+                    playlist.songs.push(...response.addedSongIds);
 
-                playlistOrder = await getPlaylistSongOrder(playlist.idPlaylist);
-                orderedSongs = await getOrderedSongs(playlist, playlistOrder);
-                allSongs = await getSongs();
+                    playlistOrder = await getPlaylistSongOrder(playlist.idPlaylist);
+                    orderedSongs = await getOrderedSongs(playlist, playlistOrder);
+                    allSongs = await getSongs();
 
-                //Populate the slider
-                populateSlider(orderedSongs, page);
+                    //Populate the slider
+                    populateSlider(orderedSongs, page);
 
-                // Form to Add songs
-                generateAndPopulateForm(orderedSongs, allSongs, appContainer);
+                    // Form to Add songs
+                    generateAndPopulateForm(orderedSongs, allSongs, appContainer);
 
-            } catch (error) {
-                console.error("Song adding failed: ", error);
-                if (errorDiv) {
-                    errorDiv.textContent = 'An error occurred while adding songs. Please try again.';
-                    errorDiv.style.display = 'block';
+                } catch (error) {
+                    console.error("Song adding failed: ", error);
+                    if (errorDiv) {
+                        errorDiv.textContent = 'An error occurred while adding songs. Please try again.';
+                        errorDiv.style.display = 'block';
+                    }
                 }
             }
         })
@@ -210,8 +226,6 @@ function populateSlider(orderedSongs, page) {
         sliderItems.forEach(item => item.remove());
     }
 
-    const oldItems = document.querySelect
-
     if (orderedSongs) {
         let totPages = Math.ceil(orderedSongs.length / 5);
         if (page > totPages - 1) {
@@ -223,7 +237,7 @@ function populateSlider(orderedSongs, page) {
         let songWithAlbumDisplayed = orderedSongs.slice(page * 5, (page + 1) * 5);
 
         songWithAlbumDisplayed.forEach(swa => {
-            sliderContainer.append(createSliderItem(swa));
+            sliderContainer.append(renderSliderItem(swa));
         })
 
     }
@@ -239,63 +253,4 @@ function generateAndPopulateForm(orderedSongs, allSongs, appContainer) {
         appContainer.querySelector('.addSong').style.display = '';
         renderSongs(appContainer, filteredSongs);
     }
-}
-
-// Helper function to create an element of the slider
-function createSliderItem(songWithAlbum) {
-    const { song, album } = songWithAlbum;
-
-    // <article class="slider-item">
-    const article = document.createElement('article');
-    article.classList.add('slider-item');
-
-    // <div class="slider-image">
-    const imageDiv = document.createElement('div');
-    imageDiv.classList.add('slider-image');
-
-    // <img src="images/image_placeholder.png" class="slider-thumbnail" alt="song title">
-    const img = document.createElement('img');
-    img.classList.add('slider-thumbnail');
-    img.src = getSongImageURL(songWithAlbum.song.idSong);
-    img.alt = songWithAlbum.song.title || "Song cover";
-    img.onerror = () => {
-        img.src = 'images/image_placeholder.png';
-    };
-
-    // <button class="card-btn">Open</button>
-    const button = document.createElement('button');
-    button.classList.add('card-btn');
-    button.dataset.songId = songWithAlbum.song.idSong;
-    button.textContent = 'Open';
-
-    // Add img and button to imageDiv
-    imageDiv.appendChild(img);
-    imageDiv.appendChild(button);
-
-    // <div class="slider-metadata">
-    const metadataDiv = document.createElement('div');
-    metadataDiv.classList.add('slider-metadata');
-
-    // <h3>[Song Title Placeholder]</h3>
-    const h3 = document.createElement('h3');
-    h3.textContent = song.title;
-
-    // <p>[Artist Name Placeholder] • [Album Name Placeholder]</p>
-    const p1 = document.createElement('p');
-    p1.textContent = `${album.artist} • ${album.name}`;
-
-    // <p>[Genre Placeholder] • [Year Placeholder]</p>
-    const p2 = document.createElement('p');
-    p2.textContent = `${song.genre} • ${album.year}`;
-
-    // Assemble metadata
-    metadataDiv.appendChild(h3);
-    metadataDiv.appendChild(p1);
-    metadataDiv.appendChild(p2);
-
-    // Add image and metadata to article
-    article.appendChild(imageDiv);
-    article.appendChild(metadataDiv);
-
-    return article;
 }

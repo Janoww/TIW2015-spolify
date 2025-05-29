@@ -1,5 +1,6 @@
 import { createElement, createHeaderContainer, createParagraphElement } from '../utils/viewUtils.js';
 import { createSongArticleWithCheckboxElement } from './sharedComponents.js';
+import { getSongImageURL } from '../apiService.js';
 
 // Navigation buttons
 function createNavButton(className, imgSrc, altText) {
@@ -124,4 +125,65 @@ export function renderSongs(appContainer, songWithAlbums) {
             songListDiv.appendChild(article);
         })
     }
+}
+
+// Helper function to create an element of the slider
+export function renderSliderItem(songWithAlbum) {
+    const { song, album } = songWithAlbum;
+
+    // <article class="slider-item">
+    const article = createElement('article', { className: 'slider-item' });
+
+    // <div class="slider-image">
+    const imageDiv = createElement('div', { className: 'slider-image' });
+
+    // <img src="images/image_placeholder.png" class="slider-thumbnail" alt="song title">
+    const img = createElement('img', {
+        className: 'slider-thumbnail',
+        attributes: {
+            src: getSongImageURL(song.idSong),
+            alt: song.title || "Song cover"
+        }
+    });
+    img.onerror = () => {
+        img.src = 'images/image_placeholder.png';
+    };
+
+    // <button class="card-btn">Open</button>
+    const button = createElement('button', {
+        className: 'card-btn',
+        textContent: 'Play',
+        attributes: { 'data-song-id': song.idSong }
+    });
+
+
+    // Add img and button to imageDiv
+    imageDiv.appendChild(img);
+    imageDiv.appendChild(button);
+
+    // <div class="slider-metadata">
+    const metadataDiv = createElement('div', { className: 'slider-metadata' });
+
+    // <h3>[Song Title Placeholder]</h3>
+    const h3 = createElement('h3', { textContent: song.title });
+
+
+    // <p>[Artist Name Placeholder] • [Album Name Placeholder]</p>
+    const p1 = createParagraphElement(`${album.artist} • ${album.name}`);
+
+
+    // <p>[Genre Placeholder] • [Year Placeholder]</p>
+    const p2 = createParagraphElement(`${song.genre} • ${album.year}`);
+
+
+    // Assemble metadata
+    metadataDiv.appendChild(h3);
+    metadataDiv.appendChild(p1);
+    metadataDiv.appendChild(p2);
+
+    // Add image and metadata to article
+    article.appendChild(imageDiv);
+    article.appendChild(metadataDiv);
+
+    return article;
 }
