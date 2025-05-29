@@ -1,7 +1,8 @@
-import {renderLoginView, renderSignupView} from "../views/loginView.js";
-import {login as apiLogin, logout as apiLogout, signup as apiSignup} from '../apiService.js';
-import {navigate} from '../router.js';
-import {validateForm} from '../utils/formUtils.js';
+import { renderLoginView, renderSignupView } from "../views/loginView.js";
+import { login as apiLogin, logout as apiLogout, signup as apiSignup } from '../apiService.js';
+import { navigate } from '../router.js';
+import { validateForm } from '../utils/formUtils.js';
+import { stopPlayback } from './playerHandler.js';
 
 function displayLogin(appContainer) {
     renderLoginView(appContainer);
@@ -17,7 +18,7 @@ function displayLogin(appContainer) {
                 const password = event.target.password.value;
 
                 try {
-                    const userData = await apiLogin({username, password});
+                    const userData = await apiLogin({ username, password });
                     console.log('Login successful:', userData);
                     sessionStorage.setItem('currentUser', JSON.stringify(userData));
                     navigate('home');
@@ -53,7 +54,7 @@ function displaySignup(appContainer) {
                 const password = event.target.signupPassword.value;
 
                 try {
-                    const newUserData = await apiSignup({username, name, surname, password});
+                    const newUserData = await apiSignup({ username, name, surname, password });
                     console.log('Signup successful:', newUserData);
                     alert('Signup successful! User: ' + newUserData.username + '. Please log in.');
                     displayLogin(appContainer);
@@ -102,6 +103,7 @@ export function initSignupPage(appContainer) {
  */
 export async function logoutUser() {
     console.log("Attempting to logout user...");
+    stopPlayback();
     try {
         const result = await apiLogout();
         if (typeof result === 'object' && result.message) {
