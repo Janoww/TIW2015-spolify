@@ -15,8 +15,8 @@
     overflow-x: auto;
     scroll-behavior: smooth;
     gap: 1.5vw;
+    max-height: 25vh;
     -webkit-overflow-scrolling: touch;
-    /* smoother on mobile */
 }
 
 .slider-container::-webkit-scrollbar {
