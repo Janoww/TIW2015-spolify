@@ -23,12 +23,8 @@ export function initPlayer() {
 
     audioPlayerElement.addEventListener('error', (e) => {
         console.error('Error with audio player:', e);
-        if (currentQueue.length > 0 && currentIndex < currentQueue.length - 1) {
-            // playNextInQueue(); // Be cautious with this to avoid rapid error loops
-        } else {
-            // No next song or single song error
-            audioPlayerElement.style.display = 'none'; // Hide player on critical error if it was the only song
-        }
+
+        audioPlayerElement.style.display = 'none';
     });
 
     console.log('Audio player initialized.');
@@ -114,4 +110,23 @@ function playNextInQueue() {
     const nextSongId = currentQueue[currentIndex];
     console.log('Playing next in queue. Index:', currentIndex, 'Song ID:', nextSongId);
     _playSongById(nextSongId);
+}
+
+/**
+ * Stops the current playback, clears the queue, and hides the player.
+ */
+export function stopPlayback() {
+    if (!audioPlayerElement) {
+        console.warn('Audio player element not initialized or not found. Cannot stop playback.');
+        return;
+    }
+
+    audioPlayerElement.pause();
+    audioPlayerElement.src = '';
+    audioPlayerElement.style.display = 'none';
+
+    currentQueue = [];
+    currentIndex = -1;
+
+    console.log('Playback stopped and player hidden.');
 }
