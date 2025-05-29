@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.util.Arrays;
+import it.polimi.tiw.projects.dao.ImageDAO;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
@@ -54,6 +56,7 @@ public class MockDataGenerator {
     private SongDAO songDAO;
     private PlaylistDAO playlistDAO;
     private AudioDAO audioDAO;
+    private ImageDAO imageDAO;
     private PlaylistOrderDAO playlistOrderDAO;
 
     public MockDataGenerator() {
@@ -79,6 +82,7 @@ public class MockDataGenerator {
     private void setupDAOs() {
         // AudioDAO is initialized with the base storage path.
         this.audioDAO = new AudioDAO(Paths.get(STORAGE_BASE_DIRECTORY_PATH_CONFIG));
+        this.imageDAO = new ImageDAO(Paths.get(STORAGE_BASE_DIRECTORY_PATH_CONFIG));
         this.playlistOrderDAO = new PlaylistOrderDAO(Paths.get(STORAGE_BASE_DIRECTORY_PATH_CONFIG));
         this.userDAO = new UserDAO(connection);
         this.albumDAO = new AlbumDAO(connection);
@@ -137,6 +141,12 @@ public class MockDataGenerator {
     private void generateData() throws DAOException, IOException {
         logger.info("Starting mock data generation...");
 
+        // Define the list of mock image filenames (from src/main/resources/mock_images)
+        List<String> mockImageFilenames = Arrays.asList("ai-generated-9295105_640.jpg", "cat-8863536_640.png",
+                "coffee-8478202_640.jpg", "coffee-8668442_640.jpg", "girl-8880144_640.png", "groovebox-8832172_640.png",
+                "hand-8843887_640.jpg", "lonely-9513577_640.jpg", "refreshment-9368874_640.jpg",
+                "waves-8905720_640.png");
+
         // Save the dummy audio file ONCE to be shared by all mock songs
         String singleSharedAudioFilename;
         try (InputStream audioStream = this.getClass().getClassLoader()
@@ -177,10 +187,28 @@ public class MockDataGenerator {
                 String albumArtist = faker.rockBand().name();
                 int albumYear = 2020 + random.nextInt(5); // Years 2020-2024
 
-                Album createdAlbum = albumDAO.createAlbum(albumName, albumYear, albumArtist, null, userId);
+                String albumImageFilename = null;
+                if (!mockImageFilenames.isEmpty()) {
+                    String originalImageFilename = mockImageFilenames.get(random.nextInt(mockImageFilenames.size()));
+                    String resourcePath = "mock_images/" + originalImageFilename;
+                    try (InputStream imageStream = this.getClass().getClassLoader().getResourceAsStream(resourcePath)) {
+                        if (imageStream != null) {
+                            albumImageFilename = imageDAO.saveImage(imageStream, originalImageFilename);
+                            logger.info("    Saved mock image {} as {} for album {}", originalImageFilename,
+                                    albumImageFilename, albumName);
+                        } else {
+                            logger.warn("    Could not find mock image resource: {}", resourcePath);
+                        }
+                    } catch (IOException | DAOException | IllegalArgumentException e) {
+                        logger.error("    Error saving mock image {}: {}", originalImageFilename, e.getMessage(), e);
+                    }
+                }
+
+                Album createdAlbum = albumDAO.createAlbum(albumName, albumYear, albumArtist, albumImageFilename,
+                        userId);
                 int albumId = createdAlbum.getIdAlbum();
-                logger.info("  Created album: {} (ID: {}) by {} for user {}", albumName, albumId, albumArtist,
-                        username);
+                logger.info("  Created album: {} (ID: {}) by {} for user {} (Image: {})", albumName, albumId,
+                        albumArtist, username, albumImageFilename != null ? albumImageFilename : "none");
 
                 for (int k = 0; k < SONGS_PER_ALBUM; k++) {
                     String songTitle = faker.funnyName().name();
@@ -232,7 +260,32 @@ public class MockDataGenerator {
                 UUID userId = mockUser.getIdUser();
                 logger.info("Cleaning up data for user: {} (ID: {})", username, userId);
 
-                // 1. Get all playlists for the user to delete their order files
+                // Clean up image files associated with this user's albums
+                logger.debug("Cleaning up image files for user: {} (ID: {})", username, userId);
+                albumDAO.findAlbumsByUser(userId).stream()
+                        .filter(album -> album.getImageFile() != null && !album.getImageFile().isBlank())
+                        .forEach(album -> {
+                            try {
+                                imageDAO.deleteImage(album.getImageFile());
+                                logger.info("  Deleted mock image file: {} for album ID {}", album.getImageFile(),
+                                        album.getIdAlbum());
+                            } catch (DAOException | IllegalArgumentException e) {
+                                logger.warn("  Could not delete image file {}: {}. Continuing cleanup.",
+                                        album.getImageFile(), e.getMessage());
+                            }
+                        });
+
+                songDAO.findSongsByUser(userId).stream().map(Song::getAudioFile).distinct().forEach(songFile -> {
+                    try {
+                        audioDAO.deleteAudio(songFile);
+                        logger.info("  Deleted mock song file: {}", songFile);
+                    } catch (DAOException | IllegalArgumentException e) {
+                        logger.info("  Could not delete song file {}: {}. Continuing cleanup.", songFile,
+                                e.getMessage());
+                    }
+                });
+
+                // Get all playlists for the user to delete their order files
                 List<it.polimi.tiw.projects.beans.Playlist> userPlaylists = playlistDAO.findPlaylistsByUser(userId);
                 if (userPlaylists != null && !userPlaylists.isEmpty()) {
                     logger.debug("Found {} playlists for user {}. Deleting their order files...", userPlaylists.size(),
@@ -252,7 +305,7 @@ public class MockDataGenerator {
                     logger.debug("No playlists found for user {} to clean up order files.", username);
                 }
 
-                // 2. Delete the user (DB cascade should handle albums, songs,
+                // Delete the user (DB cascade should handle albums, songs,
                 // playlist_metadata, playlist_content)
                 userDAO.deleteUser(userId);
                 logger.info("Deleted user: {} and their associated DB data (via DB cascade).", username);
