@@ -159,12 +159,58 @@ a.styled-button:visited {
     background-color: #3b1e54;
 }
 
-.global-audio-player-styles {
-    position: fixed;
-    top: 10px;
+.playerContainer{
+	text-align: center;
+    background-color: #EEEEEE;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	border-radius: 8px;
+	position: fixed;
+	top: 10px;
     right: 10px;
-    width: 300px;
-    max-width: 320px;
+    width: 350px;
+    max-height: 1500px;
+    z-index: 1000;
+}
+
+.playerContainer h2.song-title {
+  color: #6A4A91;
+  font-size: 1em; /* override vw-based size */
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  text-align: left; /* align to left instead of center */
+  font-weight: 600;
+}
+.song-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Image container */
+.album-cover {
+  margin: 5px;
+  height: 60px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+}
+
+/* Metadata section */
+.song-title {
+  font-size: 1em;
+  margin: 0;
+  color: #6A4A91;
+}
+
+
+.song-info {
+  font-size: 0.75em;
+  color: #555;
+  line-height: 1.2;
+}
+
+.global-audio-player-styles {
     background-color: #EEEEEE;
     color: #3B1E54;
     padding: 8px;
