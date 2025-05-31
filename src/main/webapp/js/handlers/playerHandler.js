@@ -1,10 +1,51 @@
 import { getSongAudioURL, getSongDetails, getSongImageURL } from '../apiService.js';
-import { createElement, createHeaderContainer } from '../utils/viewUtils.js';
 
 
 let audioPlayerElement = null;
+let mainPlayerUiContainer = null;
 let currentQueue = [];
 let currentIndex = -1;
+
+/**
+ * Shows or hides the entire player UI.
+ * @param {boolean} show - True to show, false to hide.
+ */
+function _setPlayerVisibility(show = true) {
+    if (!mainPlayerUiContainer) {
+        mainPlayerUiContainer = document.getElementById('main-player-ui-container');
+        if (!mainPlayerUiContainer) {
+            console.error('Main player UI container (main-player-ui-container) not found.');
+            return;
+        }
+    }
+    mainPlayerUiContainer.style.display = show ? 'block' : 'none'; // Or 'flex' if its direct children need it
+}
+
+/**
+ * Clears the content of the player details section.
+ */
+function _clearPlayerDetails() {
+    const albumCover = document.getElementById('player-album-cover');
+    if (albumCover) {
+        albumCover.src = 'images/image_placeholder.png';
+        albumCover.alt = 'Song cover';
+    }
+    const songTitle = document.getElementById('player-song-title');
+    if (songTitle) songTitle.textContent = 'Song Title';
+
+    const songArtist = document.getElementById('player-song-artist');
+    if (songArtist) songArtist.textContent = 'Artist: ';
+
+    const songAlbum = document.getElementById('player-song-album');
+    if (songAlbum) songAlbum.textContent = 'Album: ';
+
+    const songYear = document.getElementById('player-song-year');
+    if (songYear) songYear.textContent = 'Year: ';
+
+    const songGenre = document.getElementById('player-song-genre');
+    if (songGenre) songGenre.textContent = 'Genre: ';
+}
+
 
 /**
  * Initializes the global audio player and sets up event listeners.
@@ -12,83 +53,70 @@ let currentIndex = -1;
  */
 export function initPlayer() {
     audioPlayerElement = document.getElementById('global-audio-player');
+    mainPlayerUiContainer = document.getElementById('main-player-ui-container');
+    const closeButton = document.getElementById('player-close-button');
 
     if (!audioPlayerElement) {
-        console.error('Global audio player element not found in the DOM. Make sure it exists in index.html.');
+        console.error('Global audio player element not found in the DOM.');
         return;
+    }
+    if (!mainPlayerUiContainer) {
+        console.error('Main player UI container (main-player-ui-container) not found in the DOM.');
+    }
+    if (!closeButton) {
+        console.error('Player close button element not found in the DOM.');
     }
 
     audioPlayerElement.addEventListener('ended', () => {
         console.log('Song ended, attempting to play next.');
-        playNextInQueue();
+        _playNextInQueue();
     });
 
     audioPlayerElement.addEventListener('error', (e) => {
         console.error('Error with audio player:', e);
-
-        audioPlayerElement.style.display = 'none';
-        document.querySelector('.song-detail-header')?.remove();
-        document.querySelector('#closePlayer')?.remove();
-
-
+        if (audioPlayerElement) audioPlayerElement.style.display = 'none';
+        _setPlayerVisibility(false);
+        _clearPlayerDetails();
     });
 
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            if (audioPlayerElement) {
+                audioPlayerElement.style.display = 'none';
+                audioPlayerElement.pause();
+                audioPlayerElement.currentTime = 0;
+            }
+            _setPlayerVisibility(false);
+            _clearPlayerDetails();
+        });
+    }
+    _setPlayerVisibility(false);
     console.log('Audio player initialized.');
 }
 
-function decoratePlayer(songWithAlbum) {
-
-    // Close button
-    const closeButton = createElement('span', { className: 'close-button', id: 'closePlayer' });
-    closeButton.innerHTML = "&times;";
-
-
+function _decoratePlayer(songWithAlbum) {
     const { song, album } = songWithAlbum;
-    document.querySelector('.song-detail-header')?.remove();
-    document.querySelector('#closePlayer')?.remove();
 
+    const img = document.getElementById('player-album-cover');
+    const title = document.getElementById('player-song-title');
+    const artist = document.getElementById('player-song-artist');
+    const albumName = document.getElementById('player-song-album');
+    const year = document.getElementById('player-song-year');
+    const genre = document.getElementById('player-song-genre');
 
-
-    const header = createElement('div', { className: 'song-detail-header' });
-    const img = createElement('img', {
-        className: 'album-cover',
-        attributes: {
-            src: getSongImageURL(song.idSong),
-            alt: DOMPurify.sanitize(song.title || "Song cover", { ALLOWED_TAGS: [] })
-        }
-    });
-    img.onerror = () => {
-        img.src = 'images/image_placeholder.png';
-    };
-    const title = createElement('h2', { className: 'song-title', textContent: song.title });
-    const info = createElement('div', { className: 'song-info' });
-    const artist = createElement('p', { className: 'song-artist', textContent: `Artist: ${album.artist}` });
-    const albumName = createElement('p', { className: 'song-album', textContent: `Album: ${album.name}` });
-    const year = createElement('p', { className: 'song-year', textContent: `Year: ${album.year}` });
-    const genre = createElement('p', { className: 'song-genre', textContent: `Genre: ${song.genre}` });
-
-    info.appendChild(artist);
-    info.appendChild(albumName);
-    info.appendChild(year);
-    info.appendChild(genre);
-
-    header.appendChild(img);
-    header.appendChild(title);
-    header.appendChild(info);
-
-    document.querySelector('.playerContainer').prepend(header);
-    document.querySelector('.playerContainer').prepend(closeButton);
-
-    closeButton.addEventListener('click', () => {
-        audioPlayerElement.style.display = 'none';
-        audioPlayerElement.pause();
-        audioPlayerElement.currentTime = 0;
-
-        document.querySelector('.song-detail-header')?.remove();
-        document.querySelector('#closePlayer')?.remove();
-
-    });
-
+    if (img) {
+        img.src = getSongImageURL(song.idSong);
+        img.alt = DOMPurify.sanitize(song.title || "Song cover", { ALLOWED_TAGS: [] });
+        img.onerror = () => {
+            img.src = 'images/image_placeholder.png';
+            img.alt = 'Song cover placeholder';
+        };
+    }
+    if (title) title.textContent = song.title || "Unknown Title";
+    if (artist) artist.textContent = `Artist: ${album.artist || "Unknown Artist"}`;
+    if (albumName) albumName.textContent = `Album: ${album.name || "Unknown Album"}`;
+    if (year) year.textContent = `Year: ${album.year || "----"}`;
+    if (genre) genre.textContent = `Genre: ${song.genre || "Unknown Genre"}`;
 }
 
 /**
@@ -98,41 +126,42 @@ function decoratePlayer(songWithAlbum) {
 async function _playSongById(songId) {
     if (!audioPlayerElement) {
         console.error('Audio player element not initialized or not found.');
+        _setPlayerVisibility(false);
         return;
     }
     if (!songId) {
         console.error('No songId provided to _playSongById.');
+        _setPlayerVisibility(false);
+        _clearPlayerDetails();
+        if (audioPlayerElement) audioPlayerElement.style.display = 'none';
         return;
     }
 
     try {
         const swa = await getSongDetails(songId);
         const audioURL = getSongAudioURL(songId);
+
+        _decoratePlayer(swa);
+
         audioPlayerElement.src = audioURL;
         audioPlayerElement.style.display = 'block';
-
-        decoratePlayer(swa);
-
-        const playPromise = audioPlayerElement.play();
-        if (playPromise !== undefined) {
-            playPromise.then(_ => {
-                console.log(`Playing song: ${songId}, URL: ${audioURL}`);
-            }).catch(error => {
-                console.error(`Error playing song ${songId}:`, error);
-                audioPlayerElement.style.display = 'none';
+        _setPlayerVisibility(true);
 
 
-                document.querySelector('.dil-header')?.remove();
-                document.querySelector('#closePlayer')?.remove();
-            });
-        }
+        audioPlayerElement.play().then(_ => {
+            console.log(`Playing song: ${songId}, URL: ${audioURL}`);
+        }).catch(error => {
+            console.error(`Error playing song ${songId}:`, error);
+            if (audioPlayerElement) audioPlayerElement.style.display = 'none';
+            _setPlayerVisibility(false);
+            _clearPlayerDetails();
+        });
+
     } catch (error) {
         console.error(`Failed to get audio URL or play song ${songId}:`, error);
-        audioPlayerElement.style.display = 'none';
-        document.querySelector('.song-detail-header')?.remove();
-        document.querySelector('#closePlayer')?.remove();
-
-
+        if (audioPlayerElement) audioPlayerElement.style.display = 'none';
+        _setPlayerVisibility(false);
+        _clearPlayerDetails();
     }
 }
 
@@ -142,14 +171,18 @@ async function _playSongById(songId) {
  * @param {Array<string|number>} [songIdList=[]] Optional array of song IDs for queueing.
  */
 export function startPlayback(songId, songIdList = []) {
-    if (!audioPlayerElement) {
+    if (!audioPlayerElement || !mainPlayerUiContainer) {
         initPlayer();
-        if (!audioPlayerElement) return;
+        if (!audioPlayerElement) {
+            console.error("Audio player could not be initialized. Aborting playback.");
+            _setPlayerVisibility(false);
+            return;
+        }
     }
 
     if (songIdList && songIdList.length > 0) {
         currentQueue = [...songIdList];
-        const initialIndex = currentQueue.findIndex(id => id === songId || String(id) === String(songId));
+        const initialIndex = currentQueue.findIndex(id => String(id) === String(songId));
         currentIndex = (initialIndex !== -1) ? initialIndex : 0;
     } else {
         currentQueue = [songId];
@@ -162,6 +195,9 @@ export function startPlayback(songId, songIdList = []) {
         _playSongById(firstSongIdToPlay);
     } else {
         console.error('Cannot start playback: queue is empty or index is out of bounds.');
+        _setPlayerVisibility(false);
+        _clearPlayerDetails();
+        if (audioPlayerElement) audioPlayerElement.style.display = 'none';
     }
 }
 
@@ -169,13 +205,12 @@ export function startPlayback(songId, songIdList = []) {
  * Plays the next song in the current queue.
  * Called automatically when a song ends.
  */
-function playNextInQueue() {
+function _playNextInQueue() {
     if (currentQueue.length === 0 || currentIndex >= currentQueue.length - 1) {
         console.log('End of queue or no queue.');
-        audioPlayerElement.style.display = 'none';
-        document.querySelector('.song-detail-header')?.remove();
-        document.querySelector('#closePlayer')?.remove();
-
+        if (audioPlayerElement) audioPlayerElement.style.display = 'none';
+        _setPlayerVisibility(false);
+        _clearPlayerDetails();
         currentQueue = [];
         currentIndex = -1;
         return;
@@ -193,16 +228,16 @@ function playNextInQueue() {
 export function stopPlayback() {
     if (!audioPlayerElement) {
         console.warn('Audio player element not initialized or not found. Cannot stop playback.');
+        if (mainPlayerUiContainer) _setPlayerVisibility(false);
         return;
     }
 
     audioPlayerElement.pause();
     audioPlayerElement.src = '';
     audioPlayerElement.style.display = 'none';
-    document.querySelector('.song-detail-header')?.remove();
-    document.querySelector('#closePlayer')?.remove();
 
-
+    _setPlayerVisibility(false);
+    _clearPlayerDetails();
 
     currentQueue = [];
     currentIndex = -1;

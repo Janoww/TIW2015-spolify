@@ -37,7 +37,20 @@
 
 
 
-    <div class="playerContainer">
+    <div class="playerContainer" id="main-player-ui-container">
+        <span id="player-close-button" class="close-button">&times;</span>
+        <div id="player-song-detail-header" class="song-detail-header">
+            <img id="player-album-cover" class="album-cover" src="images/image_placeholder.png" alt="Song cover">
+            <div class="song-info-container">
+                <h2 id="player-song-title" class="song-title">Song Title</h2>
+                <div id="player-song-info" class="song-info">
+                    <p id="player-song-artist" class="song-artist">Artist: </p>
+                    <p id="player-song-album" class="song-album">Album: </p>
+                    <p id="player-song-year" class="song-year">Year: </p>
+                    <p id="player-song-genre" class="song-genre">Genre: </p>
+                </div>
+            </div>
+        </div>
         <audio id="global-audio-player" class="global-audio-player-styles" controls></audio>
     </div>
 
