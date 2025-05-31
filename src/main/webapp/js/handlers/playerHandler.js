@@ -27,8 +27,8 @@ export function initPlayer() {
         console.error('Error with audio player:', e);
 
         audioPlayerElement.style.display = 'none';
-		document.querySelector('.song-detail-header')?.remove();
-		document.querySelector('#closePlayer')?.remove();
+        document.querySelector('.song-detail-header')?.remove();
+        document.querySelector('#closePlayer')?.remove();
 
 
     });
@@ -36,58 +36,58 @@ export function initPlayer() {
     console.log('Audio player initialized.');
 }
 
-function decoratePlayer(songWithAlbum){
-	
-	// Close button
-	const closeButton = createElement('span', {className: 'close-button', id: 'closePlayer'});
-	closeButton.innerHTML = "&times;";
+function decoratePlayer(songWithAlbum) {
 
-	
-	const { song, album } = songWithAlbum;
-	document.querySelector('.song-detail-header')?.remove();
-	document.querySelector('#closePlayer')?.remove();
-	
-	
-	
-	const header = createElement('div', {className: 'song-detail-header'});
-	const img = createElement('img', {
-	    className: 'album-cover',
-	    attributes: {
-	        src: getSongImageURL(song.idSong),
-	        alt: song.title || "Song cover"
-	    }
-	});
-	img.onerror = () => {
-	    img.src = 'images/image_placeholder.png';
-	};
-	const title = createElement('h2', {className: 'song-title', textContent: song.title});
-	const info = createElement('div', {className: 'song-info'});
-	const artist = createElement('p', {className: 'song-artist', textContent: `Artist: ${album.artist}`});
-	const albumName = createElement('p', {className: 'song-album', textContent: `Album: ${album.name}`});
-	const year = createElement('p', {className: 'song-year', textContent: `Year: ${album.year}`});
-	const genre = createElement('p', {className: 'song-genre', textContent: `Genre: ${song.genre}`});
+    // Close button
+    const closeButton = createElement('span', { className: 'close-button', id: 'closePlayer' });
+    closeButton.innerHTML = "&times;";
 
-	info.appendChild(artist);
-	info.appendChild(albumName);
-	info.appendChild(year);
-	info.appendChild(genre);
 
-	header.appendChild(img);
-	header.appendChild(title);
-	header.appendChild(info);
-	
-	document.querySelector('.playerContainer').prepend(header);
-	document.querySelector('.playerContainer').prepend(closeButton);
-	
-	closeButton.addEventListener('click', () => {
-		audioPlayerElement.style.display = 'none';
-		audioPlayerElement.pause();
-		audioPlayerElement.currentTime = 0;
+    const { song, album } = songWithAlbum;
+    document.querySelector('.song-detail-header')?.remove();
+    document.querySelector('#closePlayer')?.remove();
 
-		document.querySelector('.song-detail-header')?.remove();
-		document.querySelector('#closePlayer')?.remove();
-		
-	});
+
+
+    const header = createElement('div', { className: 'song-detail-header' });
+    const img = createElement('img', {
+        className: 'album-cover',
+        attributes: {
+            src: getSongImageURL(song.idSong),
+            alt: DOMPurify.sanitize(song.title || "Song cover", { ALLOWED_TAGS: [] })
+        }
+    });
+    img.onerror = () => {
+        img.src = 'images/image_placeholder.png';
+    };
+    const title = createElement('h2', { className: 'song-title', textContent: song.title });
+    const info = createElement('div', { className: 'song-info' });
+    const artist = createElement('p', { className: 'song-artist', textContent: `Artist: ${album.artist}` });
+    const albumName = createElement('p', { className: 'song-album', textContent: `Album: ${album.name}` });
+    const year = createElement('p', { className: 'song-year', textContent: `Year: ${album.year}` });
+    const genre = createElement('p', { className: 'song-genre', textContent: `Genre: ${song.genre}` });
+
+    info.appendChild(artist);
+    info.appendChild(albumName);
+    info.appendChild(year);
+    info.appendChild(genre);
+
+    header.appendChild(img);
+    header.appendChild(title);
+    header.appendChild(info);
+
+    document.querySelector('.playerContainer').prepend(header);
+    document.querySelector('.playerContainer').prepend(closeButton);
+
+    closeButton.addEventListener('click', () => {
+        audioPlayerElement.style.display = 'none';
+        audioPlayerElement.pause();
+        audioPlayerElement.currentTime = 0;
+
+        document.querySelector('.song-detail-header')?.remove();
+        document.querySelector('#closePlayer')?.remove();
+
+    });
 
 }
 
@@ -106,13 +106,13 @@ async function _playSongById(songId) {
     }
 
     try {
-		const swa = await getSongDetails(songId);
+        const swa = await getSongDetails(songId);
         const audioURL = getSongAudioURL(songId);
         audioPlayerElement.src = audioURL;
         audioPlayerElement.style.display = 'block';
-		
-		decoratePlayer(swa);
-		
+
+        decoratePlayer(swa);
+
         const playPromise = audioPlayerElement.play();
         if (playPromise !== undefined) {
             playPromise.then(_ => {
@@ -120,17 +120,17 @@ async function _playSongById(songId) {
             }).catch(error => {
                 console.error(`Error playing song ${songId}:`, error);
                 audioPlayerElement.style.display = 'none';
-				
-				
-				document.querySelector('.dil-header')?.remove();
-				document.querySelector('#closePlayer')?.remove();
+
+
+                document.querySelector('.dil-header')?.remove();
+                document.querySelector('#closePlayer')?.remove();
             });
         }
     } catch (error) {
         console.error(`Failed to get audio URL or play song ${songId}:`, error);
         audioPlayerElement.style.display = 'none';
-		document.querySelector('.song-detail-header')?.remove();
-		document.querySelector('#closePlayer')?.remove();
+        document.querySelector('.song-detail-header')?.remove();
+        document.querySelector('#closePlayer')?.remove();
 
 
     }
@@ -173,8 +173,8 @@ function playNextInQueue() {
     if (currentQueue.length === 0 || currentIndex >= currentQueue.length - 1) {
         console.log('End of queue or no queue.');
         audioPlayerElement.style.display = 'none';
-		document.querySelector('.song-detail-header')?.remove();
-		document.querySelector('#closePlayer')?.remove();
+        document.querySelector('.song-detail-header')?.remove();
+        document.querySelector('#closePlayer')?.remove();
 
         currentQueue = [];
         currentIndex = -1;
@@ -199,8 +199,8 @@ export function stopPlayback() {
     audioPlayerElement.pause();
     audioPlayerElement.src = '';
     audioPlayerElement.style.display = 'none';
-	document.querySelector('.song-detail-header')?.remove();
-	document.querySelector('#closePlayer')?.remove();
+    document.querySelector('.song-detail-header')?.remove();
+    document.querySelector('#closePlayer')?.remove();
 
 
 

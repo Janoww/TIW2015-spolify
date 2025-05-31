@@ -28,7 +28,8 @@ function displayLogin(appContainer) {
                     if (generalErrorElement) {
                         generalErrorElement.textContent = error.message || 'An unexpected error occurred. Please try again.';
                     } else {
-                        alert(error.message || 'An unexpected error occurred during login. Please try again.');
+                        const sanitizedErrorMessage = DOMPurify.sanitize(error.message || 'An unexpected error occurred during login. Please try again.', { ALLOWED_TAGS: [] });
+                        alert(sanitizedErrorMessage);
                     }
                 }
             } else {
@@ -56,7 +57,8 @@ function displaySignup(appContainer) {
                 try {
                     const newUserData = await apiSignup({ username, name, surname, password });
                     console.log('Signup successful:', newUserData);
-                    alert('Signup successful! User: ' + newUserData.username + '. Please log in.');
+                    const sanitizedUsername = DOMPurify.sanitize(newUserData.username, { ALLOWED_TAGS: [] });
+                    alert('Signup successful! User: ' + sanitizedUsername + '. Please log in.');
                     displayLogin(appContainer);
                 } catch (error) {
                     console.error(`Signup failed: Status ${error.status}, Message: ${error.message}`, error.details || '');
@@ -64,7 +66,8 @@ function displaySignup(appContainer) {
                     if (generalErrorElement) {
                         generalErrorElement.textContent = error.message || 'An unexpected error occurred. Please try again.';
                     } else {
-                        alert(error.message || 'An unexpected error occurred during signup. Please try again.');
+                        const sanitizedErrorMessage = DOMPurify.sanitize(error.message || 'An unexpected error occurred during signup. Please try again.', { ALLOWED_TAGS: [] });
+                        alert(sanitizedErrorMessage);
                     }
                 }
             } else {

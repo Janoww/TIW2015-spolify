@@ -13,11 +13,11 @@ import {
     getSongs,
     updatePlaylistOrder
 } from '../apiService.js';
-import {getOrderedSongs} from './playlistHandler.js';
-import {navigate} from '../router.js';
-import {validateForm} from '../utils/formUtils.js';
-import {handleSongUploadSubmit} from './sharedFormHandlers.js';
-import {addAlbumSummaryIfNew, extractUniqueAlbumSummaries} from '../utils/orderUtils.js';
+import { getOrderedSongs } from './playlistHandler.js';
+import { navigate } from '../router.js';
+import { validateForm } from '../utils/formUtils.js';
+import { handleSongUploadSubmit } from './sharedFormHandlers.js';
+import { addAlbumSummaryIfNew, extractUniqueAlbumSummaries } from '../utils/orderUtils.js';
 
 /**
  * Initializes the Home Page.
@@ -258,7 +258,8 @@ async function setupReorderModalEventListeners(modal, playlistId, initialOrdered
             // Optionally, provide user feedback on successful save
         } catch (error) {
             console.error(`Failed to update playlist order: Status ${error.status}, Message: ${error.message}`, error.details || '');
-            alert(`Failed to update playlist order: Status ${error.status}, Message: ${error.message}`);
+            const sanitizedErrorMessage = DOMPurify.sanitize(error.message, { ALLOWED_TAGS: [] });
+            alert(`Failed to update playlist order: Status ${error.status}, Message: ${sanitizedErrorMessage}`);
         }
 
         closeModalHandler();

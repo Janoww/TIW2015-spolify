@@ -142,7 +142,7 @@ export function renderSliderItem(songWithAlbum) {
         className: 'slider-thumbnail',
         attributes: {
             src: getSongImageURL(song.idSong),
-            alt: song.title || "Song cover"
+            alt: DOMPurify.sanitize(song.title || "Song cover", { ALLOWED_TAGS: [] })
         }
     });
     img.onerror = () => {

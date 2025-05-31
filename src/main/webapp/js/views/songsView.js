@@ -82,7 +82,7 @@ function createSongArticleElement(songWithAlbum) {
 
     const img = document.createElement('img');
     img.src = getSongImageURL(songWithAlbum.song.idSong);
-    img.alt = songWithAlbum.song.title || "Song cover";
+    img.alt = DOMPurify.sanitize(songWithAlbum.song.title || "Song cover", { ALLOWED_TAGS: [] });
     img.onerror = () => {
         img.src = 'images/image_placeholder.png';
     };
