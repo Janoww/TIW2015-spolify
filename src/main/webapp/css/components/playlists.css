@@ -27,17 +27,24 @@
 .playlist-info {
     flex-grow: 1;
     text-align: left;
+    min-width: 0;
 }
 
 .playlist-info h3 {
     margin: 0 0 5px 0;
     color: #3B1E54;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .playlist-info p {
     margin: 0;
     color: #3B1E54;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .playlist-actions .styled-button {

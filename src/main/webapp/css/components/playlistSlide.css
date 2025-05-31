@@ -36,6 +36,7 @@
     gap: 10px;
     text-align: left;
     transition: background-color 0.3s ease;
+    min-width: 0;
 }
 
 .slider-item:hover {
@@ -95,11 +96,19 @@
     font-size: 1.1rem;
     margin: 0;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
 }
 
 .slider-metadata p {
     margin: 0;
     color: #3B1E54;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
 }
 
 .pre-carouselButton,

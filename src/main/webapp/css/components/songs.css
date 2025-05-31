@@ -60,6 +60,14 @@
     flex-grow: 1;
     color: #3B1E54;
     text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.song-text {
+    min-width: 0;
 }
 
 .song-checkbox {

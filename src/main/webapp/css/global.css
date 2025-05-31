@@ -1,3 +1,13 @@
+html {
+    box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+    box-sizing: inherit;
+}
+
 body {
     font-family: sans-serif;
     margin: 0;
@@ -72,6 +82,10 @@ h3 {
     font-size: 1vw;
     margin: 0 0 3px 0;
     text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 p {
@@ -98,6 +112,13 @@ section {
     flex-direction: column;
     height: 100%;
     max-height: 70vh;
+}
+
+li {
+    display: list-item;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .grid {
@@ -181,6 +202,9 @@ a.styled-button:visited {
     border-bottom: none;
     text-align: left;
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .song-detail-header {
@@ -195,13 +219,16 @@ a.styled-button:visited {
     justify-content: center;
     flex-grow: 1;
     text-align: left;
+    padding-right: 60px;
+    min-width: 0;
 }
 
 /* Image container */
 .album-cover {
     margin: 5px;
     height: 60px;
-    border-radius: 6px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
     object-fit: cover;
     border: 1px solid #ccc;
 }
@@ -221,10 +248,11 @@ a.styled-button:visited {
 }
 
 .playerContainer .song-info p {
-    /* Ensure p tags within player's song-info are left-aligned */
     text-align: left;
     margin-bottom: 2px;
-    /* Add a little space between lines */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .global-audio-player-styles {
@@ -233,18 +261,6 @@ a.styled-button:visited {
     padding: 8px;
     border-radius: 15px;
     z-index: 1002;
-}
-
-.global-audio-player-styles::-webkit-media-controls-panel {
-    background-color: #EEEEEE;
-    color: #3B1E54;
-}
-
-.global-audio-player-styles::-webkit-media-controls-play-button,
-.global-audio-player-styles::-webkit-media-controls-volume-slider,
-.global-audio-player-styles::-webkit-media-controls-current-time-display,
-.global-audio-player-styles::-webkit-media-controls-time-remaining-display {
-    color: #3B1E54;
 }
 
 .general-error-message {
@@ -321,5 +337,21 @@ a.styled-button:visited {
 
     .styled-button {
         font-size: 2.5vw;
+    }
+
+    .playerContainer {
+        width: 300px;
+    }
+
+    .playerContainer .album-cover {
+        height: 50px;
+    }
+
+    .playerContainer h2.song-title {
+        font-size: 0.9em;
+    }
+
+    .playerContainer .song-info p {
+        font-size: 0.7em;
     }
 }
