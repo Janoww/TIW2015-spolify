@@ -1,0 +1,7 @@
+@startjson
+title Login Request
+{
+  "username": "user123",
+  "password": "securepassword123"
+}
+@endjson

@@ -1,0 +1,9 @@
+@startjson
+title User Creation Request
+{
+  "username": "newuser",
+  "password": "newpassword456",
+  "name": "Jane",
+  "surname": "Doe"
+}
+@endjson

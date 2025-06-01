@@ -1,0 +1,9 @@
+@startjson
+title Playlist Details Response
+{
+  "idPlaylist": 1,
+  "name": "My Favorite Playlist",
+  "birthday": "2024-05-30T12:34:56Z",
+  "songIds": [101, 102, 103, "..."]
+}
+@endjson

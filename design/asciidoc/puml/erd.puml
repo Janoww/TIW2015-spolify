@@ -1,0 +1,60 @@
+@startuml ERD
+
+title Spolify Database ERD
+
+!theme sunlust
+skinparam Linetype ortho
+left to right direction
+
+entity User {
+  * idUser : BINARY(16) <<PK>>
+  --
+  * username : VARCHAR(100) <<UNIQUE>>
+  * password : VARCHAR(100)
+  name : VARCHAR(100)
+  surname : VARCHAR(100)
+}
+
+entity Album {
+  * idAlbum : INT <<PK>> <<AUTO_INCREMENT>>
+  --
+  * name : VARCHAR(100)\n<<UNIQUE with idUser>>
+  * year : INT
+  * artist : VARCHAR(100)
+  image : VARCHAR(255)
+  * idUser : BINARY(16) <<FK>>
+}
+
+entity Song {
+  * idSong : INT <<PK>> <<AUTO_INCREMENT>>
+  --
+  * title : VARCHAR(100)
+  genre : VARCHAR(100)
+  * audioFile : VARCHAR(255)
+  * idAlbum : INT <<FK>>
+  * idUser : BINARY(16) <<FK>>
+}
+
+entity playlist_metadata {
+  * idPlaylist : INT <<PK>> <<AUTO_INCREMENT>>
+  --
+  * name : VARCHAR(100)\n<<UNIQUE with idUser>>
+  * birthday : TIMESTAMP <<DEFAULT NOW()>>
+  * idUser : BINARY(16) <<FK>>
+}
+
+entity playlist_content {
+  * idPlaylist : INT <<FK>> <<PK>>
+  * idSong : INT <<FK>> <<PK>>
+  --
+  <<UNIQUE\n(idSong, idPlaylist)>>
+}
+
+User ||--o{ Album : owns
+User ||--o{ Song : owns
+User ||--o{ playlist_metadata : creates
+Album ||--|{ Song : contains
+playlist_metadata ||--|| playlist_content : has
+Song ||--o{ playlist_content : belongs to
+
+@enduml

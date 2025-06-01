@@ -1,0 +1,25 @@
+@startuml Component Diagram
+
+!theme sunlust
+left to right direction
+
+title Music Playlist Application - Component Diagram
+
+package "Frontend (Browser - Vanilla JS)" {
+  [Music Playlist SPA] <<Component>>
+}
+
+package "Backend (Apache Tomcat 10.1)" {
+  [REST API Servlets (Java)] <<Component>>
+  [DAO Layer (Java)] <<Component>>
+}
+
+database "Database (MySQL)" {
+  [MySQL Database] <<Database>>
+}
+
+[Music Playlist SPA] ..> [REST API Servlets (Java)] : HTTP Requests (JSON)
+[REST API Servlets (Java)] ..> [DAO Layer (Java)] : Java Method Calls
+[DAO Layer (Java)] ..> [MySQL Database] : SQL Queries
+
+@enduml

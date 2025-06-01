@@ -1,0 +1,11 @@
+@startjson
+
+title Example API response
+
+{
+  "message": "Songs processed for playlist {playlistId}.",
+  "addedSongIds": [1,2,3, "..."],
+  "duplicateSongIds": [4, 5, 6, "..."]
+}
+
+@endjson

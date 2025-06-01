@@ -1,0 +1,6 @@
+@startjson
+title Add Songs to Playlist Request
+{
+  "songIds": [123, 456, 789, "..."]
+}
+@endjson

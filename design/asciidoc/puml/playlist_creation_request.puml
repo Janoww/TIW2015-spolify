@@ -1,0 +1,7 @@
+@startjson
+title Playlist Creation Request
+{
+  "name": "My Awesome Playlist",
+  "songIds": [101, 102, "..."]
+}
+@endjson

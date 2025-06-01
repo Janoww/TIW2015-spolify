@@ -1,0 +1,32 @@
+@startjson
+title List of Songs with Album Details Response
+[
+  {
+    "idSong": 123,
+    "title": "Song Title",
+    "genre": "ROCK",
+    "audioFile": "song.mp3",
+    "album": {
+      "idAlbum": 45,
+      "name": "Album Name",
+      "year": 2023,
+      "artist": "Artist Name",
+      "image": "cover.jpg"
+    }
+  },
+  {
+    "idSong": 124,
+    "title": "Another Song",
+    "genre": "POP",
+    "audioFile": "another.ogg",
+    "album": {
+      "idAlbum": 46,
+      "name": "Pop Hits",
+      "year": 2024,
+      "artist": "Pop Star",
+      "image": "pop_cover.png"
+    }
+  },
+  "..."
+]
+@endjson

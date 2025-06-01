@@ -1,0 +1,8 @@
+@startjson User Response
+title User Information Response
+{
+  "username": "user123",
+  "name": "John",
+  "surname": "Doe"
+}
+@endjson

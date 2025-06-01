@@ -1,0 +1,18 @@
+@startjson
+title List of Available Genres Response
+[
+  {
+    "name": "ROCK",
+    "description": "Rock Music"
+  },
+  {
+    "name": "POP",
+    "description": "Popular Music"
+  },
+  {
+    "name": "JAZZ",
+    "description": "Jazz Music"
+  },
+  "..."
+]
+@endjson

@@ -1,0 +1,6 @@
+@startjson
+title Logout Successful Response
+{
+  "message": "Logout successful."
+}
+@endjson
