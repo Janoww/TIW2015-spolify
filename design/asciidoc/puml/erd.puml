@@ -54,7 +54,7 @@ User ||--o{ Album : owns
 User ||--o{ Song : owns
 User ||--o{ playlist_metadata : creates
 Album ||--|{ Song : contains
-playlist_metadata ||--|| playlist_content : has
+playlist_metadata ||--o{ playlist_content : has
 Song ||--o{ playlist_content : belongs to
 
 @enduml

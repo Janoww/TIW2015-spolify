@@ -1,0 +1,12 @@
+extends: default
+
+role:
+  entities:
+    font-color: #ff0000
+    font-style: bold
+  attributes:
+    font-color: #3cb371
+    font-style: bold
+  relationships:
+    font-color: #0000ff
+    font-style: bold

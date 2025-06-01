@@ -1,5 +1,8 @@
 = Music Playlist Application - Design Specification
+:doctype: book
 :toc: auto
+:icons: font
+:source-highlighter: coderay
 
 == Introduction
 
@@ -27,40 +30,140 @@ plantuml::puml/component_diagram.puml[svg]
 
 == Database Schema
 
+=== Data Analysis
+
+====
+Entities:: [.entities]#Entities for the database#
+Attributes:: [.attributes]#Attributes for each entities#
+Relationships:: [.relationships]#Relationships between entities#
+====
+
+Un’applicazione web consente la gestione di una playlist di brani musicali.
+[.entities]#Playlist e brani# sono [.relationships]#personali# di ogni [.entities]#utente# e [.relationships]#non condivisi#.
+
+Ogni utente ha [.attributes]#username, password, nome e cognome#.
+
+Ogni brano musicale è memorizzato nella base di dati mediante un [.attributes]#titolo#, l‘[.attributes]#immagine e il titolo# dell’[.entities]#album# da cui il brano è [.relationships]#tratto#, il [.attributes]#nome dell’interprete# (singolo o gruppo) dell’album, l’[.attributes]#anno di pubblicazione# dell’album, il [.attributes]#genere musicale# (si supponga che i generi siano prefissati) e il [.attributes]#file musicale#.
+Non è richiesto di memorizzare l’ordine con cui i brani compaiono nell’album a cui appartengono.
+
+Si ipotizzi che un brano possa [.relationships]#appartenere# a un solo album (no compilation).
+L’utente, previo login, può [.relationships]#creare# brani mediante il caricamento dei dati relativi e raggrupparli in playlist.
+
+Una playlist è un insieme di brani [.relationships]#scelti# tra quelli caricati dallo stesso utente.
+Lo stesso brano può essere [.relationships]#inserito in più# playlist.
+Una playlist ha un [.attributes]#titolo# e una [.attributes]#data di creazione# ed è [.relationships]#associata# al suo creatore.
+
+A seguito del login, l’utente accede all’`HOME PAGE` che presenta l’elenco delle proprie playlist, ordinate per data di creazione decrescente, un form per caricare un brano con tutti i dati relativi e un form per creare una nuova playlist.
+
+Il form per la creazione di una nuova playlist mostra l’elenco dei brani dell’utente ordinati per ordine alfabetico crescente dell’autore o gruppo e per data crescente di pubblicazione dell’abum a cui il brano appartiene.
+Tramite il form è possibile selezionare uno o più brani da includere.
+
+Quando l’utente clicca su una playlist nell’`HOME PAGE`, appare la pagina `PLAYLIST PAGE` che contiene inizialmente una tabella di una riga e cinque colonne.
+Ogni cella contiene il titolo di un brano e l’immagine dell’album da cui proviene.
+I brani sono ordinati da sinistra a destra per ordine alfabetico crescente dell’autore o gruppo e per data crescente di pubblicazione dell’abum a cui il brano appartiene.
+
+Se la playlist contiene più di cinque brani, sono disponibili comandi per vedere il precedente e successivo gruppo di brani.
+Se la `PLAYLIST PAGE` mostra il primo gruppo e ne esistono altri successivi nell’ordinamento, compare a destra della riga il bottone `SUCCESSIVI`, che permette di vedere il gruppo successivo.
+Se la `PLAYLIST PAGE` mostra l’ultimo gruppo e ne esistono altri precedenti nell’ordinamento, compare a sinistra della riga il bottone `PRECEDENTI`, che permette di vedere i cinque brani precedenti.
+Se la `PLAYLIST PAGE` mostra un blocco e esistono sia precedenti sia successivi, compare a destra della riga il bottone `SUCCESSIVI` e a sinistra il bottone `PRECEDENTI`.
+
+La `PLAYLIST PAGE` contiene anche un form che consente di selezionare e aggiungere uno o più brani alla playlist corrente, se non già presente nella playlist.
+Tale form presenta i brani da scegliere nello stesso modo del form usato per creare una playlist.
+A seguito dell’aggiunta di un brano alla playlist corrente, l’applicazione visualizza nuovamente la pagina a partire dal primo blocco della playlist.
+
+Quando l’utente seleziona il titolo di un brano, la `PLAYER PAGE` mostra tutti i dati del brano scelto e il player audio per la riproduzione del brano.
+
+=== Database design
+
 The database consists of the following tables:
 
 plantuml::puml/erd.puml[svg]
 
 * *User:* Stores user credentials and basic information.
- ** `idUser` (PK, BINARY(16), NOT NULL)
- ** `username` (VARCHAR(100), UNIQUE, NOT NULL)
- ** `password` (VARCHAR(100), NOT NULL - _Store hashed passwords_)
- ** `name` (VARCHAR(100))
- ** `surname` (VARCHAR(100))
-* *Album:* Stores album details. Each album is associated with a user.
- ** `idAlbum` (PK, INT, Auto-Increment, NOT NULL)
- ** `name` (VARCHAR(100), NOT NULL) - _Unique per user_
- ** `year` (INT, NOT NULL)
- ** `artist` (VARCHAR(100), NOT NULL)
- ** `image` (VARCHAR(255)) - _Optional Album cover image_
- ** `idUser` (FK, BINARY(16), NOT NULL - References User.idUser)
-* *Song:* Stores song metadata and file paths. Each song belongs to an album and is associated with a user.
- ** `idSong` (PK, INT, Auto-Increment, NOT NULL)
- ** `title` (VARCHAR(100), NOT NULL)
- ** `idAlbum` (FK, INT, NOT NULL - References Album.idAlbum)
- ** `genre` (VARCHAR(100))
- ** `audioFile` (VARCHAR(255), NOT NULL - _Audio filename_)
- ** `idUser` (FK, BINARY(16), NOT NULL - References User.idUser)
- ** _Note: The 'year' for a song is derived from its associated Album's year._
-* *playlist_metadata:* Stores playlist metadata. Each playlist is created by a user.
- ** `idPlaylist` (PK, INT, Auto-Increment, NOT NULL)
- ** `name` (VARCHAR(100), NOT NULL) - _Unique per user_
- ** `birthday` (TIMESTAMP, NOT NULL, DEFAULT CURRENT__TIMESTAMP) - _Creation timestamp__
- ** `idUser` (FK, BINARY(16), NOT NULL - References User.idUser)
+
+[source, SQL]
+----
+CREATE TABLE `User` (
+  `idUser` binary(16) NOT NULL,
+  `username` varchar(100) NOT NULL,
+  `password` varchar(100) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `surname` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`idUser`),
+  UNIQUE KEY `username_UNIQUE` (`username`)
+)
+----
+
+* *Album:* Stores album details.
+
+[source, SQL]
+----
+CREATE TABLE `Album` (
+  `idAlbum` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `year` int NOT NULL,
+  `artist` varchar(100) NOT NULL,
+  `image` varchar(255) DEFAULT NULL,
+  `idUser` binary(16) NOT NULL,
+  PRIMARY KEY (`idAlbum`),
+  UNIQUE KEY `unique_name_per_user` (`name`,`idUser`),
+  KEY `fk_Album_1_idx` (`idUser`),
+  CONSTRAINT `fk_Album_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+----
+
+* *Song:* Stores song metadata and file paths.
+
+[source, SQL]
+----
+CREATE TABLE `Song` (
+  `idSong` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(100) NOT NULL,
+  `idAlbum` int NOT NULL,
+  `genre` varchar(100) DEFAULT NULL,
+  `audioFile` varchar(255) NOT NULL,
+  `idUser` binary(16) NOT NULL,
+  PRIMARY KEY (`idSong`),
+  KEY `fk_Song_2_idx` (`idAlbum`),
+  KEY `fk_Song_1_idx` (`idUser`),
+  CONSTRAINT `fk_Song_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_Song_2` FOREIGN KEY (`idAlbum`) REFERENCES `Album` (`idAlbum`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+----
+
+* *playlist_metadata:* Stores playlist metadata.
+
+[source, SQL]
+----
+CREATE TABLE `playlist_metadata` (
+  `idPlaylist` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `birthday` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `idUser` binary(16) NOT NULL,
+  PRIMARY KEY (`idPlaylist`),
+  UNIQUE KEY `unique_playlist_per_user` (`idUser`,`name`),
+  KEY `fk_playlist-metadata_1_idx` (`idUser`),
+  CONSTRAINT `fk_playlist-metadata_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+----
+
 * *playlist_content:* Joining table for the N-N relationship between `playlist_metadata` and `Song`.
- ** `idPlaylist` (PK, FK, INT, NOT NULL - References playlist_metadata.idPlaylist)
- ** `idSong` (PK, FK, INT, NOT NULL - References Song.idSong)
- ** _Unique constraint on (`idSong`, `idPlaylist`)_
+
+[source, SQL]
+----
+CREATE TABLE `playlist_content` (
+  `idPlaylist` int NOT NULL,
+  `idSong` int NOT NULL,
+  PRIMARY KEY (`idPlaylist`,`idSong`),
+  UNIQUE KEY `unique_playlist_and_song` (`idSong`,`idPlaylist`),
+  KEY `fk_playlist-content_1_idx` (`idSong`),
+  KEY `fk_playlist-content_2_idx` (`idPlaylist`),
+  CONSTRAINT `fk_playlist-content_1` FOREIGN KEY (`idSong`) REFERENCES `Song` (`idSong`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_playlist-content_2` FOREIGN KEY (`idPlaylist`) REFERENCES `playlist_metadata` (`idPlaylist`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+----
+
+NOTE: The 'year' for a song is derived from its associated Album's year.
 
 <<<
 
@@ -71,179 +174,249 @@ The backend will expose RESTful API endpoints, all prefixed with `/api/v1/`. The
 === Authentication & User Management
 
 * `POST /auth/login`: Authenticates an existing user.
- ** Request: JSON.
+====
+*Request:* JSON.
 
 plantuml::puml/login_request.puml[svg]
 
- ** Response (200 OK): On success, returns JSON and sets an HTTP session cookie.
+*Response (200 OK):* On success, returns JSON and sets an HTTP session cookie.
 
 plantuml::puml/user_info_response.puml[svg]
 
- ** Error Responses:
-  *** `400 Bad Request`: Invalid input (e.g., missing fields, invalid format).
-  *** `401 Unauthorized`: Incorrect credentials.
-  *** `500 Internal Server Error`: Server-side error.
+*Error Responses:*
+
+* `400 Bad Request`: Invalid input (e.g., missing fields, invalid format).
+* `401 Unauthorized`: Incorrect credentials.
+* `500 Internal Server Error`: Server-side error.
+====
+
 * `POST /users`: Registers a new user.
- ** Request: JSON.
+====
+*Request:* JSON.
 
 plantuml::puml/user_creation_request.puml[svg]
 
- ** Response (201 CREATED): On success, returns JSON and sets an HTTP session cookie.
+*Response (201 CREATED):* On success, returns JSON and sets an HTTP session cookie.
 
 plantuml::puml/user_info_response.puml[svg]
 
- ** Error Responses:
-  *** `400 Bad Request`: Invalid input or validation errors.
-  *** `409 Conflict`: Username already exists.
-  *** `500 Internal Server Error`: Server-side error.
+*Error Responses:*
+
+* `400 Bad Request`: Invalid input or validation errors.
+* `409 Conflict`: Username already exists.
+* `500 Internal Server Error`: Server-side error.
+====
+
 * `POST /auth/logout`: Logs out the currently authenticated user.
- ** Request: No body required.
- ** Response (200 OK): Returns JSON. Invalidates the user's HTTP session.
+====
+*Request:* No body required.
+
+*Response (200 OK):* Returns JSON. Invalidates the user's HTTP session.
 
 plantuml::puml/logout_response.puml[svg]
 
- ** Error Responses:
-  *** `500 Internal Server Error`: If an unexpected server error occurs during logout.
+*Error Responses:*
+
+* `500 Internal Server Error`: If an unexpected server error occurs during logout.
+====
+
 * `GET /auth/me`: Checks if the current user has an active session.
- ** Request: No body required.
- ** Response (200 OK): If a session is active, returns JSON.
+====
+*Request:* No body required.
+
+*Response (200 OK):* If a session is active, returns JSON.
 
 plantuml::puml/user_info_response.puml[svg]
 
- ** Error Responses:
-  *** `401 Unauthorized`: No active session.
+*Error Responses:*
+
+* `401 Unauthorized`: No active session.
+====
 
 === Songs
 
 * `GET /songs`: Fetches all songs for the authenticated user.
- ** Request: No body required.
- ** Response (200 OK): JSON array of `SongWithAlbum` objects. Each object includes full song details and associated album details.
+====
+*Request:* No body required.
+
+*Response (200 OK):* JSON array of `SongWithAlbum` objects. Each object includes full song details and associated album details.
 
 plantuml::puml/song_with_album_list_response.puml[svg]
 
- ** Error Responses:
-  *** `401 Unauthorized`: User not authenticated.
-  *** `500 Internal Server Error`: Server-side error.
+*Error Responses:*
+
+* `401 Unauthorized`: User not authenticated.
+* `500 Internal Server Error`: Server-side error.
+====
+
 * `POST /songs`: Uploads a new song. If an album with the provided `albumTitle` doesn't exist for the user, a new album is created.
- ** Request: `multipart/form-data` containing:
-  *** `title` (text, required): The title of the song.
-  *** `genre` (text, required): The genre of the song (must be one of the predefined values, see `GET /songs/genres`).
-  *** `albumTitle` (text, required): The title of the album.
-  *** `albumArtist` (text, required): The artist of the album.
-  *** `albumYear` (number, required): The year of the album.
-  *** `audioFile` (file, required): The audio file for the song (e.g., `audio.mp3`).
-  *** `albumImage` (file, optional): The cover image for the album (e.g., `cover.jpg`). This is used if a new album is being created and this part is provided.
- ** Response (201 CREATED): JSON `SongWithAlbum` object representing the newly created song and its (potentially new) album.
+====
+*Request:* `multipart/form-data` containing:
+
+* `title` (text, required): The title of the song.
+* `genre` (text, required): The genre of the song (must be one of the predefined values, see `GET /songs/genres`).
+* `albumTitle` (text, required): The title of the album.
+* `albumArtist` (text, required): The artist of the album.
+* `albumYear` (number, required): The year of the album.
+* `audioFile` (file, required): The audio file for the song (e.g., `audio.mp3`).
+* `albumImage` (file, optional): The cover image for the album (e.g., `cover.jpg`). This is used if a new album is being created and this part is provided.
+
+*Response (201 CREATED)*: JSON `SongWithAlbum` object representing the newly created song and its (potentially new) album.
 
 plantuml::puml/song_with_album_response.puml[svg]
 
- ** Error Responses:
-  *** `400 Bad Request`: Invalid input (e.g., missing required fields, invalid genre, invalid year format, file processing error).
-  *** `401 Unauthorized`: User not authenticated.
-  *** `409 Conflict`: If a constraint violation occurs (e.g., song title already exists in the album for that user, though this specific check might vary based on DAO implementation).
-  *** `500 Internal Server Error`: Server-side error (e.g., DAO exception, file storage issue).
+*Error Responses:*
+
+* `400 Bad Request`: Invalid input (e.g., missing required fields, invalid genre, invalid year format, file processing error).
+* `401 Unauthorized`: User not authenticated.
+* `409 Conflict`: If a constraint violation occurs (e.g., song title already exists in the album for that user, though this specific check might vary based on DAO implementation).
+* `500 Internal Server Error`: Server-side error (e.g., DAO exception, file storage issue).
+====
+
 * `GET /songs/genres`: Fetches all available song genres.
- ** Request: No body required.
- ** Response (200 OK): JSON array of objects, where each object has a `name` (e.g., "ROCK") and `description` (e.g., "Rock Music") for the genre.
+====
+*Request:* No body required.
+
+*Response (200 OK):* JSON array of objects, where each object has a `name` (e.g., "ROCK") and `description` (e.g., "Rock Music") for the genre.
 
 plantuml::puml/genre_list_response.puml[svg]
 
- ** Error Responses:
-  *** `401 Unauthorized`: User not authenticated (if authentication is enforced for this endpoint, though typically it might be public).
-  *** `500 Internal Server Error`: Server-side error.
-* `+GET /songs/{songId}+`: Fetches details for a specific song, identified by `songId`.
- ** Request: No body required.
- ** Response (200 OK): JSON `SongWithAlbum` object containing full song details and associated album details.
+*Error Responses:*
+
+* `401 Unauthorized`: User not authenticated (if authentication is enforced for this endpoint, though typically it might be public).
+* `500 Internal Server Error`: Server-side error.
+====
+
+* `GET /songs/{songId}`: Fetches details for a specific song, identified by `songId`.
+====
+*Request:* No body required.
+
+*Response (200 OK):* JSON `SongWithAlbum` object containing full song details and associated album details.
 
 plantuml::puml/song_with_album_response.puml[svg]
 
- ** Error Responses:
-  *** `400 Bad Request`: Invalid `songId` format.
-  *** `401 Unauthorized`: User not authenticated.
-  *** `404 Not Found`: Song not found or not owned by the user.
-  *** `500 Internal Server Error`: Server-side error.
-* `+GET /songs/{songId}/audio+`: Fetches the audio file for a specific song.
- ** Request: No body required.
- ** Response (200 OK): The audio file stream (e.g., `audio/mpeg`, `audio/ogg`) with appropriate `Content-Type` and `Content-Disposition` headers.
- ** Error Responses:
-  *** `400 Bad Request`: Invalid `songId` format.
-  *** `401 Unauthorized`: User not authenticated.
-  *** `404 Not Found`: Song not found, not owned by the user, or audio file is missing.
-  *** `500 Internal Server Error`: Server-side error (e.g., error reading file).
-* `+GET /songs/{songId}/image+`: Fetches the album cover image for the album associated with a specific song.
- ** Request: No body required.
- ** Response (200 OK): The image file stream (e.g., `image/jpeg`, `image/png`) with appropriate `Content-Type` and `Content-Disposition` headers.
- ** Error Responses:
-  *** `400 Bad Request`: Invalid `songId` format.
-  *** `401 Unauthorized`: User not authenticated.
-  *** `404 Not Found`: Song not found, album not found, not owned by the user, or image file is missing.
-  *** `500 Internal Server Error`: Server-side error (e.g., error reading file).
+*Error Responses:*
+
+* `400 Bad Request`: Invalid `songId` format.
+* `401 Unauthorized`: User not authenticated.
+* `404 Not Found`: Song not found or not owned by the user.
+* `500 Internal Server Error`: Server-side error.
+====
+
+* `GET /songs/{songId}/audio`: Fetches the audio file for a specific song.
+====
+*Request:* No body required.
+
+*Response (200 OK):* The audio file stream (e.g., `audio/mpeg`, `audio/ogg`) with appropriate `Content-Type` and `Content-Disposition` headers.
+
+*Error Responses:*
+
+* `400 Bad Request`: Invalid `songId` format.
+* `401 Unauthorized`: User not authenticated.
+* `404 Not Found`: Song not found, not owned by the user, or audio file is missing.
+* `500 Internal Server Error`: Server-side error (e.g., error reading file).
+====
+
+* `GET /songs/{songId}/image`: Fetches the album cover image for the album associated with a specific song.
+====
+*Request:* No body required.
+
+*Response (200 OK):* The image file stream (e.g., `image/jpeg`, `image/png`) with appropriate `Content-Type` and `Content-Disposition` headers.
+
+*Error Responses:*
+
+* `400 Bad Request`: Invalid `songId` format.
+* `401 Unauthorized`: User not authenticated.
+* `404 Not Found`: Song not found, album not found, not owned by the user, or image file is missing.
+* `500 Internal Server Error`: Server-side error (e.g., error reading file).
+====
 
 === Playlists
 
 * `GET /playlists`: Fetches all playlists for the authenticated user.
- ** Request: No body required.
- ** Response (200 OK): JSON array of `Playlist` objects.
+====
+*Request:* No body required.
+
+*Response (200 OK):* JSON array of `Playlist` objects.
 
 plantuml::puml/playlist_list_response.puml[svg]
 
- ** Error Responses:
-  *** `401 Unauthorized`: User not authenticated.
-  *** `500 Internal Server Error`: Server-side error.
+*Error Responses:*
+
+* `401 Unauthorized`: User not authenticated.
+* `500 Internal Server Error`: Server-side error.
+====
+
 * `POST /playlists`: Creates a new playlist.
- ** Request: JSON (songIds is optional, if provided must be an array of positive integers).
+====
+*Request:* JSON (songIds is optional, if provided must be an array of positive integers).
 
 plantuml::puml/playlist_creation_request.puml[svg]
 
- ** Response (201 CREATED): On success, returns the created `Playlist` object.
+*Response (201 CREATED)*: On success, returns the created `Playlist` object.
 
 plantuml::puml/playlist_response.puml[svg]
 
- ** Error Responses:
-  *** `400 Bad Request`: Invalid input (e.g., missing name, invalid name format, invalid song IDs).
-  *** `401 Unauthorized`: User not authenticated.
-  *** `409 Conflict`: Playlist name already exists for the user.
-  *** `500 Internal Server Error`: Server-side error (e.g., DAO exception).
-* `+POST /playlists/{playlistId}/songs+`: Adds one or more songs to an existing playlist.
- ** Request: JSON. `songIds` must be a non-empty array of positive integers.
+*Error Responses:*
+
+* `400 Bad Request`: Invalid input (e.g., missing name, invalid name format, invalid song IDs).
+* `401 Unauthorized`: User not authenticated.
+* `409 Conflict`: Playlist name already exists for the user.
+* `500 Internal Server Error`: Server-side error (e.g., DAO exception).
+====
+
+* `POST /playlists/{playlistId}/songs`: Adds one or more songs to an existing playlist.
+====
+*Request:* JSON. `songIds` must be a non-empty array of positive integers.
 
 plantuml::puml/playlist_add_songs_request.puml[svg]
 
- ** Response (200 OK): On successful processing, returns JSON:
+*Response (200 OK):* On successful processing, returns JSON:
 
 plantuml::puml/add_songs_to_playlist_response.puml[svg]
 
- ** Error Responses:
-  *** `400 Bad Request`: Invalid JSON, missing/empty `songIds`, invalid song ID format.
-  *** `401 Unauthorized`: User not authenticated.
-  *** `403 Forbidden`: User does not own the playlist, or a specified song is not owned by the user.
-  *** `404 Not Found`: Playlist with `+{playlistId}+` not found, or a specified song ID not found.
-  *** `500 Internal Server Error`: Other server-side errors.
-* `+GET /playlists/{playlistId}/order+`: Fetches the current order of songs for a specific playlist.
- ** Request: No body required.
- ** Response (200 OK): JSON array of song IDs representing the order.
+*Error Responses:*
+
+* `400 Bad Request`: Invalid JSON, missing/empty `songIds`, invalid song ID format.
+* `401 Unauthorized`: User not authenticated.
+* `403 Forbidden`: User does not own the playlist, or a specified song is not owned by the user.
+* `404 Not Found`: Playlist with `+{playlistId}+` not found, or a specified song ID not found.
+* `500 Internal Server Error`: Other server-side errors.
+====
+
+* `GET /playlists/{playlistId}/order`: Fetches the current order of songs for a specific playlist.
+====
+*Request:* No body required.
+
+*Response (200 OK):* JSON array of song IDs representing the order.
 
 plantuml::puml/song_id_list_response.puml[svg]
 
- ** Error Responses:
-  *** `400 Bad Request`: Invalid playlist ID format.
-  *** `401 Unauthorized`: User not authenticated.
-  *** `404 Not Found`: Playlist not found or user does not have access.
-  *** `500 Internal Server Error`: Other server-side errors.
-* `+PUT /playlists/{playlistId}/order+`: Updates the order of songs in a specific playlist.
- ** Request: JSON array of song IDs in the desired new order. The list must contain all and only the song IDs currently in the playlist, without duplicates.
+*Error Responses:*
+
+* `400 Bad Request`: Invalid playlist ID format.
+* `401 Unauthorized`: User not authenticated.
+* `404 Not Found`: Playlist not found or user does not have access.
+* `500 Internal Server Error`: Other server-side errors.
+====
+
+* `PUT /playlists/{playlistId}/order`: Updates the order of songs in a specific playlist.
+====
+*Request:* JSON array of song IDs in the desired new order. The list must contain all and only the song IDs currently in the playlist, without duplicates.
 
 plantuml::puml/playlist_update_order_request.puml[svg]
 
- ** Response (200 OK): JSON array of song IDs confirming the new order.
+*Response (200 OK):* JSON array of song IDs confirming the new order.
 
 plantuml::puml/song_id_list_response.puml[svg]
 
- ** Error Responses:
-  *** `400 Bad Request`: Invalid JSON format, invalid playlist ID, song ID list does not match current playlist content (e.g., missing songs, extra songs, duplicate songs in request, invalid song IDs).
-  *** `401 Unauthorized`: User not authenticated.
-  *** `404 Not Found`: Playlist not found or user does not have access.
-  *** `500 Internal Server Error`: Other server-side errors.
+*Error Responses:*
+
+* `400 Bad Request`: Invalid JSON format, invalid playlist ID, song ID list does not match current playlist content (e.g., missing songs, extra songs, duplicate songs in request, invalid song IDs).
+* `401 Unauthorized`: User not authenticated.
+* `404 Not Found`: Playlist not found or user does not have access.
+* `500 Internal Server Error`: Other server-side errors.
+====
 
 _Error Handling:_ APIs should return appropriate HTTP status codes (e.g., 200, 201, 400, 401, 403, 404, 500) and JSON error messages.
 
