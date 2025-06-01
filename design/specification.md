@@ -227,10 +227,10 @@ The JavaScript SPA will manage different views/components, dynamically rendered 
     - Functionality for users to drag-and-drop songs to define a custom order. This reordering happens client-side.
     - A "Save Order" button to persist the custom sequence to the server via `apiService.updatePlaylistOrder()`. Once a custom order is saved, it becomes the default display order for that playlist in subsequent views. If new songs are added to a playlist that has a custom order, they are appended to the end of this custom order.
   - **Color Palette:**
-    - Background color: ![Background](/design/EEEEEE.svg) #EEEEEE
+    - Background color: ![Background](/design/palette/EEEEEE.svg) #EEEEEE
     - Alternative background color: ![Alt Background](/design/D4BEE4.svg) #D4BEE4
-    - Text: ![Text](/design/9B7EBD.svg) #9B7EBD
-    - Highlight color: ![High Text](/design/3B1E54.svg) #3B1E54.
+    - Text: ![Text](/design/palette/9B7EBD.svg) #9B7EBD
+    - Highlight color: ![High Text](/design/palette/3B1E54.svg) #3B1E54.
 
 ## Key Features (SPA Specifics)
 
