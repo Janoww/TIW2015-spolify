@@ -1,5 +1,7 @@
 @startjson
 title User Creation Request
+!theme sunlust
+
 {
   "username": "newuser",
   "password": "newpassword456",

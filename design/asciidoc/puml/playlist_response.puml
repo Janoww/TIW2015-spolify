@@ -1,5 +1,7 @@
 @startjson
 title Playlist Details Response
+!theme sunlust
+
 {
   "idPlaylist": 1,
   "name": "My Favorite Playlist",

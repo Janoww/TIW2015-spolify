@@ -1,5 +1,7 @@
 @startjson
 title Add Songs to Playlist Request
+!theme sunlust
+
 {
   "songIds": [123, 456, 789, "..."]
 }

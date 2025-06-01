@@ -1,5 +1,7 @@
 @startjson
 title Add Songs to Playlist Result Response
+!theme sunlust
+
 {
   "message": "Songs processed for playlist {playlistId}.",
   "addedSongIds": [123, 456, "..."],

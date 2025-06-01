@@ -1,5 +1,7 @@
 @startjson
 title Logout Successful Response
+!theme sunlust
+
 {
   "message": "Logout successful."
 }

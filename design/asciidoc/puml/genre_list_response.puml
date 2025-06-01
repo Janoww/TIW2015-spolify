@@ -1,5 +1,7 @@
 @startjson
 title List of Available Genres Response
+!theme sunlust
+
 [
   {
     "name": "ROCK",

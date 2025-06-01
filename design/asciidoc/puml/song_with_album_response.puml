@@ -1,5 +1,7 @@
 @startjson
 title Song with Album Details Response
+!theme sunlust
+
 {
   "idSong": 123,
   "title": "Song Title",

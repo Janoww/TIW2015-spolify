@@ -1,5 +1,7 @@
 @startjson
 title Playlist Creation Request
+!theme sunlust
+
 {
   "name": "My Awesome Playlist",
   "songIds": [101, 102, "..."]

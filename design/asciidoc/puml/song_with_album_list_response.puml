@@ -1,5 +1,7 @@
 @startjson
 title List of Songs with Album Details Response
+!theme sunlust
+
 [
   {
     "idSong": 123,
