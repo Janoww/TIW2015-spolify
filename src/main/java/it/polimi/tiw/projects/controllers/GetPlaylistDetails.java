@@ -100,7 +100,7 @@ public class GetPlaylistDetails extends HttpServlet {
         try {
             playlistId = Integer.parseInt(req.getParameter("playlistId"));
         } catch (NumberFormatException | NullPointerException e) {
-            e.printStackTrace();
+        	logger.error("Failed to parse playlistID", e.getMessage(), e);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Incorrect param values");
             return;
         }
@@ -117,7 +117,7 @@ public class GetPlaylistDetails extends HttpServlet {
                     return;
                 }
                 default: {
-                    e.printStackTrace();
+                    logger.error("Error while searching for playlist", e.getMessage(), e);
                     resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
                     return;
                 }
@@ -129,7 +129,7 @@ public class GetPlaylistDetails extends HttpServlet {
         try {
             songWithAlbumOrdered = orderAllSongs(myPlaylist, songDAO, albumDAO, userId);
         } catch (DAOException e) {
-            e.printStackTrace();
+        	logger.error("Failed to order songs", e.getMessage(), e);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
             return;
         }
@@ -161,7 +161,7 @@ public class GetPlaylistDetails extends HttpServlet {
         try {
             unusedSongs = getUnusedSongs(myPlaylist, songDAO, userId);
         } catch (DAOException e) {
-            e.printStackTrace();
+        	logger.error("Failed to get unused songs", e.getMessage(), e);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An internal error occurred");
             return;
         }

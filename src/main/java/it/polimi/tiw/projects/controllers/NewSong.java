@@ -27,6 +27,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @MultipartConfig
@@ -60,7 +61,7 @@ public class NewSong extends HttpServlet {
             if (albumName == null || (albumName = albumName.strip()).isEmpty()) {
                 return "You have to specify the album name";
             }
-            if (isValid(title, titlePattern)) {
+            if (isValid(albumName, titlePattern)) {
                 return "Invalid album name format. Use letters, numbers, spaces, hyphens, or apostrophes (1-100 characters).";
             }
 
@@ -78,8 +79,8 @@ public class NewSong extends HttpServlet {
             if (artist == null || (artist = artist.strip()).isEmpty()) {
                 return "You have to specify the name of the artist";
             }
-            if (isValid(title, titlePattern)) {
-                return "Invalid artis name format. Use letters, numbers, spaces, hyphens, or apostrophes (1-100 characters).";
+            if (isValid(artist, titlePattern)) {
+                return "Invalid artist name format. Use letters, numbers, spaces, hyphens, or apostrophes (1-100 characters).";
             }
 
             String genreName = req.getParameter("sGenre");
@@ -134,6 +135,7 @@ public class NewSong extends HttpServlet {
         AlbumDAO albumDAO = new AlbumDAO(connection);
         AudioDAO audioDAO = (AudioDAO) getServletContext().getAttribute("audioDAO");
         ImageDAO imageDAO = (ImageDAO) getServletContext().getAttribute("imageDAO");
+        UUID userId = ((User) req.getSession().getAttribute("user")).getIdUser();
 
         // Check Parameters
         String checkResult = areParametersOk(req, getServletContext());
@@ -165,150 +167,165 @@ public class NewSong extends HttpServlet {
 
         logger.debug("Retrieved Parameters");
 
-        User user = (User) req.getSession().getAttribute("user");
+        // Find the list of all the albums
+        List<Album> albums;
+        try {
+            albums = albumDAO.findAlbumsByUser(userId);
+        } catch (DAOException e) {
+            logger.error("Failed to retrieve the album by user: {}", e.getMessage(), e);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+            return;
+        }
 
-        if (user != null) {
-            // Find the list of all the albums
-            List<Album> albums;
-            try {
-                albums = albumDAO.findAlbumsByUser(user.getIdUser());
-            } catch (DAOException e) {
-                logger.error("Failed to retrieve thealbum by user: {}", e.getMessage(), e);
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
-                return;
-            }
+        // Search if there is already an album with that name
+        Album album = findAlbum(albums, albumName);
 
-            // Search if there is already an album with that name
-            Album album = findAlbum(albums, albumName);
+        if (album != null && (!(album.getYear() == year) || !album.getArtist().equalsIgnoreCase(artist))) {
+            // If an album with that name already exists but the information don't match
+            req.setAttribute("errorNewSongMsg", "An album named \"" + album.getName()
+                    + "\" already exists, it is from the year " + album.getYear() + " by \"" + album.getArtist() + "\"");
 
-            if (album != null && (!(album.getYear() == year) || !album.getArtist().equalsIgnoreCase(artist))) {
-                // If an album with that name already exists but the information don't match
-                req.setAttribute("errorNewSongMsg", "An album named \"" + album.getName()
-                        + "\" already exists, it is from the year " + year + " by \"" + album.getArtist() + "\"");
+            req.getRequestDispatcher("/Home").forward(req, resp);
+            return;
+        }
 
+        // An album can't have songs with the same name
+        try {
+            if (album != null && songDAO.findSongsByUser(userId).stream()
+                    .anyMatch(s -> s.getTitle().equals(title))) {
+                // TODO Maybe it is more efficient to create an ad hoc query to find a specific
+                // song
+                req.setAttribute("errorNewSongMsg", "The song titled \"" + title + "\" of the album \""
+                        + album.getName() + "\" have already been uploaded");
                 req.getRequestDispatcher("/Home").forward(req, resp);
                 return;
             }
+        } catch (DAOException e) {
+            logger.error("Error while searching user songs: {}", e.getMessage(), e);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+            return;
+        }
 
-            // An album can't have songs with the same name
+        String imageFileRename = null;
+        Boolean isAlbumNew = false;
+
+        if (album == null) {
+            isAlbumNew = true;
+            // If an album already exists the image will not be updated
+
+            String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
+
             try {
-                if (album != null && songDAO.findSongsByUser(user.getIdUser()).stream()
-                        .anyMatch(s -> s.getTitle().equals(title))) {
-                    // TODO Maybe it is more efficient to create an ad hoc query to find a specific
-                    // song
-                    req.setAttribute("errorNewSongMsg", "The song titled \"" + title + "\" of the album \""
-                            + album.getName() + "\" have already been uploaded");
-                    req.getRequestDispatcher("/Home").forward(req, resp);
-                    return;
-                }
-            } catch (DAOException e) {
-                logger.error("Error while searcing user songs: {}", e.getMessage(), e);
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
-                return;
-            }
-
-            String imageFileRename = null;
-            Boolean isAlbumNew = false;
-
-            if (album == null) {
-                isAlbumNew = true;
-                // If an album already exists the image will not be updated
-
-                String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
-
-                try {
-                    try (InputStream imageStream = imagePart.getInputStream()) {
-                        imageFileRename = imageDAO.saveImage(imageStream, imageFileName);
-                        // If the image saving fails, nothing will be saved
-                    }
-                } catch (IllegalArgumentException e) {
-                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                            "The image file you provvided may be corrupted");
-                    logger.error("Problem with the imageFIle: {}", e.getMessage(), e);
-                    return;
-                } catch (DAOException e) {
-                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                            "Failed to save image due to I/O error");
-                    logger.error("I/O error: {}", e.getMessage(), e);
-                    return;
-                }
-
-            }
-
-            // Create a new album if it doesn't exist
-            if (album == null) {
-                try {
-                    album = albumDAO.createAlbum(albumName, year, artist, imageFileRename, user.getIdUser());
-                } catch (DAOException e) {
-                    // We need to delete the saved image since the album creation failed.
-
-                    try {
-                        imageDAO.deleteImage(imageFileRename);
-                    } catch (IllegalArgumentException | DAOException e1) {
-                        logger.error("Error while deleting image due to failed album creation: {}", e.getMessage(), e);
-                        return;
-                    }
-
-                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
-                    logger.error("Error creating album: {}", e.getMessage(), e);
-                    return;
-                }
-            }
-            int idAlbum = album.getIdAlbum();
-
-            // Saving the audio file
-
-            String audioFileName = Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
-
-            String audioFileRename;
-            try {
-                try (InputStream audioStream = audioPart.getInputStream()) {
-                    audioFileRename = audioDAO.saveAudio(audioStream, audioFileName);
+                try (InputStream imageStream = imagePart.getInputStream()) {
+                    imageFileRename = imageDAO.saveImage(imageStream, imageFileName);
+                    // If the image saving fails, nothing will be saved
                 }
             } catch (IllegalArgumentException e) {
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                        "The audio file you provided may be corrupted");
-                logger.error("Audio file broken: {}", e.getMessage(), e);
+                        "The image file you provided may be corrupted");
+                logger.error("Problem with the imageFile: {}", e.getMessage(), e);
                 return;
             } catch (DAOException e) {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to save image due to I/O error");
-                logger.error("Error saving the audio: {}", e.getMessage(), e);
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "Failed to save image due to I/O error");
+                logger.error("I/O error: {}", e.getMessage(), e);
                 return;
             }
 
+        }
+
+        // Create a new album if it doesn't exist
+        if (album == null) {
             try {
-                songDAO.createSong(title, idAlbum, year, genre, audioFileRename, user.getIdUser());
+                album = albumDAO.createAlbum(albumName, year, artist, imageFileRename, userId);
             } catch (DAOException e) {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
-                logger.error("An error occurred while creating the song: {}", e.getMessage(), e);
-                // Deleting the audio
+                // We need to delete the saved image since the album creation failed.
 
                 try {
-                    audioDAO.deleteAudio(audioFileRename);
+                    imageDAO.deleteImage(imageFileRename);
                 } catch (IllegalArgumentException | DAOException e1) {
-                    logger.error("Error while deleting audio due to failed song creation: {}", e.getMessage(), e);
+                    logger.error("Error while deleting image due to failed album creation: {}", e1.getMessage(), e1);
                     return;
                 }
 
-                // Deleting the album
-                if (isAlbumNew) {
-                    try {
-                        imageDAO.deleteImage(album.getImage());
-                        albumDAO.deleteAlbum(idAlbum, user.getIdUser());
-                    } catch (DAOException e1) {
-                        logger.error(
-                                "While trying to delate an album because of the failed creation of the song an error occurred: {}",
-                                e1.getMessage());
-                    }
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+                logger.error("Error creating album: {}", e.getMessage(), e);
+                return;
+            }
+        }
+        int idAlbum = album.getIdAlbum();
+
+        // Saving the audio file
+
+        String audioFileName = Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
+
+        String audioFileRename;
+        try {
+            try (InputStream audioStream = audioPart.getInputStream()) {
+                audioFileRename = audioDAO.saveAudio(audioStream, audioFileName);
+            }
+        } catch (IllegalArgumentException e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "The audio file you provided may be corrupted");
+            logger.error("Audio file broken: {}", e.getMessage(), e);
+            
+            // Deleting the album
+            if (isAlbumNew) {
+                try {
+                    imageDAO.deleteImage(album.getImage());
+                    albumDAO.deleteAlbum(idAlbum, userId);
+                } catch (DAOException e1) {
+                    logger.error(
+                            "While trying to delete an album because of the failed creation of the song an error occurred: {}",
+                            e1.getMessage(), e1);
                 }
+            }
+            return;
+        } catch (DAOException e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to save image due to I/O error");
+            logger.error("Error saving the audio: {}", e.getMessage(), e);
+            // Deleting the album
+            if (isAlbumNew) {
+                try {
+                    imageDAO.deleteImage(album.getImage());
+                    albumDAO.deleteAlbum(idAlbum, userId);
+                } catch (DAOException e1) {
+                    logger.error(
+                            "While trying to delete an album because of the failed creation of the song an error occurred: {}",
+                            e1.getMessage(), e1);
+                }
+            }
+            return;
+        }
+
+        try {
+            songDAO.createSong(title, idAlbum, year, genre, audioFileRename, userId);
+        } catch (DAOException e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+            logger.error("An error occurred while creating the song: {}", e.getMessage(), e);
+            // Deleting the audio
+
+            try {
+                audioDAO.deleteAudio(audioFileRename);
+            } catch (IllegalArgumentException | DAOException e1) {
+                logger.error("Error while deleting audio due to failed song creation: {}", e.getMessage(), e);
                 return;
             }
 
-        } else {
-            // The user was not retrieved
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Session lost");
+            // Deleting the album
+            if (isAlbumNew) {
+                try {
+                    imageDAO.deleteImage(album.getImage());
+                    albumDAO.deleteAlbum(idAlbum, userId);
+                } catch (DAOException e1) {
+                    logger.error(
+                            "While trying to delete an album because of the failed creation of the song an error occurred: {}",
+                            e1.getMessage(), e1);
+                }
+            }
             return;
         }
+
 
         String path = getServletContext().getContextPath() + "/Home";
         resp.sendRedirect(path);
