@@ -284,3 +284,7 @@ fabric.properties
 
 # .classpath different between IDEs it should be needed to run the project because of Maven
 .classpath
+
+.asciidoctor
+
+design/asciidoc/*.svg
