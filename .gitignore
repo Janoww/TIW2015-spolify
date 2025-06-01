@@ -288,3 +288,4 @@ fabric.properties
 .asciidoctor
 
 design/asciidoc/*.svg
+design/asciidoc/documentation.pdf
