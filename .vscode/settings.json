@@ -51,5 +51,8 @@
     "org.eclipse.jdt.annotation.Nullable",
     "org.springframework.lang.Nullable"
   ],
-  "geminicodeassist.codeGenerationPaneViewEnabled": true
+  "geminicodeassist.codeGenerationPaneViewEnabled": true,
+  "asciidoc.preview.attributes": {
+    "plantuml-server-url": "http://plantuml.com/plantuml"
+  }
 }
