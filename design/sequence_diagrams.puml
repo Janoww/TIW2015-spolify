@@ -1,0 +1,719 @@
+@startuml
+title CheckLogin Servlet - Sequence Diagram
+
+actor User
+participant "HttpServletRequest" as Request
+participant "CheckLogin Servlet" as Servlet
+participant "UserDAO" as DAO
+participant "HttpSession" as Session
+participant "WebContext" as ctx
+participant "TemplateEngine" as Template
+participant "HttpServletResponse" as Response
+
+
+User -> Request : send POST (username, password)
+
+Request -> Servlet : doPost()
+activate Servlet
+
+
+break missing username or password
+    Servlet -> Response : sendError(400, "Missing credential value")
+end
+
+    Servlet -> DAO : checkCredentials(username, password)
+    activate DAO
+    alt valid credentials
+        DAO --> Servlet : User
+        Servlet -> Session : setAttribute("user", User)
+        Servlet -> Response : sendRedirect("/Home")
+    else invalid credentials (DAOException with INVALID_CREDENTIALS)
+        DAO --> Servlet : throw DAOException
+
+        Servlet -> ctx : setVariable( errorLogInMsg, msg)
+        Servlet -> Template : process("/index.html", ctx)
+        activate Template
+        Template --> Response : write error page
+        deactivate Template
+    else other DAOException
+        DAO --> Servlet : throw DAOException
+        deactivate DAO
+
+        Servlet -> Response : sendError(500, "Not possible to log in")
+        deactivate Servlet
+
+end
+Response --> User : sends HTTP response
+@enduml
+
+@startuml
+title SignUp Servlet - Sequence Diagram
+
+actor User
+participant "HttpServletRequest" as Request
+participant "SignUp Servlet" as Servlet
+participant "UserDAO" as DAO
+participant "HttpSession" as Session
+participant "WebContext" as ctx
+participant "TemplateEngine" as Template
+participant "HttpServletResponse" as Response
+
+User -> Request : send POST (name, surname, username, password)
+
+Request -> Servlet : doPost()
+activate Servlet
+
+break missing parameters
+    Servlet -> Response : sendError(400, "Missing credential value")
+end
+break invalid parameter format
+    Servlet -> ctx : setVariable("errorSignUpMsg", msg)
+    Servlet -> Template : process("/index.html", ctx)
+    activate Template
+    Template --> Response : write error page
+    deactivate Template
+end
+    Servlet -> DAO : createUser(username, password, name, surname)
+    activate DAO
+    alt username already taken (DAOException)
+        DAO --> Servlet : throw DAOException
+        Servlet -> ctx : setVariable("errorSignUpMsg", msg)
+        Servlet -> Template : process("/index.html", ctx)
+        activate Template
+        Template --> Response : write error page
+        deactivate Template
+    else other DAOException
+        DAO --> Servlet : throw DAOException
+
+        Servlet -> Response : sendError(500, "Not possible to sign up")
+    else user created successfully
+        DAO --> Servlet : return success
+
+        Servlet -> DAO : checkCredentials(username, password)
+    break DAOException (failure retrieving user)
+        DAO --> Servlet : throw DAOException
+
+        Servlet -> Response : sendError(500, "Not possible to check credentials")
+    end
+        DAO --> Servlet : return User object
+        deactivate DAO
+
+        Servlet -> Session : setAttribute("user", User)
+        Servlet -> Response : sendRedirect("/Home")
+        deactivate Servlet
+    end
+
+
+
+
+Response --> User : HTTP response (redirect or error page)
+
+@enduml
+
+@startuml
+title GoToHome Servlet Servlet - Sequence Diagram
+actor User
+participant "HttpServletRequest" as Request
+participant "GoToHome Servlet" as Servlet
+participant "PlaylistDAO" as PlaylistDAO
+participant "SongDAO" as SongDAO
+participant "HttpSession" as Session
+participant "WebContext" as ctx
+participant "TemplateEngine" as Template
+participant "HttpServletResponse" as Response
+
+User -> Request : send GET /Home request
+
+Request -> Servlet : doGet()
+activate Servlet
+
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+
+Servlet -> PlaylistDAO : findPlaylistIdsByUser(userId)
+activate PlaylistDAO
+
+Servlet -> SongDAO : findSongsByUser(userId)
+activate SongDAO
+
+break error during DB access
+    PlaylistDAO --> Servlet : DAOException
+    Servlet -> Response : sendError(500, "Error in the database")
+end
+PlaylistDAO --> Servlet : List<Integer> playlistIDs
+deactivate PlaylistDAO
+SongDAO --> Servlet : List<Song> songList
+deactivate SongDAO
+
+
+opt playlists exist
+    loop for each playlist ID
+        Servlet -> PlaylistDAO : findPlaylistById(playlistID, userId)
+        activate PlaylistDAO
+        PlaylistDAO --> Servlet : Playlist object or null
+        deactivate PlaylistDAO
+    end
+end
+
+Servlet -> ctx : setVariable("playlists", playlists)
+Servlet -> ctx : setVariable("songs", songList)
+Servlet -> ctx : setVariable("genres", genresList)
+
+opt request contains error attributes
+    note right of Servlet: These values are only set if the request is dispatched with error attributes
+
+    Servlet -> ctx : setVariable("errorNewPlaylistMsg", msg)
+    Servlet -> ctx : setVariable("errorNewSongMsg", msg)
+    Servlet -> ctx : setVariable("errorOpeningPlaylist", msg)
+end
+
+Servlet -> Template : process("/WEB-INF/Home.html", ctx)
+activate Template
+deactivate Servlet
+Template --> Response : write rendered HTML
+deactivate Template
+
+
+
+Response --> User : HTTP response (Home page HTML)
+
+@enduml
+
+@startuml
+title GetPlaylistDetails Servlet - Sequence Diagram
+actor User
+participant "HttpServletRequest" as Request
+participant "GetPlaylistDetails Servlet" as Servlet
+participant "PlaylistDAO" as PlaylistDAO
+participant "SongDAO" as SongDAO
+participant "AlbumDAO" as AlbumDAO
+participant "HttpSession" as Session
+participant "WebContext" as ctx
+participant "TemplateEngine" as Template
+participant "HttpServletResponse" as Response
+
+User -> Request : GET /GetPlaylistDetails?playlistId=...
+
+Request -> Servlet : doGet()
+activate Servlet
+
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+
+break invalid or missing playlistId
+    Servlet -> Response : sendError(400)
+end
+
+    Servlet -> PlaylistDAO : findPlaylistById(playlistId, userId)
+activate PlaylistDAO
+break error during retrieval of playlist
+    alt playlist not found or access denied
+        PlaylistDAO --> Servlet : throw DAOException(NOT_FOUND/ACCESS_DENIED)
+        Servlet -> Request : setAttribute("errorOpeningPlaylist")
+        Servlet -> Request : forward to /Home
+    else other DAO error
+        PlaylistDAO --> Servlet : throw DAOException
+        Servlet -> Response : sendError(500)
+    end
+end
+    PlaylistDAO --> Servlet : Playlist
+deactivate PlaylistDAO
+
+    Servlet -> SongDAO : findSongsByIdsAndUser(songIds, userId)
+activate SongDAO
+    Servlet -> AlbumDAO : findAlbumById(id)
+activate AlbumDAO
+
+break DAOException during song or album retrieval
+    SongDAO --> Servlet : throw DAOException
+    AlbumDAO --> Servlet: throe DAOException
+    Servlet -> Response : sendError(500)
+end
+    SongDAO --> Servlet : List<Song>
+    deactivate SongDAO
+    AlbumDAO --> Servlet : Album
+    deactivate AlbumDAO
+
+    Servlet -> SongDAO : findSongsByUser(userId)
+activate SongDAO
+break DAOException during songs retrieval
+    SongDAO --> Servlet : throw DAOException
+    Servlet -> Response : sendError(500)
+end
+    SongDAO --> Servlet : List<Song>
+    deactivate SongDAO
+
+    Servlet -> ctx : setVariable("playlist", myPlaylist)
+    Servlet -> ctx : setVariable("songWithAlbum", songWithAlbumDisplayed)
+    Servlet -> ctx : setVariable("page", page)
+    Servlet -> ctx : setVariable("totPages", totPages)
+    Servlet -> ctx : setVariable("songs", unusedSongs)
+    Servlet -> ctx : setVariable("errorAddSongMsg", value)
+    Servlet -> Template : process("/WEB-INF/Playlist.html", ctx)
+deactivate Servlet
+activate Template
+Template --> Response : render HTML page
+deactivate Template
+
+
+
+
+Response --> User : Playlist HTML page
+@enduml
+
+@startuml
+
+title NewSong Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "NewSong Servlet" as Servlet
+participant "ImageDAO" as ImageDAO
+participant "SongDAO" as SongDAO
+participant "AlbumDAO" as AlbumDAO
+participant "AudioDAO" as AudioDAO
+participant "HttpSession" as Session
+participant "WebContext" as ctx
+participant "HttpServletResponse" as Response
+
+User -> Request : POST /NewSong
+
+Request -> Servlet : doPost()
+Servlet -> Request : getParameter(...)
+break parameters validation failed
+    Servlet -> Request : setAttribute("errorNewSongMsg", msg)
+    Servlet -> Request : forward to /Home
+end
+    Servlet -> Session : getAttribute("user")
+activate Session
+    Session --> Servlet : User object
+deactivate Session
+
+    Servlet -> AlbumDAO : findAlbumsByUser(userId)
+    activate AlbumDAO
+break DAOException during album retrieval
+    AlbumDAO --> Servlet : throw DAOException
+    Servlet -> Response : sendError(500, msg)
+end
+    AlbumDAO --> Servlet : List<Album>
+    deactivate AlbumDAO
+
+
+break An album with same name but different details exist
+    Servlet -> Request : setAttribute("errorNewSongMsg", msg)
+    Servlet -> Request : forward to /Home
+end
+
+break A song with the same name exists in the album
+    Servlet -> Request : setAttribute("errorNewSongMsg", msg)
+    Servlet -> Request : forward to /Home
+end
+
+opt if the album doesn't exist
+    Servlet -> ImageDAO : saveImage(imageStream, imageFileName)
+    break Exception during image saving
+        alt IllegalArgumentException, the image file is not valid
+            Servlet -> Response : sendError(500, msg)
+
+        else DAOException due to database issues
+            Servlet -> Response : sendError(500, msg)
+        end
+    end
+    Servlet -> AlbumDAO : createAlbum(albumName, year, artist, imageFileRename, userId)
+    break DAOException, failed to create album
+        Servlet -> ImageDAO : deleteImage(imageFileRename);
+        Servlet -> Response : sendError(500, msg)
+    end
+end
+
+Servlet -> AudioDAO : saveAudio(audioStream, audioFileName)
+
+break Exception during audio saving
+    alt IllegalArgumentException, the audio file is not valid
+        Servlet -> Response : sendError(500, msg)
+    else DAOException due to database issues
+        Servlet -> Response : sendError(500, msg)
+    end
+
+    opt If the album is newly created
+        Servlet -> ImageDAO : deleteImage(imageFileRename)
+        Servlet -> AlbumDAO : deleteAlbum(idAlbum, userId)
+    end
+end
+
+Servlet -> SongDAO : createSong(title, idAlbum, genre, audioFileRename, userId)
+
+break DAOException, failed to create song
+    Servlet -> Response : sendError(500, msg)
+    Servlet -> AudioDAO : deleteAudio(audioFileRename)
+    opt If the album is newly created
+        Servlet -> ImageDAO : deleteImage(imageFileRename)
+        Servlet -> AlbumDAO : deleteAlbum(idAlbum, userId)
+    end
+end
+
+Servlet -> Response : sendRedirect("/Home")
+Response --> User : 302 Redirect
+@enduml
+
+@startuml
+title AddSongToPL Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "AddSongToPL Servlet" as Servlet
+participant "PlaylistDAO" as PlaylistDAO
+participant "HttpSession" as Session
+participant "HttpServletResponse" as Response
+
+User -> Request : POST /AddSongToPL
+
+Request -> Servlet : doPost()
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+Servlet -> Request : getParameters(...);
+
+
+break parameters invalid
+    Servlet -> Request : setAttribute("errorAddSongMsg", msg)
+    Servlet -> Request : forward to /GetPlaylistDetails
+end
+
+loop for each songId
+    Servlet -> PlaylistDAO : addSongToPlaylist(playlistId, userId, songId)
+
+    break DAOException
+        alt NOT_FOUND or DUPLICATE_ENTRY
+            Servlet -> Request : setAttribute("errorAddSongMsg", msg)
+            Servlet -> Request : forward to /GetPlaylistDetails
+        else ACCESS_DENIED
+            Servlet -> Request : setAttribute("errorAddSongMsg", msg)
+            Servlet -> Request : forward to /GetPlaylistDetails
+        else default (other errors)
+            Servlet -> Response : sendError(500, "Error in the database")
+        end
+    end
+end
+
+Servlet -> Response : sendRedirect("/GetPlaylistDetails?playlistId=...")
+
+Response --> User : 302 Redirect
+
+@enduml
+
+@startuml
+title AudioGetter Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "AudioGetter Servlet" as Servlet
+participant "SongDAO" as SongDAO
+participant "AudioDAO" as AudioDAO
+participant "HttpSession" as Session
+participant "HttpServletResponse" as Response
+
+
+
+User -> Request : GET /GetSong?audioName=...
+
+Request -> Servlet : doGet()
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+Servlet -> Request : getParameter("audioName")
+
+break audioName is null or empty
+    return
+end
+
+Servlet -> SongDAO : findSongsByUser(userId)
+activate SongDAO
+
+break DAOException
+    return
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+SongDAO --> Servlet : List<Song>
+
+
+break user does NOT own audio
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+Servlet -> AudioDAO : getAudio(audioName)
+activate AudioDAO
+
+break IllegalArgumentException || DAOException
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+AudioDAO --> Servlet : FileData
+deactivate AudioDAO
+
+
+break audioFileData is null or empty
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+Servlet -> Response : setContentType(audioFileData.mimeType)
+Servlet -> Response : setContentLengthLong(audioFileData.size)
+Servlet -> Response : setHeader("Content-Disposition", "inline; filename=...")
+
+loop stream audio to client
+    Servlet -> Response : ServletOutputStream.write(buffered(FileData))
+    note left of Response
+      Audio bytes sent in chunks to client
+    end note
+end
+
+@enduml
+
+@startuml
+title ImageGetter Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "ImageGetter Servlet" as Servlet
+participant "AlbumDAO" as AlbumDAO
+participant "ImageDAO" as ImageDAO
+participant "HttpSession" as Session
+participant "HttpServletResponse" as Response
+
+User -> Request : GET /GetImage?imageName=...
+
+Request -> Servlet : doGet()
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+Servlet -> Request : getParameter("imageName")
+
+break imageName is null or empty
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+Servlet -> AlbumDAO : findAlbumsByUser(userId)
+activate AlbumDAO
+
+break DAOException
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+AlbumDAO --> Servlet : List<Album>
+deactivate AlbumDAO
+
+break user does NOT own image
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+Servlet -> ImageDAO : getImage(imageName)
+activate ImageDAO
+
+break IllegalArgumentException || DAOException
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+ImageDAO --> Servlet : FileData
+deactivate ImageDAO
+
+break imageFileData is null or empty
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+Servlet -> Response : setContentType(imageFileData.mimeType)
+Servlet -> Response : setContentLengthLong(imageFileData.size)
+Servlet -> Response : setHeader("Content-Disposition", "inline; filename=...")
+
+loop stream image to client
+    Servlet -> Response : ServletOutputStream.write(buffered(FileData))
+        note left of Response
+          Image bytes sent in chunks to client
+        end note
+end
+
+@enduml
+
+@startuml
+title Logout Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "Logout Servlet" as Servlet
+participant "HttpSession" as Session
+participant "HttpServletResponse" as Response
+
+User -> Request : GET /Logout
+
+Request -> Servlet : doGet()
+activate Servlet
+
+Servlet -> Request : getSession(false)
+Request -> Servlet: HttpSession
+
+opt session exists
+    Servlet -> Session : invalidate()
+end
+
+Servlet -> Response : sendRedirect("/index.html")
+
+Response --> User : 302 Redirect
+
+@enduml
+
+@startuml
+title NewPlaylist Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "NewPlaylist Servlet" as Servlet
+participant "PlaylistDAO" as PlaylistDAO
+participant "HttpSession" as Session
+participant "HttpServletResponse" as Response
+
+
+User -> Request : POST /NewPlaylist
+
+Request -> Servlet : doPost()
+activate Servlet
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+
+
+Servlet -> Request : getParameter("name")\ngetParameterValues("songList")
+break Invalid parameters
+    Servlet -> Request : setAttribute("errorNewPlaylistMsg", msg)
+    Servlet -> Request : forward to /Home
+end
+
+Servlet -> PlaylistDAO : findPlaylistIdsByUser(userId)
+activate PlaylistDAO
+
+break DAOException
+    PlaylistDAO --> Servlet : throw DAOException
+    Servlet -> Response : sendError(500, errorMsg)
+end
+
+PlaylistDAO --> Servlet : List<Integer> playlistIDs
+deactivate PlaylistDAO
+
+loop findPlaylistByName
+    Servlet -> PlaylistDAO : findPlaylistById(id, userId)
+    activate PlaylistDAO
+    break Playlist not found
+        PlaylistDAO --> Servlet : throw DAOException
+        Servlet -> Response : sendError(500, errorMsg)
+    end
+    PlaylistDAO --> Servlet : Playlist
+    deactivate PlaylistDAO
+end
+
+break playlist with same name exists
+    Servlet -> Request : setAttribute("errorNewPlaylistMsg", msg)
+    Servlet -> Request : forward to /Home
+end
+    Servlet -> PlaylistDAO : createPlaylist(name, userId, songIDs)
+
+break Exception
+
+    alt DAOException, NOT_FOUND or DUPLICATE_ENTRY
+        PlaylistDAO --> Servlet : throw DAOException
+        Servlet -> Request : setAttribute("errorNewPlaylistMsg", mgs)
+        Servlet -> Request : forward to /Home
+    else DAOException, default
+        PlaylistDAO --> Servlet : throw DAOException
+        Servlet -> Response : sendError(500, errorMsg)
+    else SQLException
+        PlaylistDAO --> Servlet : throw SQLException
+        Servlet -> Response : sendError(500, errorMsg)
+    end
+end
+
+Servlet -> Response : sendRedirect("/Home")
+
+Response --> User : 302 Redirect
+
+@enduml
+
+@startuml
+title OpenSong Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "OpenSong Servlet" as Servlet
+participant "SongDAO" as SongDAO
+participant "AlbumDAO" as AlbumDAO
+participant "HttpSession" as Session
+participant "WebContext" as Ctx
+participant "TemplateEngine" as Template
+participant "HttpServletResponse" as Response
+
+
+User -> Request : GET /OpenSong?playlistId=...&songId=...
+Request -> Servlet : doGet()
+
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User
+deactivate Session
+
+Servlet -> Request : getParameter("playlistId")
+break playlistId is null or invalid
+    Servlet -> Request : setAttribute("errorOpeningPlaylist", msg)
+    Servlet -> Request : forward to /Home
+end
+
+Servlet -> Request : getParameter("songId")
+break songId is null or invalid
+    Servlet -> Request : setAttribute("errorOpeningSong", msg)
+    Servlet -> Request : forward to /GetPlaylistDetails
+end
+
+Servlet -> SongDAO : findSongsByIdsAndUser(songId, userId)
+activate SongDAO
+
+break DAOException
+    SongDAO --> Servlet : throw DAOException
+    Servlet -> Response : sendError(500, "An internal error occurred")
+end
+SongDAO --> Servlet : List<Song>
+deactivate SongDAO
+
+Servlet -> AlbumDAO : findAlbumById(albumId)
+activate AlbumDAO
+break DAOException
+    AlbumDAO --> Servlet : throw DAOException
+    Servlet -> Response : sendError(500, "An internal error occurred")
+end
+AlbumDAO --> Servlet : Album
+deactivate AlbumDAO
+
+Servlet -> Ctx : setVariable("playlistId", playlistId)
+Servlet -> Ctx : setVariable("swa", SongWithAlbum)
+
+Servlet -> Template : process("/WEB-INF/SongInspector.html", ctx)
+activate Template
+
+Template --> Response : write error page
+deactivate Template
+
+Response --> User : Song HTML page
+
+
+@enduml

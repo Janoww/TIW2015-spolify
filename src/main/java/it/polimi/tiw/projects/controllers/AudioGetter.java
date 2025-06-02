@@ -52,7 +52,7 @@ public class AudioGetter extends HttpServlet {
         try {
             List<String> userSongs = songDAO.findSongsByUser(userId).stream().map(Song::getAudioFile).toList();
 
-            if (userSongs.stream().noneMatch(img -> img.equals(audioName))) {
+            if (userSongs.stream().noneMatch(aud -> aud.equals(audioName))) {
                 return;
             }
 
