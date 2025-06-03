@@ -1,0 +1,93 @@
+@startuml
+!theme sunlust
+actor User
+
+box "Frontend (Vanilla JS SPA)" #LightBlue
+  participant "HomeView/PlaylistView" as TriggerView
+  participant "homeHandler.js/\nplaylistHandler.js" as ResponsibleHandler
+  participant "Reorder Modal UI\n(sharedComponents.js)" as ReorderModal
+  participant "utils/orderUtils.js" as OrderUtils
+  participant "apiService.js" as ApiService
+end box
+
+box "Backend (Java Servlets)" #LightGreen
+  participant "PlaylistServlet" as PlaylistServlet
+end box
+
+== Open Reorder Modal ==
+User -> TriggerView : Clicks "Reorder" for a playlist
+TriggerView -> ResponsibleHandler : openReorderModal(playlistId)
+activate ResponsibleHandler
+
+ResponsibleHandler -> ApiService : getPlaylistOrder(playlistId)
+activate ApiService
+ApiService -> PlaylistServlet : GET /playlists/{playlistId}/order
+activate PlaylistServlet
+PlaylistServlet --> ApiService : 200 OK [SongId] (current order)
+deactivate PlaylistServlet
+ApiService --> ResponsibleHandler : Returns [SongId]
+deactivate ApiService
+
+note right ResponsibleHandler
+  Fetches details for each song ID in order
+  (e.g., from client-side cache or apiService.getSong()).
+  Stores this as `currentSongDetailsInOrder`.
+end note
+ResponsibleHandler -> ResponsibleHandler : currentSongDetailsInOrder = resolveSongDetails([SongId])
+
+ResponsibleHandler -> ReorderModal : displayModal(currentSongDetailsInOrder)
+activate ReorderModal
+ReorderModal --> User : Shows modal with songs in current order
+deactivate ResponsibleHandler
+
+
+== Client-Side Reordering ==
+User -> ReorderModal : Drags and drops songs in the list
+activate ReorderModal
+ReorderModal -> OrderUtils : handleDragDropEvent(event, currentSongDetailsInOrder)
+activate OrderUtils
+OrderUtils --> ReorderModal : Returns updatedSongOrder (temporary client-side)
+deactivate OrderUtils
+ReorderModal -> ResponsibleHandler : storeTemporaryOrder(updatedSongOrder)
+activate ResponsibleHandler
+ResponsibleHandler -> ResponsibleHandler : temporaryOrder = updatedSongOrder
+deactivate ResponsibleHandler
+deactivate ReorderModal
+
+User -> ReorderModal : (Repeats drag-drop as needed)
+
+== Save Custom Order ==
+User -> ReorderModal : Clicks "Save Order" button
+activate ReorderModal
+ReorderModal -> ResponsibleHandler : saveCustomOrder(playlistId, temporaryOrder)
+deactivate ReorderModal
+activate ResponsibleHandler
+
+ResponsibleHandler -> ApiService : updatePlaylistOrder(playlistId, getSongIdsFrom(temporaryOrder))
+activate ApiService
+ApiService -> PlaylistServlet : PUT /playlists/{playlistId}/order\n[NewSongIdOrder]
+activate PlaylistServlet
+PlaylistServlet --> ApiService : 200 OK [NewSongIdOrder] / Error
+deactivate PlaylistServlet
+ApiService --> ResponsibleHandler : Returns [NewSongIdOrder] / Throws ApiError
+deactivate ApiService
+
+alt Order Saved Successfully
+  ResponsibleHandler -> ReorderModal : closeModal()
+  ResponsibleHandler -> TriggerView : refreshPlaylistDisplayOrder(playlistId, newOrder)
+  note right: Underlying view (Home/Playlist) might update its display
+else Save Order Failed
+  ResponsibleHandler -> ReorderModal : displayError(error.message)
+end
+deactivate ResponsibleHandler
+
+
+== Cancel/Close Modal (without saving) ==
+User -> ReorderModal : Clicks "Close" or "Cancel"
+activate ReorderModal
+ReorderModal -> ResponsibleHandler : closeModal()
+deactivate ReorderModal
+activate ResponsibleHandler
+deactivate ResponsibleHandler
+
+@enduml

@@ -1,0 +1,64 @@
+@startuml
+!theme sunlust
+actor User
+
+box "Frontend (Vanilla JS SPA)" #LightBlue
+  participant "Songs View" as SongsView
+  participant "songsHandler.js" as SongsHandler
+  participant "playerHandler.js" as PlayerHandler
+  participant "router.js" as Router
+  participant "apiService.js" as ApiService
+end box
+
+box "Backend (Java Servlets)" #LightGreen
+  participant "/api/v1/songs" as SongServlet
+end box
+
+User -> Router : Navigates to #songs
+activate Router
+Router -> SongsHandler : loadSongsPage()
+activate SongsHandler
+
+== Load Songs Page Data ==
+SongsHandler -> ApiService : getSongs()
+activate ApiService
+ApiService -> SongServlet : GET /songs
+activate SongServlet
+SongServlet --> ApiService : 200 OK [SongWithAlbum]
+deactivate SongServlet
+ApiService --> SongsHandler : Returns [SongWithAlbum]
+deactivate ApiService
+
+SongsHandler -> SongsView : renderSongsPage(songs)
+activate SongsView
+SongsView --> User : Displays list of all user's songs
+deactivate SongsView
+deactivate SongsHandler
+deactivate Router
+
+== Play Song ==
+User -> SongsView : Clicks on a song title from the list
+SongsView -> PlayerHandler : playSong(songId, songDetails)
+activate PlayerHandler
+note right PlayerHandler
+  If full songDetails (with album info) are passed
+  from SongsView (already fetched), ApiService.getSong()
+  might be skipped if details are sufficient for the player.
+  Otherwise, it fetches full details.
+end note
+PlayerHandler -> ApiService : getSong(songId) // Potentially
+activate ApiService
+ApiService -> SongServlet : GET /songs/{songId} // Potentially
+activate SongServlet
+SongServlet --> ApiService : 200 OK {SongWithAlbum} // Potentially
+deactivate SongServlet
+ApiService --> PlayerHandler : Returns {SongWithAlbum} // Potentially
+deactivate ApiService
+
+PlayerHandler -> PlayerHandler : updateGlobalPlayerUI(songDetails)
+note right: Updates the global audio player\nwith song title, artist, album, image,\nand loads audio from getSongAudioURL(songId)
+PlayerHandler -> PlayerHandler : Loads audio via <audio> src = apiService.getSongAudioURL(songId)
+
+deactivate PlayerHandler
+
+@enduml

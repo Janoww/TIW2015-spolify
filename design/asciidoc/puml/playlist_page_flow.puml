@@ -1,0 +1,113 @@
+@startuml
+!theme sunlust
+actor User
+
+box "Frontend (Vanilla JS SPA)" #LightBlue
+  participant "Playlist View" as PlaylistView
+  participant "playlistHandler.js" as PlaylistHandler
+  participant "sharedFormHandlers.js" as FormHandler
+  participant "playerHandler.js" as PlayerHandler
+  participant "router.js" as Router
+  participant "apiService.js" as ApiService
+end box
+
+box "Backend (Java Servlets)" #LightGreen
+  participant "PlaylistServlet" as PlaylistServlet
+  participant "SongServlet" as SongServlet
+end box
+
+User -> Router : Navigates to #playlist-:idplaylist
+activate Router
+Router -> PlaylistHandler : loadPlaylistPage(playlistId)
+activate PlaylistHandler
+
+== Load Playlist Page Data ==
+PlaylistHandler -> ApiService : getPlaylistDetails(playlistId) // Assumed: fetches specific playlist meta if needed
+activate ApiService
+ApiService -> PlaylistServlet : GET /playlists/{playlistId} // Or filters from all playlists
+' ApiService <-- PlaylistServlet : 200 OK {Playlist}
+' ApiService --> PlaylistHandler : Returns {Playlist}
+deactivate ApiService
+
+PlaylistHandler -> ApiService : getPlaylistOrder(playlistId)
+activate ApiService
+ApiService -> PlaylistServlet : GET /playlists/{playlistId}/order
+activate PlaylistServlet
+PlaylistServlet --> ApiService : 200 OK [SongId]
+deactivate PlaylistServlet
+ApiService --> PlaylistHandler : Returns [SongId] (ordered song IDs)
+deactivate ApiService
+
+note right PlaylistHandler
+  Fetches details for each song ID in order,
+  possibly from a client-side cache of all songs
+  or by individual calls to apiService.getSong(songId)
+  if not cached.
+  For simplicity, assume songs details are retrieved.
+end note
+PlaylistHandler -> PlaylistHandler : songDetailsList = resolveSongDetails(orderedSongIds)
+
+' Also fetch all user songs for the "add to playlist" form
+PlaylistHandler -> ApiService : getSongs()
+activate ApiService
+ApiService -> SongServlet : GET /songs
+activate SongServlet
+SongServlet --> ApiService : 200 OK [AllUserSongs]
+deactivate SongServlet
+ApiService --> PlaylistHandler : Returns [AllUserSongs]
+deactivate ApiService
+
+
+PlaylistHandler -> PlaylistView : renderPlaylistPage(playlist, songDetailsList, allUserSongs)
+activate PlaylistView
+PlaylistView --> User : Displays playlist songs (first 5), pagination, add song form
+deactivate PlaylistView
+deactivate PlaylistHandler
+deactivate Router
+
+== Client-Side Pagination ==
+User -> PlaylistView : Clicks "Next" or "Previous" button
+PlaylistView -> PlaylistHandler : handlePagination(direction)
+activate PlaylistHandler
+PlaylistHandler -> PlaylistHandler : Updates current page index for song list
+PlaylistHandler -> PlaylistView : renderCurrentSongPageSlice(songDetailsList, newIndex)
+activate PlaylistView
+PlaylistView --> User : Displays new set of 5 songs
+deactivate PlaylistView
+deactivate PlaylistHandler
+
+== Add Songs to Current Playlist ==
+User -> PlaylistView : Selects songs from form, submits
+PlaylistView -> FormHandler : handleAddSongsToPlaylist(playlistId, selectedSongIds)
+activate FormHandler
+FormHandler -> ApiService : addSongsToPlaylist(playlistId, selectedSongIds)
+activate ApiService
+ApiService -> PlaylistServlet : POST /playlists/{playlistId}/songs\n{songIds}
+activate PlaylistServlet
+PlaylistServlet --> ApiService : 200 OK {AddSongsToPlaylistResult} / Error
+deactivate PlaylistServlet
+ApiService --> FormHandler : Returns result / Throws ApiError
+deactivate ApiService
+
+alt Songs Added Successfully
+  FormHandler -> PlaylistHandler : reloadPlaylistPage(playlistId) // Reloads data and shows first page
+  note right: Page reloads to show updated playlist from the start.
+else Adding Songs Failed
+  FormHandler -> PlaylistView : displayError(error.message)
+end
+deactivate FormHandler
+
+== Play Song from Playlist ==
+User -> PlaylistView : Clicks on a song title from the playlist
+PlaylistView -> PlayerHandler : playSong(songId, songDetails)
+activate PlayerHandler
+note right PlayerHandler
+  Similar to Songs Page, fetches details if not available.
+  Updates global player.
+end note
+PlayerHandler -> ApiService : getSong(songId) // Potentially
+PlayerHandler -> PlayerHandler : updateGlobalPlayerUI(songDetails)
+PlayerHandler -> PlayerHandler : Loads audio via <audio> src = apiService.getSongAudioURL(songId)
+deactivate PlayerHandler
+
+@enduml

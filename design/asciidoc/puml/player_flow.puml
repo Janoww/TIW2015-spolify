@@ -1,0 +1,84 @@
+@startuml
+!theme sunlust
+actor User
+
+box "Frontend (Vanilla JS SPA)" #LightBlue
+  participant "Any Song List View\n(SongsView, PlaylistView, etc.)" as SongListView
+  participant "playerHandler.js" as PlayerHandler
+  participant "Global Player UI" as PlayerUI
+  participant "apiService.js" as ApiService
+end box
+
+box "Backend (Java Servlets)" #LightGreen
+  participant "/api/v1/songs/{songId}" as SongDetailServlet
+  participant "/api/v1/songs/{songId}/audio" as SongAudioServlet
+  participant "/api/v1/songs/{songId}/image" as SongImageServlet
+end box
+
+note over PlayerUI : Global Player UI is persistent after login.
+
+== Activate Player ==
+User -> SongListView : Clicks on a song title
+SongListView -> PlayerHandler : playSong(songId, songDetailsFromList?)
+activate PlayerHandler
+
+alt Song details not fully available from list view
+  PlayerHandler -> ApiService : getSong(songId)
+  activate ApiService
+  ApiService -> SongDetailServlet : GET /songs/{songId}
+  activate SongDetailServlet
+  SongDetailServlet --> ApiService : 200 OK {SongWithAlbum}
+  deactivate SongDetailServlet
+  ApiService --> PlayerHandler : Returns {SongWithAlbum} as fullSongDetails
+  deactivate ApiService
+else Song details already sufficient
+  PlayerHandler -> PlayerHandler : fullSongDetails = songDetailsFromList
+end
+
+PlayerHandler -> PlayerUI : updateDetails(fullSongDetails)
+activate PlayerUI
+note right PlayerUI
+  Displays song title, artist, album name.
+  Sets album image: src = apiService.getSongImageURL(fullSongDetails.idSong)
+  (URL like /api/v1/songs/{idSong}/image)
+end note
+PlayerUI -> SongImageServlet : GET /api/v1/songs/{idSong}/image (via img src)
+activate SongImageServlet
+SongImageServlet --> PlayerUI : Image Data
+deactivate SongImageServlet
+deactivate PlayerUI
+
+
+PlayerHandler -> PlayerUI : loadAudio(apiService.getSongAudioURL(fullSongDetails.idSong))
+activate PlayerUI
+note right PlayerUI
+  Sets <audio> src = apiService.getSongAudioURL(fullSongDetails.idSong)
+  (URL like /api/v1/songs/{idSong}/audio)
+end note
+PlayerUI -> SongAudioServlet : GET /api/v1/songs/{idSong}/audio (via audio src)
+activate SongAudioServlet
+SongAudioServlet --> PlayerUI : Audio Data Stream
+deactivate SongAudioServlet
+deactivate PlayerUI
+
+PlayerHandler -> PlayerUI : showPlayer()
+PlayerHandler -> PlayerUI : audio.play()
+
+deactivate PlayerHandler
+
+== Player Controls ==
+User -> PlayerUI : Interacts with player (play, pause, seek, volume)
+PlayerUI -> PlayerHandler : Handles HTML5 audio events
+activate PlayerHandler
+PlayerHandler -> PlayerHandler : Manages audio playback state
+deactivate PlayerHandler
+
+== Close Player ==
+User -> PlayerUI : Clicks "Close" button on player
+PlayerUI -> PlayerHandler : hidePlayer()
+activate PlayerHandler
+PlayerHandler -> PlayerUI : Hides player interface
+PlayerHandler -> PlayerHandler : Stops audio playback
+deactivate PlayerHandler
+
+@enduml

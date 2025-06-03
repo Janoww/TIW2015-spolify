@@ -1,0 +1,66 @@
+@startuml
+!theme sunlust
+actor User
+
+box "Frontend (Vanilla JS SPA)" #LightBlue
+  participant "Login/Signup View" as LoginView
+  participant "loginHandler.js" as LoginHandler
+  participant "router.js" as Router
+  participant "apiService.js" as ApiService
+end box
+
+box "Backend (Java Servlets)" #LightGreen
+  participant "/api/v1/auth/login" as LoginServlet
+  participant "/api/v1/users" as UserServlet
+end box
+
+User -> LoginView : Navigates to #login or #signup
+activate LoginView
+
+== Login Flow ==
+
+User -> LoginView : Fills and submits login form (username, password)
+LoginView -> LoginHandler : handleLoginSubmit(formData)
+activate LoginHandler
+LoginHandler -> ApiService : login(username, password)
+activate ApiService
+ApiService -> LoginServlet : POST /auth/login\n{ username, password }
+activate LoginServlet
+LoginServlet --> ApiService : 200 OK { UserInfo } / 401 Unauthorized / 400 Bad Request
+deactivate LoginServlet
+ApiService --> LoginHandler : Returns UserInfo / Throws ApiError
+deactivate ApiService
+
+alt Login Successful
+  LoginHandler -> Router : navigateTo("#home")
+  Router -> Router : Updates sessionStorage with UserInfo
+else Login Failed
+  LoginHandler -> LoginView : displayError(error.message)
+end
+deactivate LoginHandler
+deactivate LoginView
+
+== Signup Flow ==
+
+User -> LoginView : Fills and submits signup form (username, password, name, surname)
+LoginView -> LoginHandler : handleSignupSubmit(formData)
+activate LoginHandler
+LoginHandler -> ApiService : register(username, password, name, surname)
+activate ApiService
+ApiService -> UserServlet : POST /users\n{ username, password, name, surname }
+activate UserServlet
+UserServlet --> ApiService : 201 CREATED { UserInfo } / 409 Conflict / 400 Bad Request
+deactivate UserServlet
+ApiService --> LoginHandler : Returns UserInfo / Throws ApiError
+deactivate ApiService
+
+alt Signup Successful
+  LoginHandler -> Router : navigateTo("#home")
+  Router -> Router : Updates sessionStorage with UserInfo
+else Signup Failed
+  LoginHandler -> LoginView : displayError(error.message)
+end
+deactivate LoginHandler
+deactivate LoginView
+
+@enduml

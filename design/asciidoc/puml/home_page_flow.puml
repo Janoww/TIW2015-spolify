@@ -1,0 +1,131 @@
+@startuml
+!theme sunlust
+actor User
+
+box "Frontend (Vanilla JS SPA)" #LightBlue
+  participant "Home View" as HomeView
+  participant "homeHandler.js" as HomeHandler
+  participant "sharedFormHandlers.js" as FormHandler
+  participant "app.js (Navbar)" as AppJsNavbar
+  participant "router.js" as Router
+  participant "apiService.js" as ApiService
+  participant "Player Handler" as PlayerHandler
+end box
+
+box "Backend (Java Servlets)" #LightGreen
+  participant "/api/v1/playlists" as PlaylistServlet
+  participant "/api/v1/songs" as SongServlet
+  participant "/api/v1/auth/logout" as LogoutServlet
+end box
+
+User -> Router : Navigates to #home
+activate Router
+Router -> HomeHandler : loadHomePage()
+activate HomeHandler
+
+== Load Home Page Data ==
+HomeHandler -> ApiService : getPlaylists()
+activate ApiService
+ApiService -> PlaylistServlet : GET /playlists
+activate PlaylistServlet
+PlaylistServlet --> ApiService : 200 OK [Playlist]
+deactivate PlaylistServlet
+ApiService --> HomeHandler : Returns [Playlist]
+deactivate ApiService
+
+HomeHandler -> ApiService : getSongs() (for create playlist form)
+activate ApiService
+ApiService -> SongServlet : GET /songs
+activate SongServlet
+SongServlet --> ApiService : 200 OK [SongWithAlbum]
+deactivate SongServlet
+ApiService --> HomeHandler : Returns [SongWithAlbum]
+deactivate ApiService
+
+HomeHandler -> HomeView : renderHomePage(playlists, songs)
+activate HomeView
+HomeView --> User : Displays playlists, song upload form, create playlist form
+deactivate HomeView
+deactivate HomeHandler
+deactivate Router
+
+== View Playlist ==
+User -> HomeView : Clicks on a playlist
+HomeView -> Router : navigateTo("#playlist-:idplaylist")
+
+== Upload New Song ==
+User -> HomeView : Fills and submits song upload form
+HomeView -> FormHandler : handleSongUpload(formData)
+activate FormHandler
+FormHandler -> ApiService : uploadSong(formData)
+activate ApiService
+ApiService -> SongServlet : POST /songs (multipart/form-data)
+activate SongServlet
+SongServlet --> ApiService : 201 CREATED {SongWithAlbum} / Error
+deactivate SongServlet
+ApiService --> FormHandler : Returns {SongWithAlbum} / Throws ApiError
+deactivate ApiService
+alt Song Upload Successful
+  FormHandler -> HomeHandler : refreshSongLists() (e.g., for create playlist form)
+  note right: Updates relevant UI parts
+else Song Upload Failed
+  FormHandler -> HomeView : displayError(error.message)
+end
+deactivate FormHandler
+
+== Create New Playlist ==
+User -> HomeView : Fills playlist name, selects songs, submits form
+HomeView -> FormHandler : handleCreatePlaylist(formData)
+activate FormHandler
+FormHandler -> ApiService : createPlaylist(name, songIds)
+activate ApiService
+ApiService -> PlaylistServlet : POST /playlists\n{name, songIds}
+activate PlaylistServlet
+PlaylistServlet --> ApiService : 201 CREATED {Playlist} / Error
+deactivate PlaylistServlet
+ApiService --> FormHandler : Returns {Playlist} / Throws ApiError
+deactivate ApiService
+alt Playlist Creation Successful
+  FormHandler -> HomeHandler : refreshPlaylistList()
+  note right: Updates playlist list in HomeView
+else Playlist Creation Failed
+  FormHandler -> HomeView : displayError(error.message)
+end
+deactivate FormHandler
+
+== Open Reorder Modal ==
+User -> HomeView : Clicks "Reorder" on a playlist
+HomeView -> HomeHandler : openReorderModal(playlistId)
+activate HomeHandler
+HomeHandler -> HomeView : Shows Reorder Modal
+note right: Reorder Modal flow detailed in\nreorder_modal_flow.puml
+deactivate HomeHandler
+
+== Play Song (from a list if available on home) ==
+User -> HomeView : Clicks on a song title (if any song list is shown directly on home)
+HomeView -> PlayerHandler : playSong(songId)
+activate PlayerHandler
+PlayerHandler -> ApiService : getSong(songId)
+PlayerHandler -> PlayerHandler : Updates Global Player UI
+note right: Player flow detailed in\nplayer_flow.puml
+deactivate PlayerHandler
+
+== Logout ==
+User -> AppJsNavbar : Clicks "Logout" button
+activate AppJsNavbar
+AppJsNavbar -> ApiService : logout()
+activate ApiService
+ApiService -> LogoutServlet : POST /auth/logout
+activate LogoutServlet
+LogoutServlet --> ApiService : 200 OK {message}
+deactivate LogoutServlet
+ApiService --> AppJsNavbar : Returns success message
+deactivate ApiService
+AppJsNavbar -> Router : clearSessionAndRedirectToLogin()
+activate Router
+Router -> Router : Clears sessionStorage
+Router -> Router : navigateTo("#login")
+deactivate Router
+deactivate AppJsNavbar
+
+@enduml
