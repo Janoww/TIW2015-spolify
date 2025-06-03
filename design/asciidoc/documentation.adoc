@@ -236,14 +236,108 @@ Si realizzi un’applicazione client server web che modifica le specifiche prece
 
 ==== Additional Implemented JavaScript Features
 
+===== Functional Additions
 * A [.components]#global, persistent audio player UI# is visible after login, featuring a dedicated interface and a [.events]#close button#.
 * A [.pages]#dedicated "Songs" page# allows users to [.actions]#view a complete list# of all their tracks.
-* User session management utilizes `sessionStorage` to store authenticated user data.
-* For security, the DOMPurify library is used to sanitize inputs before rendering them in the DOM.
-* The [.components]#main navigation bar# is dynamically populated with navigation links (e.g., Home, Songs) and a [.components]#logout button# after application initialization.
-* During page transitions managed by the router, a [.components]#visual loader# enhances user experience.
-* The `apiService.js` module centralizes backend communication and providing utility functions such as URL builders for media resources (song images and audio).
+* The [.components]#main navigation bar# is dynamically populated with navigation links.
 * [.actions]#Selecting a song# from any list (e.g., from the playlist view or Songs view) [.events]#dynamically activates# the global audio player functionality, updating its details and loading the audio track, rather than navigating to a separate static page for playback.
+* The dynamically populated [.components]#main navigation bar# also includes a [.components]#logout button#; [.events]#clicking# this button [.actions]#initiates the logout process# by calling the relevant API service.
+
+===== Non-Functional Aspects
+* User session management utilizes `sessionStorage` for persistence of authenticated user data.
+* For security, the DOMPurify library is used to [.actions]#sanitize inputs# before rendering them in the DOM.
+* During page transitions managed by the router, a [.components]#visual loader# enhances user experience.
+* The `apiService.js` module centralizes backend communication, implementing robust error handling via custom `ApiError` objects, and providing utility functions such as URL builders for media resources (song images and audio). This promotes maintainability and reusability.
+
+<<<
+
+=== Frontend Views, Components, Events, and Actions Summary
+
+==== Global Components & Interactions (SPA Shell)
+
+*Components:*
+
+* [.components]#Global Navigation Bar#: Dynamically populated with "Home", "Songs" links, and "Logout" button.
+* [.components]#Global Persistent Audio Player UI#: Displays song title, artist, album, year, genre, album cover, and HTML5 audio controls. Includes a close button.
+* [.components]#Visual Loader#: Displayed during route transitions.
+
+*Events/Actions:*
+
+* [.events]#Navigation link click# in navbar: [.actions]#Routes to the corresponding view# (e.g., `home`, `songs`).
+* [.events]#Logout button click# in navbar: [.actions]#Initiates user logout process#.
+* [.events]#Song selection# (from any song list): [.actions]#Dynamically updates the Global Audio Player# with the selected song's details and loads its audio track. Player UI becomes visible if hidden.
+* [.events]#Player Close Button click#: [.actions]#Hides the Global Audio Player UI#.
+* Standard HTML5 audio player interactions (play, pause) within the Global Audio Player.
+
+==== Login/Signup View (Routes: `#login`, `#signup`)
+
+*Components:*
+
+* [.components]#Login Form#: Inputs for username, password; submit button. Link to Signup.
+* [.components]#Signup Form#: Inputs for username, password, name, surname; submit button. Link to Login.
+
+*Events/Actions:*
+
+* [.events]#Login Form submission#: [.actions]#Sends credentials to backend#.
+* [.events]#Signup Form submission#: [.actions]#Sends user data to backend#.
+* [.events]#"Switch to Signup/Login" link click#: [.actions]#Navigates to the other authentication form#.
+
+==== Home View (Route: `#home`)
+
+*Components:*
+
+* [.components]#User's Playlist List#: Displays each playlist with its name. Includes a "Reorder" button/link for each playlist.
+* [.components]#Song Upload Form#: Inputs for song title, genre, album title, album artist, album year, audio file, and optional album image. Submit button.
+* [.components]#Playlist Creation Form#: Input for playlist name. [.components]#List of user's available songs# with checkboxes for selection. Submit button.
+
+*Events/Actions:*
+
+* [.events]#Playlist name click# in list: [.actions]#Navigates to the Playlist View# for that specific playlist (e.g., `playlist-123`).
+* [.events]#"Reorder" button/link click# for a playlist: [.actions]#Opens the Reorder Modal# populated with songs from that playlist.
+* [.events]#Song Upload Form submission#: [.actions]#Sends form data to backend#.
+* [.events]#Playlist Creation Form submission#: [.actions]#Sends new playlist name and selected song IDs to backend#.
+
+==== Songs View (Route: `#songs`)
+
+*Components:*
+
+* [.components]#Comprehensive List of User's Songs#: Displays all songs uploaded by the user, showing details like title, artist, and album.
+* [.components]#Song Upload Form#: Inputs for song title, genre, album title, album artist, album year, audio file, and optional album image. Submit button.
+
+*Events/Actions:*
+
+* [.events]#Song item click/selection# in the list: [.actions]#Activates/updates the Global Persistent Audio Player# with the selected song's details and audio.
+* [.events]#Song Upload Form submission#: [.actions]#Sends form data to backend#.
+
+==== Playlist View (Route: `#playlist-:idplaylist`)
+
+*Components:*
+
+* [.components]#Playlist Song List#: Displays songs belonging to the selected playlist.
+* [.components]#"Previous" and "Next" Pagination Buttons#: For client-side navigation through the playlist's songs.
+* [.components]#Add Songs to Playlist Form#: [.components]#List of user's available songs# with checkboxes for selection. Submit button.
+
+*Events/Actions:*
+
+* [.events]#Song item click/selection# in the playlist: [.actions]#Activates/updates the Global Persistent Audio Player#.
+* [.events]#"Previous"/"Next" button click#: [.actions]#Updates the displayed slice of songs# from the client-side cached list for the current playlist (client-side pagination).
+* [.events]#Add Songs Form submission#: [.actions]#Sends selected song IDs to backend# to add to the current playlist.
+
+==== Reorder Modal (Dialog)
+
+*Components:*
+
+* [.components]#Complete list of songs# for the selected playlist, with draggable items displaying song titles.
+* [.components]#"Save Order" button#.
+* [.components]#Close button#.
+* [.components]#Cancel button#.
+
+*Events/Actions:*
+
+* [.events]#drag and drop song items# within the list: [.actions]#Client-side reordering of the song list display# (visual update of the order).
+* [.events]#"Save Order" button click#: [.actions]#Sends the new sequence of song IDs to the backend#.
+* [.events]#Close button click#: [.actions]#Closes the modal# without saving changes.
+* [.events]#Cancel button click#: [.actions]#Resets the current user unsaved order changes#.
 
 <<<
 
