@@ -1,8 +1,11 @@
+
 package it.polimi.tiw.projects.dao;
 
 import it.polimi.tiw.projects.beans.Song;
 import it.polimi.tiw.projects.exceptions.DAOException;
 import it.polimi.tiw.projects.utils.Genre;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +18,7 @@ public class SongDAO {
     private static final Logger logger = LoggerFactory.getLogger(SongDAO.class);
     private final Connection connection;
 
-    public SongDAO(Connection connection) {
+    public SongDAO(@NotNull Connection connection) {
         this.connection = connection;
     }
 
@@ -24,8 +27,7 @@ public class SongDAO {
      *
      * @param title     The title of the song.
      * @param idAlbum   The ID of the album the song belongs to.
-     * @param year      The release year of the song.
-     * @param genre     The genre of the song.
+     * @param genre     The genre of the song. (Can be null based on DB)
      * @param audioFile The path or URL to the audio file.
      * @param idUser    The UUID of the user who uploaded the song.
      * @return The newly created Song object with its generated ID.
@@ -34,24 +36,26 @@ public class SongDAO {
      *                      or another database access error occurs
      *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
      */
-    public Song createSong(String title, int idAlbum, int year, Genre genre, String audioFile, UUID idUser)
-            throws DAOException {
-        logger.debug("Attempting to create song: title={}, idAlbum={}, year={}, genre={}, audioFile={}, userId={}",
-                title, idAlbum, year, genre, audioFile, idUser);
-        String query = "INSERT into Song (title, idAlbum, year, genre, audioFile, idUser) VALUES(?, ?, ?, ?, ?, UUID_TO_BIN(?))";
-        Song newSong = null;
+    public Song createSong(@NotBlank String title, int idAlbum, Genre genre, @NotBlank String audioFile,
+                           @NotNull UUID idUser) throws DAOException {
+        logger.debug("Attempting to create song: title={}, idAlbum={}, genre={}, audioFile={}, userId={}", title,
+                idAlbum, genre, audioFile, idUser);
+        String query = "INSERT into Song (title, idAlbum, genre, audioFile, idUser) VALUES(?, ?, ?, ?, UUID_TO_BIN(?))";
+        Song newSong;
 
         try (PreparedStatement pStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             pStatement.setString(1, title);
             pStatement.setInt(2, idAlbum);
-            pStatement.setInt(3, year);
-            pStatement.setString(4, genre.name());
-            pStatement.setString(5, audioFile);
-            pStatement.setString(6, idUser.toString());
+            if (genre != null) {
+                pStatement.setString(3, genre.name());
+            } else {
+                pStatement.setNull(3, Types.VARCHAR);
+            }
+            pStatement.setString(4, audioFile);
+            pStatement.setString(5, idUser.toString());
             int affectedRows = pStatement.executeUpdate();
 
             if (affectedRows == 0) {
-                // This case might not happen with auto-increment keys but kept for robustness
                 throw new DAOException("Creating song failed, no rows affected.",
                         DAOException.DAOErrorType.GENERIC_ERROR);
             }
@@ -64,7 +68,6 @@ public class SongDAO {
                     newSong.setIdSong(newId);
                     newSong.setTitle(title);
                     newSong.setIdAlbum(idAlbum);
-                    newSong.setYear(year);
                     newSong.setGenre(genre);
                     newSong.setAudioFile(audioFile);
                     newSong.setIdUser(idUser);
@@ -77,26 +80,18 @@ public class SongDAO {
                 }
             }
         } catch (SQLException e) {
-            logger.error("SQL error creating song title={}, userId={}: {}", title, idUser, e.getMessage(), e);
-            logger.error("SQL Error Code: {}, SQLState: {}", e.getErrorCode(), e.getSQLState()); // Log
-            // details
-
             // Check for foreign key constraint violation on idAlbum (MySQL error code 1452)
-            if (e.getErrorCode() == 1452) {
-                // If MySQL error code 1452 occurs during Song INSERT, it's almost certainly
-                // due to the Album foreign key (fk_Song_2) failing because the idAlbum doesn't
-                // exist.
-                logger.debug("Detected FK violation (Error Code 1452) for Album ID {}. Throwing NOT_FOUND.", idAlbum);
+            if (e.getErrorCode() == 1452) { // NOT_FOUND
+                logger.warn(
+                        "Failed to create song title='{}', userId={}: Album ID {} not found. Details: SQLState={}, Message={}",
+                        title, idUser, idAlbum, e.getSQLState(), e.getMessage());
                 throw new DAOException("Album with ID " + idAlbum + " not found.", e,
                         DAOException.DAOErrorType.NOT_FOUND);
-            } else {
-                // Handle other SQL errors (e.g., connection issues, syntax errors, other
-                // constraints if added later)
-                logger.warn("Unhandled SQL error during song creation (Code: {}). Throwing GENERIC_ERROR.",
-                        e.getErrorCode());
+            } else { // GENERIC_ERROR
+                logger.error("SQL error creating song title={}, userId={}: SQLState={}, ErrorCode={}, Message={}",
+                        title, idUser, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
                 throw new DAOException("Error creating song: " + e.getMessage(), e,
-                        DAOException.DAOErrorType.GENERIC_ERROR); // Default to generic for other
-                // SQL errors
+                        DAOException.DAOErrorType.GENERIC_ERROR);
             }
         }
         return newSong;
@@ -110,10 +105,10 @@ public class SongDAO {
      * @throws DAOException if a database access error occurs
      *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
      */
-    public List<Song> findSongsByUser(UUID userId) throws DAOException {
+    public List<Song> findSongsByUser(@NotNull UUID userId) throws DAOException {
         logger.debug("Attempting to find songs for user ID: {}", userId);
         List<Song> songs = new ArrayList<>();
-        String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?)";
+        String query = "SELECT idSong, title, idAlbum, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?)";
         try (PreparedStatement pStatement = connection.prepareStatement(query)) {
             pStatement.setString(1, userId.toString());
             try (ResultSet result = pStatement.executeQuery()) {
@@ -122,17 +117,26 @@ public class SongDAO {
                     song.setIdSong(result.getInt("idSong"));
                     song.setTitle(result.getString("title"));
                     song.setIdAlbum(result.getInt("idAlbum"));
-                    song.setYear(result.getInt("year"));
-                    song.setGenre(Enum.valueOf(Genre.class, result.getString("genre")));
+                    String genreStr = result.getString("genre");
+                    if (genreStr != null) {
+                        song.setGenre(Enum.valueOf(Genre.class, genreStr));
+                    } else {
+                        song.setGenre(null);
+                    }
                     song.setAudioFile(result.getString("audioFile"));
                     song.setIdUser(UUID.fromString(result.getString("idUser")));
                     songs.add(song);
                 }
                 logger.debug("Found {} songs for user ID: {}", songs.size(), userId);
             }
-        } catch (SQLException | IllegalArgumentException e) { // Catch UUID parsing errors too
-            logger.error("Error finding songs for user ID {}: {}", userId, e.getMessage(), e);
+        } catch (SQLException e) { // GENERIC_ERROR (unexpected)
+            logger.error("SQL error finding songs for user ID {}: {}", userId, e.getMessage(), e);
             throw new DAOException("Error finding songs by user: " + e.getMessage(), e,
+                    DAOException.DAOErrorType.GENERIC_ERROR);
+        } catch (IllegalArgumentException e) {
+            logger.error("Error parsing data (e.g., Genre, UUID) for songs for user ID {}: {}", userId, e.getMessage(),
+                    e);
+            throw new DAOException("Error parsing song data: " + e.getMessage(), e,
                     DAOException.DAOErrorType.GENERIC_ERROR);
         }
         return songs;
@@ -148,23 +152,31 @@ public class SongDAO {
     public List<Song> findAllSongs() throws DAOException {
         logger.debug("Attempting to find all songs");
         List<Song> songs = new ArrayList<>();
-        String query = "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song";
+        String query = "SELECT idSong, title, idAlbum, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song";
         try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(query)) {
             while (result.next()) {
                 Song song = new Song();
                 song.setIdSong(result.getInt("idSong"));
                 song.setTitle(result.getString("title"));
                 song.setIdAlbum(result.getInt("idAlbum"));
-                song.setYear(result.getInt("year"));
-                song.setGenre(Enum.valueOf(Genre.class, result.getString("genre")));
+                String genreStr = result.getString("genre");
+                if (genreStr != null) {
+                    song.setGenre(Enum.valueOf(Genre.class, genreStr));
+                } else {
+                    song.setGenre(null);
+                }
                 song.setAudioFile(result.getString("audioFile"));
                 song.setIdUser(UUID.fromString(result.getString("idUser")));
                 songs.add(song);
             }
             logger.debug("Found {} songs in total.", songs.size());
-        } catch (SQLException | IllegalArgumentException e) { // Catch UUID parsing errors too
-            logger.error("Error finding all songs: {}", e.getMessage(), e);
+        } catch (SQLException e) {
+            logger.error("SQL error finding all songs: {}", e.getMessage(), e);
             throw new DAOException("Error finding all songs: " + e.getMessage(), e,
+                    DAOException.DAOErrorType.GENERIC_ERROR);
+        } catch (IllegalArgumentException e) {
+            logger.error("Error parsing data (e.g., Genre, UUID) when finding all songs: {}", e.getMessage(), e);
+            throw new DAOException("Error parsing song data: " + e.getMessage(), e,
                     DAOException.DAOErrorType.GENERIC_ERROR);
         }
         return songs;
@@ -213,7 +225,7 @@ public class SongDAO {
      * @throws DAOException if a database access error occurs
      *                      ({@link it.polimi.tiw.projects.exceptions.DAOException.DAOErrorType#GENERIC_ERROR}).
      */
-    public List<Song> findSongsByIdsAndUser(List<Integer> songIds, UUID userId) throws DAOException {
+    public List<Song> findSongsByIdsAndUser(@NotNull List<Integer> songIds, @NotNull UUID userId) throws DAOException {
         logger.debug("Attempting to find songs by IDs: {} for user ID: {}", songIds, userId);
 
         if (songIds == null || songIds.isEmpty()) {
@@ -226,7 +238,7 @@ public class SongDAO {
         // Using StringBuilder for efficiency, especially with potentially long lists of
         // IDs.
         StringBuilder queryBuilder = new StringBuilder(
-                "SELECT idSong, title, idAlbum, year, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?) AND idSong IN (");
+                "SELECT idSong, title, idAlbum, genre, audioFile, BIN_TO_UUID(idUser) as idUser FROM Song WHERE idUser = UUID_TO_BIN(?) AND idSong IN (");
         for (int i = 0; i < songIds.size(); i++) {
             queryBuilder.append("?");
             if (i < songIds.size() - 1) {
@@ -236,7 +248,7 @@ public class SongDAO {
         queryBuilder.append(")"); // Close the IN clause parenthesis
 
         String query = queryBuilder.toString();
-        logger.trace("Executing query: {}", query); // Log the dynamically built query for debugging
+        logger.trace("Executing query: {}", query);
 
         try (PreparedStatement pStatement = connection.prepareStatement(query)) {
             // Set the user ID parameter (index 1)
@@ -254,22 +266,22 @@ public class SongDAO {
                     song.setIdSong(result.getInt("idSong"));
                     song.setTitle(result.getString("title"));
                     song.setIdAlbum(result.getInt("idAlbum"));
-                    song.setYear(result.getInt("year"));
-                    song.setGenre(Enum.valueOf(Genre.class, result.getString("genre")));
+                    String genreStr = result.getString("genre");
+                    if (genreStr != null) {
+                        song.setGenre(Enum.valueOf(Genre.class, genreStr));
+                    } else {
+                        song.setGenre(null);
+                    }
                     song.setAudioFile(result.getString("audioFile"));
                     song.setIdUser(UUID.fromString(result.getString("idUser")));
                     songs.add(song);
                 }
                 logger.debug("Found {} songs matching IDs {} for user ID: {}", songs.size(), songIds, userId);
             }
-        } catch (SQLException | IllegalArgumentException e) { // Catch potential UUID parsing errors
-            // too
-            logger.error("Error finding songs by IDs {} for user ID {}: {}", songIds, userId, e.getMessage(), e);
-            // Wrap the exception in a DAOException for consistent error handling upstream
+        } catch (SQLException e) {
             throw new DAOException("Error finding songs by IDs and user: " + e.getMessage(), e,
                     DAOException.DAOErrorType.GENERIC_ERROR);
         }
-        // Return the list of found songs (may be empty if none matched)
         return songs;
     }
 }

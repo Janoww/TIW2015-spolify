@@ -299,7 +299,7 @@ public class NewSong extends HttpServlet {
         }
 
         try {
-            songDAO.createSong(title, idAlbum, year, genre, audioFileRename, userId);
+            songDAO.createSong(title, idAlbum, genre, audioFileRename, userId);
         } catch (DAOException e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
             logger.error("An error occurred while creating the song: {}", e.getMessage(), e);

@@ -9,7 +9,6 @@ public class Song {
     private int idSong;
     private String title;
     private int idAlbum;
-    private int year;
     private Genre genre;
     private String audioFile;
     private UUID idUser;
@@ -38,14 +37,6 @@ public class Song {
 
     public void setIdAlbum(int idAlbum) {
         this.idAlbum = idAlbum;
-    }
-
-    public int getYear() {
-        return year;
-    }
-
-    public void setYear(int year) {
-        this.year = year;
     }
 
     public Genre getGenre() {
