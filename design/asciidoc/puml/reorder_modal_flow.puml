@@ -4,8 +4,8 @@ actor User
 
 box "Frontend (Vanilla JS SPA)" #LightBlue
   participant "HomeView/PlaylistView" as TriggerView
-  participant "homeHandler.js/\nplaylistHandler.js" as ResponsibleHandler
-  participant "Reorder Modal UI\n(sharedComponents.js)" as ReorderModal
+  participant "Home and Playlist handlers" as ResponsibleHandler
+  participant "Reorder Modal UI" as ReorderModal
   participant "utils/orderUtils.js" as OrderUtils
   participant "apiService.js" as ApiService
 end box

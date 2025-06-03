@@ -1,0 +1,84 @@
+@startuml
+!theme sunlust
+
+actor User
+
+package "Frontend SPA (Single Page Application)" as FrontendSPA{
+  component "app.js (Main Controller)" as AppJs
+  component "router.js (Routing Logic)" as RouterJs
+  component "apiService.js (API Communication)" as ApiServiceJs
+  component "Global Player UI" as GlobalPlayerUI
+  component "Navbar" as Navbar
+
+  package "Handlers (Controller Logic for Views)" as Handlers{
+    component "loginHandler.js" as LoginHandlerJs
+    component "homeHandler.js" as HomeHandlerJs
+    component "songsHandler.js" as SongsHandlerJs
+    component "playlistHandler.js" as PlaylistHandlerJs
+    component "playerHandler.js" as PlayerHandlerJs
+    component "sharedFormHandlers.js" as SharedFormHandlersJs
+  }
+
+  package "View Logic (DOM Manipulation & Rendering)" as ViewLogic{
+    component "loginView.js" as LoginViewJs
+    component "homeView.js" as HomeViewJs
+    component "songsView.js" as SongsViewJs
+    component "playlistView.js" as PlaylistViewJs
+    component "sharedComponents.js" as SharedComponentsJs
+  }
+
+  package "Utilities" {
+    component "viewUtils.js"
+    component "formUtils.js"
+    component "orderUtils.js"
+  }
+
+  package "Views (Dynamically Loaded)" {
+    component "Reorder Modal" as ReorderModal
+
+    package "Login/Signup View" as AuthView {
+      component "Login Form" as LoginForm
+      component "Signup Form" as SignupForm
+      AuthView ..> LoginHandlerJs : uses
+    }
+
+    package "Home View" as HomeViewPkg {
+      component "Playlist List Display" as PlaylistList
+      component "Song Upload Form" as SongUploadForm
+      component "Playlist Creation Form" as PlaylistCreateForm
+      HomeViewPkg ..> HomeHandlerJs : uses
+      HomeViewPkg ..> ReorderModal : can activate
+    }
+
+    package "Songs View" as SongsViewPkg {
+      component "All Songs List Display" as AllSongsList
+      SongsViewPkg ..> SongsHandlerJs : uses
+    }
+
+    package "Playlist View" as PlaylistViewPkg {
+      component "Playlist Song Display (Paginated)" as PlaylistSongDisplay
+      component "Add Song to Playlist Form" as AddToPlaylistForm
+      PlaylistViewPkg ..> PlaylistHandlerJs : uses
+    }
+
+  }
+
+  AppJs --> RouterJs : Initializes & Defines Routes
+  AppJs --> Navbar : Manages
+  AppJs --> GlobalPlayerUI : Manages visibility/state (conceptual)
+  RouterJs --> Handlers : Invokes appropriate handler for route
+  Handlers ..> ApiServiceJs : Uses for backend calls
+  Handlers ..> ViewLogic : Coordinates UI rendering
+  ViewLogic ..> SharedComponentsJs : Uses for common UI elements (e.g., Modal)
+  PlayerHandlerJs ..> GlobalPlayerUI : Controls
+  PlayerHandlerJs ..> ApiServiceJs : Uses
+
+  Navbar ..> RouterJs : Triggers navigation
+  HomeViewPkg --> PlaylistViewPkg : Navigates (on playlist click)
+  AllSongsList --> GlobalPlayerUI : Activates (on song click)
+  PlaylistSongDisplay --> GlobalPlayerUI : Activates (on song click)
+
+}
+
+User --> FrontendSPA
+@enduml
