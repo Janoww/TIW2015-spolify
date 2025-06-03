@@ -251,6 +251,12 @@ Si realizzi un’applicazione client server web che modifica le specifiche prece
 
 <<<
 
+=== Frontend Component Diagram
+
+plantuml::puml/architecture/frontend_component_view_diagram.puml[svg]
+
+<<<
+
 === Frontend Views, Components, Events, and Actions Summary
 
 ==== Global Components & Interactions (SPA Shell)
