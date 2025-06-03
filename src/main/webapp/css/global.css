@@ -242,12 +242,12 @@ a.styled-button:visited {
 
 
 .song-info {
-    font-size: 0.75em;
     color: #555;
     line-height: 1.2;
 }
 
 .playerContainer .song-info p {
+    font-size: 0.75em;
     text-align: left;
     margin-bottom: 2px;
     white-space: nowrap;
