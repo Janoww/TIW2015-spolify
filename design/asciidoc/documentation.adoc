@@ -19,7 +19,7 @@ This document outlines the design for a web-based music playlist management appl
 
 The application follows a standard client-server SPA architecture:
 
-plantuml::puml/component_diagram.puml[svg]
+plantuml::puml/architecture/component_diagram.puml[svg]
 
 * *Frontend:* A single HTML page dynamically updated using JavaScript. It handles user interactions, makes asynchronous requests (e.g., using `fetch` API) to the backend, and updates the DOM accordingly.
 * *Backend:* Java Servlets expose RESTful API endpoints. They handle business logic, interact with the Data Access Object (DAO) layer, and manage user sessions.
@@ -79,7 +79,7 @@ Quando l’utente seleziona il titolo di un brano, la PLAYER PAGE mostra tutti i
 
 The database consists of the following tables:
 
-plantuml::puml/erd.puml[svg]
+plantuml::puml/architecture/erd.puml[svg]
 
 * *User:* Stores user credentials and basic information.
 
@@ -351,11 +351,11 @@ The backend will expose RESTful API endpoints, all prefixed with `/api/v1/`. The
 ====
 *Request:* JSON.
 
-plantuml::puml/login_request.puml[svg]
+plantuml::puml/api/login_request.puml[svg]
 
 *Response (200 OK):* On success, returns JSON and sets an HTTP session cookie.
 
-plantuml::puml/user_info_response.puml[svg]
+plantuml::puml/api/user_info_response.puml[svg]
 
 *Error Responses:*
 
@@ -368,11 +368,11 @@ plantuml::puml/user_info_response.puml[svg]
 ====
 *Request:* JSON.
 
-plantuml::puml/user_creation_request.puml[svg]
+plantuml::puml/api/user_creation_request.puml[svg]
 
 *Response (201 CREATED):* On success, returns JSON and sets an HTTP session cookie.
 
-plantuml::puml/user_info_response.puml[svg]
+plantuml::puml/api/user_info_response.puml[svg]
 
 *Error Responses:*
 
@@ -387,7 +387,7 @@ plantuml::puml/user_info_response.puml[svg]
 
 *Response (200 OK):* Returns JSON. Invalidates the user's HTTP session.
 
-plantuml::puml/logout_response.puml[svg]
+plantuml::puml/api/logout_response.puml[svg]
 
 *Error Responses:*
 
@@ -400,7 +400,7 @@ plantuml::puml/logout_response.puml[svg]
 
 *Response (200 OK):* If a session is active, returns JSON.
 
-plantuml::puml/user_info_response.puml[svg]
+plantuml::puml/api/user_info_response.puml[svg]
 
 *Error Responses:*
 
@@ -415,7 +415,7 @@ plantuml::puml/user_info_response.puml[svg]
 
 *Response (200 OK):* JSON array of `SongWithAlbum` objects. Each object includes full song details and associated album details.
 
-plantuml::puml/song_with_album_list_response.puml[svg]
+plantuml::puml/api/song_with_album_list_response.puml[svg]
 
 *Error Responses:*
 
@@ -437,7 +437,7 @@ plantuml::puml/song_with_album_list_response.puml[svg]
 
 *Response (201 CREATED)*: JSON `SongWithAlbum` object representing the newly created song and its (potentially new) album.
 
-plantuml::puml/song_with_album_response.puml[svg]
+plantuml::puml/api/song_with_album_response.puml[svg]
 
 *Error Responses:*
 
@@ -453,7 +453,7 @@ plantuml::puml/song_with_album_response.puml[svg]
 
 *Response (200 OK):* JSON array of objects, where each object has a `name` (e.g., "ROCK") and `description` (e.g., "Rock Music") for the genre.
 
-plantuml::puml/genre_list_response.puml[svg]
+plantuml::puml/api/genre_list_response.puml[svg]
 
 *Error Responses:*
 
@@ -467,7 +467,7 @@ plantuml::puml/genre_list_response.puml[svg]
 
 *Response (200 OK):* JSON `SongWithAlbum` object containing full song details and associated album details.
 
-plantuml::puml/song_with_album_response.puml[svg]
+plantuml::puml/api/song_with_album_response.puml[svg]
 
 *Error Responses:*
 
@@ -513,7 +513,7 @@ plantuml::puml/song_with_album_response.puml[svg]
 
 *Response (200 OK):* JSON array of `Playlist` objects.
 
-plantuml::puml/playlist_list_response.puml[svg]
+plantuml::puml/api/playlist_list_response.puml[svg]
 
 *Error Responses:*
 
@@ -525,11 +525,11 @@ plantuml::puml/playlist_list_response.puml[svg]
 ====
 *Request:* JSON (songIds is optional, if provided must be an array of positive integers).
 
-plantuml::puml/playlist_creation_request.puml[svg]
+plantuml::puml/api/playlist_creation_request.puml[svg]
 
 *Response (201 CREATED)*: On success, returns the created `Playlist` object.
 
-plantuml::puml/playlist_response.puml[svg]
+plantuml::puml/api/playlist_response.puml[svg]
 
 *Error Responses:*
 
@@ -543,11 +543,11 @@ plantuml::puml/playlist_response.puml[svg]
 ====
 *Request:* JSON. `songIds` must be a non-empty array of positive integers.
 
-plantuml::puml/playlist_add_songs_request.puml[svg]
+plantuml::puml/api/playlist_add_songs_request.puml[svg]
 
 *Response (200 OK):* On successful processing, returns JSON:
 
-plantuml::puml/add_songs_to_playlist_response.puml[svg]
+plantuml::puml/api/add_songs_to_playlist_response.puml[svg]
 
 *Error Responses:*
 
@@ -564,7 +564,7 @@ plantuml::puml/add_songs_to_playlist_response.puml[svg]
 
 *Response (200 OK):* JSON array of song IDs representing the order.
 
-plantuml::puml/song_id_list_response.puml[svg]
+plantuml::puml/api/song_id_list_response.puml[svg]
 
 *Error Responses:*
 
@@ -578,11 +578,11 @@ plantuml::puml/song_id_list_response.puml[svg]
 ====
 *Request:* JSON array of song IDs in the desired new order. The list must contain all and only the song IDs currently in the playlist, without duplicates.
 
-plantuml::puml/playlist_update_order_request.puml[svg]
+plantuml::puml/api/playlist_update_order_request.puml[svg]
 
 *Response (200 OK):* JSON array of song IDs confirming the new order.
 
-plantuml::puml/song_id_list_response.puml[svg]
+plantuml::puml/api/song_id_list_response.puml[svg]
 
 *Error Responses:*
 
