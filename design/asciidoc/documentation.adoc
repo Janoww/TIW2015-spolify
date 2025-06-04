@@ -255,8 +255,6 @@ Si realizzi un’applicazione client server web che modifica le specifiche prece
 
 plantuml::puml/architecture/frontend_component_view_diagram.puml[svg]
 
-<<<
-
 === Frontend Views, Components, Events, and Actions Summary
 
 ==== Global Components & Interactions (SPA Shell)
@@ -344,6 +342,88 @@ plantuml::puml/architecture/frontend_component_view_diagram.puml[svg]
 * [.events]#"Save Order" button click#: [.actions]#Sends the new sequence of song IDs to the backend#.
 * [.events]#Close button click#: [.actions]#Closes the modal# without saving changes.
 * [.events]#Cancel button click#: [.actions]#Resets the current user unsaved order changes#.
+
+<<<
+
+== Application Flow Sequence Diagrams
+
+This section details the various user interaction and backend API flows within the Music Playlist Application using sequence diagrams. Each diagram illustrates a specific process or functionality, showing the communication between frontend components, backend servlets, and data access objects.
+
+=== Login and Signup Page Flow Sequence Diagram
+
+This sequence diagram details the user interaction flow for both login and signup processes.
+
+plantuml::puml/flows/login_signup_flow.puml[svg]
+
+<<<
+
+=== Home Page Flow Sequence Diagram
+
+This sequence diagram outlines the sequence of events when a user navigates to the home page.
+
+plantuml::puml/flows/home_page_flow.puml[svg]
+
+<<<
+
+=== Songs Page Flow Sequence Diagram
+
+This sequence diagram illustrates the flow when a user navigates to the "Songs" page.
+
+plantuml::puml/flows/songs_page_flow.puml[svg]
+
+<<<
+
+=== Playlist Page Flow Sequence Diagram
+
+This sequence diagram details the interactions on the playlist page.
+
+plantuml::puml/flows/playlist_page_flow.puml[svg]
+
+<<<
+
+=== Global Player Flow Sequence Diagram
+
+This sequence diagram explains how the global audio player is activated and controlled.
+
+plantuml::puml/flows/player_flow.puml[svg]
+
+<<<
+
+=== Reorder Playlist Modal Flow Sequence Diagram
+
+This sequence diagram outlines the process of reordering songs within a playlist using a modal.
+
+plantuml::puml/flows/reorder_modal_flow.puml[svg]
+
+<<<
+
+=== Authentication API Flow Sequence Diagram
+
+This sequence diagram illustrates the backend API interactions for user authentication, including login, logout, and session status checking.
+
+plantuml::puml/flows/auth_api_flow.puml[svg]
+
+=== User Registration API Flow Sequence Diagram
+
+This sequence diagram focuses on the backend API interaction for new user registration.
+
+plantuml::puml/flows/user_api_flow.puml[svg]
+
+<<<
+
+=== Song Management API Flow Sequence Diagram
+
+This sequence diagram details the backend API interactions for song management.
+
+plantuml::puml/flows/song_api_flow.puml[svg]
+
+<<<
+
+=== Playlist Management API Flow Sequence Diagram
+
+This sequence diagram illustrates the backend API interactions for playlist management.
+
+plantuml::puml/flows/playlist_api_flow.puml[svg]
 
 <<<
 

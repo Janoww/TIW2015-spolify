@@ -1,0 +1,29 @@
+@startuml
+!theme sunlust
+actor User
+
+box "Frontend (Vanilla JS SPA)" #LightBlue
+  participant "apiService.js" as ApiService
+end box
+
+box "Backend (Java Servlets & DAOs)" #LightGreen
+  participant "UserApiServlet" as UserServlet
+  database "UserDAO" as UserDAO
+end box
+
+== User API Flows ==
+
+User -> ApiService : Attempts to sign up
+activate ApiService
+ApiService -> UserServlet : POST /api/v1/users\n{username, password, name, surname}
+activate UserServlet
+UserServlet -> UserDAO : createUser(username, password, name, surname)
+activate UserDAO
+UserDAO --> UserServlet : User object / DAOException (e.g., NAME_ALREADY_EXISTS)
+deactivate UserDAO
+UserServlet --> ApiService : 201 CREATED {UserInfo} / 409 Conflict
+deactivate UserServlet
+ApiService --> User : Signup success / failure
+deactivate ApiService
+
+@enduml

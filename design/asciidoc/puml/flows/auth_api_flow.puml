@@ -1,0 +1,49 @@
+@startuml
+!theme sunlust
+actor User
+
+box "Frontend (Vanilla JS SPA)" #LightBlue
+  participant "apiService.js" as ApiService
+end box
+
+box "Backend (Java Servlets & DAOs)" #LightGreen
+  participant "AuthApiServlet" as AuthServlet
+  database "UserDAO" as UserDAO
+end box
+
+== Auth API Flows ==
+
+User -> ApiService : Attempts to log in
+activate ApiService
+ApiService -> AuthServlet : POST /api/v1/auth/login\n{username, password}
+activate AuthServlet
+AuthServlet -> UserDAO : checkCredentials(username, password)
+activate UserDAO
+UserDAO --> AuthServlet : User object / DAOException
+deactivate UserDAO
+AuthServlet --> ApiService : 200 OK {UserInfo} / 401 Unauthorized
+deactivate AuthServlet
+ApiService --> User : Login success / failure
+deactivate ApiService
+
+User -> ApiService : Attempts to log out
+activate ApiService
+ApiService -> AuthServlet : POST /api/v1/auth/logout
+activate AuthServlet
+' Note: Logout primarily involves session invalidation, direct DAO interaction is minimal for this high-level view.
+AuthServlet --> ApiService : 200 OK {message}
+deactivate AuthServlet
+ApiService --> User : Logout success
+deactivate ApiService
+
+User -> ApiService : Checks session status
+activate ApiService
+ApiService -> AuthServlet : GET /api/v1/auth/me
+activate AuthServlet
+' Note: Session check is primarily servlet/session-based, not direct DAO.
+AuthServlet --> ApiService : 200 OK {UserInfo} / 401 Unauthorized
+deactivate AuthServlet
+ApiService --> User : Session status
+deactivate ApiService
+
+@enduml

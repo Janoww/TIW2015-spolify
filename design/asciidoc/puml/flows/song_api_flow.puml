@@ -1,0 +1,160 @@
+@startuml
+!theme sunlust
+actor User
+
+box "Frontend (Vanilla JS SPA)" #LightBlue
+  participant "apiService.js" as ApiService
+end box
+
+box "Backend (Java Servlets & DAOs)" #LightGreen
+  participant "SongApiServlet" as SongServlet
+  database "SongDAO" as SongDAO
+  database "AlbumDAO" as AlbumDAO
+  database "AudioDAO" as AudioDAO
+  database "ImageDAO" as ImageDAO
+  database "SongCreationServiceDAO" as SongCreationServiceDAO
+end box
+
+== Song API Flows ==
+
+User -> ApiService : Fetches all songs
+activate ApiService
+ApiService -> SongServlet : GET /api/v1/songs
+activate SongServlet
+SongServlet -> SongDAO : findSongsByUser(userId)
+activate SongDAO
+SongDAO --> SongServlet : [Song]
+deactivate SongDAO
+SongServlet -> AlbumDAO : findAlbumById(albumId) (for each song)
+activate AlbumDAO
+AlbumDAO --> SongServlet : Album
+deactivate AlbumDAO
+SongServlet --> ApiService : 200 OK [SongWithAlbum]
+deactivate SongServlet
+ApiService --> User : Returns songs
+deactivate ApiService
+
+User -> ApiService : Fetches a specific song
+activate ApiService
+ApiService -> SongServlet : GET /api/v1/songs/{songId}
+activate SongServlet
+SongServlet -> SongDAO : findSongsByIdsAndUser([songId], userId)
+activate SongDAO
+SongDAO --> SongServlet : [Song] / Empty List
+deactivate SongDAO
+alt Song Found
+  SongServlet -> AlbumDAO : findAlbumById(song.albumId)
+  activate AlbumDAO
+  AlbumDAO --> SongServlet : Album / DAOException (NOT_FOUND)
+  deactivate AlbumDAO
+  SongServlet --> ApiService : 200 OK {SongWithAlbum}
+else Song Not Found
+  SongServlet --> ApiService : 404 Not Found
+end
+deactivate SongServlet
+ApiService --> User : Returns song / error
+deactivate ApiService
+
+User -> ApiService : Fetches song audio
+activate ApiService
+ApiService -> SongServlet : GET /api/v1/songs/{songId}/audio
+activate SongServlet
+SongServlet -> SongDAO : findSongsByIdsAndUser([songId], userId) (to get audioFile name & verify ownership)
+activate SongDAO
+SongDAO --> SongServlet : [Song] / Empty List
+deactivate SongDAO
+alt Song Found
+  SongServlet -> AudioDAO : getAudio(song.audioFile)
+  activate AudioDAO
+  AudioDAO --> SongServlet : FileData (InputStream, mimeType, size) / DAOException
+  deactivate AudioDAO
+  SongServlet --> ApiService : 200 OK (Audio Stream)
+else Song Not Found
+  SongServlet --> ApiService : 404 Not Found
+end
+deactivate SongServlet
+ApiService --> User : Streams audio / error
+deactivate ApiService
+
+User -> ApiService : Fetches song album image
+activate ApiService
+ApiService -> SongServlet : GET /api/v1/songs/{songId}/image
+activate SongServlet
+SongServlet -> SongDAO : findSongsByIdsAndUser([songId], userId) (to get albumId & verify ownership)
+activate SongDAO
+SongDAO --> SongServlet : [Song] / Empty List
+deactivate SongDAO
+alt Song Found
+  SongServlet -> AlbumDAO : findAlbumById(song.albumId) (to get imageFile name)
+  activate AlbumDAO
+  AlbumDAO --> SongServlet : Album / DAOException
+  deactivate AlbumDAO
+  alt Album Found
+    SongServlet -> ImageDAO : getImage(album.imageFile)
+    activate ImageDAO
+    ImageDAO --> SongServlet : FileData (InputStream, mimeType, size) / DAOException
+    deactivate ImageDAO
+    SongServlet --> ApiService : 200 OK (Image Stream)
+  else Album Not Found
+    SongServlet --> ApiService : 404 Not Found (Album for image)
+  end
+else Song Not Found
+  SongServlet --> ApiService : 404 Not Found (Song)
+end
+deactivate SongServlet
+ApiService --> User : Streams image / error
+deactivate ApiService
+
+User -> ApiService : Fetches song genres
+activate ApiService
+ApiService -> SongServlet : GET /api/v1/songs/genres
+activate SongServlet
+' Note: Genres are from an Enum, no DAO interaction needed.
+SongServlet --> ApiService : 200 OK [GenreInfo]
+deactivate SongServlet
+ApiService --> User : Returns genres
+deactivate ApiService
+
+User -> ApiService : Creates a new song (uploads files)
+activate ApiService
+ApiService -> SongServlet : POST /api/v1/songs (multipart/form-data)\n{title, ..., audioFile, albumImage?}
+activate SongServlet
+SongServlet -> SongCreationServiceDAO : createSongWorkflow(user, params, imageFilePart)
+activate SongCreationServiceDAO
+
+SongCreationServiceDAO -> AudioDAO : saveAudio(audioStream, originalName)
+activate AudioDAO
+AudioDAO --> SongCreationServiceDAO : audioFileStorageName / DAOException
+deactivate AudioDAO
+
+SongCreationServiceDAO -> AlbumDAO : findAlbumsByUser(userId)
+activate AlbumDAO
+AlbumDAO --> SongCreationServiceDAO : [Album]
+deactivate AlbumDAO
+
+alt Album Does Not Exist
+  SongCreationServiceDAO -> ImageDAO : saveImage(imageStream, originalName) (if imageFilePart provided)
+  activate ImageDAO
+  ImageDAO --> SongCreationServiceDAO : imageFileStorageName / DAOException
+  deactivate ImageDAO
+  SongCreationServiceDAO -> AlbumDAO : createAlbum(title, year, artist, imageFileStorageName, userId)
+  activate AlbumDAO
+  AlbumDAO --> SongCreationServiceDAO : Album / DAOException
+  deactivate AlbumDAO
+else Album Exists
+  ' Use existing album
+end
+
+SongCreationServiceDAO -> SongDAO : createSong(title, albumId, genre, audioFileStorageName, userId)
+activate SongDAO
+SongDAO --> SongCreationServiceDAO : Song / DAOException
+deactivate SongDAO
+
+SongCreationServiceDAO --> SongServlet : SongWithAlbum / DAOException (triggers rollback & cleanup)
+deactivate SongCreationServiceDAO
+SongServlet --> ApiService : 201 CREATED {SongWithAlbum} / Error (e.g., 400 Bad Request)
+deactivate SongServlet
+ApiService --> User : Song creation success / failure
+deactivate ApiService
+
+@enduml

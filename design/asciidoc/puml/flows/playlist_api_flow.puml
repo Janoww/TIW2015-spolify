@@ -1,0 +1,100 @@
+@startuml
+!theme sunlust
+actor User
+
+box "Frontend (Vanilla JS SPA)" #LightBlue
+  participant "apiService.js" as ApiService
+end box
+
+box "Backend (Java Servlets & DAOs)" #LightGreen
+  participant "PlaylistApiServlet" as PlaylistServlet
+  database "PlaylistDAO" as PlaylistDAO
+  database "PlaylistOrderDAO" as PlaylistOrderDAO
+end box
+
+== Playlist API Flows ==
+
+User -> ApiService : Fetches user playlists
+activate ApiService
+ApiService -> PlaylistServlet : GET /api/v1/playlists
+activate PlaylistServlet
+PlaylistServlet -> PlaylistDAO : findPlaylistsByUser(userId)
+activate PlaylistDAO
+PlaylistDAO --> PlaylistServlet : [Playlist]
+deactivate PlaylistDAO
+PlaylistServlet --> ApiService : 200 OK [Playlist]
+deactivate PlaylistServlet
+ApiService --> User : Returns playlists
+deactivate ApiService
+
+User -> ApiService : Fetches playlist order
+activate ApiService
+ApiService -> PlaylistServlet : GET /api/v1/playlists/{playlistId}/order
+activate PlaylistServlet
+PlaylistServlet -> PlaylistDAO : findPlaylistById(playlistId, userId) (to verify ownership)
+activate PlaylistDAO
+PlaylistDAO --> PlaylistServlet : Playlist / DAOException (NOT_FOUND / ACCESS_DENIED)
+deactivate PlaylistDAO
+alt Playlist Found and Owned
+  PlaylistServlet -> PlaylistOrderDAO : getPlaylistOrder(playlistId)
+  activate PlaylistOrderDAO
+  PlaylistOrderDAO --> PlaylistServlet : [SongId]
+  deactivate PlaylistOrderDAO
+  PlaylistServlet --> ApiService : 200 OK [SongId]
+else Playlist Not Found or Access Denied
+  PlaylistServlet --> ApiService : 404 Not Found / 403 Forbidden
+end
+deactivate PlaylistServlet
+ApiService --> User : Returns playlist order / error
+deactivate ApiService
+
+User -> ApiService : Creates a new playlist
+activate ApiService
+ApiService -> PlaylistServlet : POST /api/v1/playlists\n{name, songIds}
+activate PlaylistServlet
+PlaylistServlet -> PlaylistDAO : createPlaylist(name, userId, songIds)
+activate PlaylistDAO
+' PlaylistDAO internally handles song existence checks if songIds are provided
+PlaylistDAO --> PlaylistServlet : Playlist object / DAOException
+deactivate PlaylistDAO
+PlaylistServlet --> ApiService : 201 CREATED {Playlist} / Error (e.g., 409 Conflict, 400 Bad Request)
+deactivate PlaylistServlet
+ApiService --> User : Playlist creation success / failure
+deactivate ApiService
+
+User -> ApiService : Adds songs to a playlist
+activate ApiService
+ApiService -> PlaylistServlet : POST /api/v1/playlists/{playlistId}/songs\n{songIds}
+activate PlaylistServlet
+PlaylistServlet -> PlaylistDAO : addSongsToPlaylist(playlistId, userId, songIds)
+activate PlaylistDAO
+' PlaylistDAO handles song existence, playlist ownership, and duplicate checks
+PlaylistDAO --> PlaylistServlet : AddSongsToPlaylistResult / DAOException
+deactivate PlaylistDAO
+PlaylistServlet --> ApiService : 200 OK {AddSongsToPlaylistResult} / Error
+deactivate PlaylistServlet
+ApiService --> User : Add songs success / failure
+deactivate ApiService
+
+User -> ApiService : Updates playlist order
+activate ApiService
+ApiService -> PlaylistServlet : PUT /api/v1/playlists/{playlistId}/order\n[NewSongIdOrder]
+activate PlaylistServlet
+PlaylistServlet -> PlaylistDAO : findPlaylistById(playlistId, userId) (to verify ownership & get current songs)
+activate PlaylistDAO
+PlaylistDAO --> PlaylistServlet : Playlist / DAOException
+deactivate PlaylistDAO
+alt Playlist Found and Owned and Song List Validated
+  PlaylistServlet -> PlaylistOrderDAO : savePlaylistOrder(playlistId, newSongIdOrder)
+  activate PlaylistOrderDAO
+  PlaylistOrderDAO --> PlaylistServlet : Success / DAOException
+  deactivate PlaylistOrderDAO
+  PlaylistServlet --> ApiService : 200 OK [NewSongIdOrder] / Error
+else Validation Failed
+  PlaylistServlet --> ApiService : Error (e.g., 400 Bad Request, 404 Not Found)
+end
+deactivate PlaylistServlet
+ApiService --> User : Update order success / failure
+deactivate ApiService
+
+@enduml
