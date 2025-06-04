@@ -216,6 +216,12 @@ Si realizzi un’applicazione client server web che modifica le specifiche prece
 * During page transitions managed by the router, a [.components]#visual loader# enhances user experience.
 * The `apiService.js` module centralizes backend communication, implementing robust error handling via custom `ApiError` objects, and providing utility functions such as URL builders for media resources (song images and audio). This promotes maintainability and reusability.
 
+* *Color Palette:*
+** Background color: image:../palette/EEEEEE.svg[Background] #EEEEEE
+** Alternative background color: image:../palette/D4BEE4.svg[Alt Background] #D4BEE4
+** Text: image:../palette/9B7EBD.svg[Text] #9B7EBD
+** Highlight color: image:../palette/3B1E54.svg[High Text] #3B1E54.
+
 <<<
 
 === Frontend Component Diagram
@@ -649,45 +655,174 @@ _Error Handling:_ APIs should return appropriate HTTP status codes (e.g., 200, 2
 
 <<<
 
-== Frontend Components (Conceptual)
+== Data Access Objects (DAOs) and Java Beans Structure
 
-The JavaScript SPA will manage different views/components, dynamically rendered within the main application container (`<main id="app">` in `index.html`):
+This section outlines the structure of the Data Access Objects (DAOs) responsible for database interactions and file system storage, and the Java Beans used to represent data entities and requests.
 
-* *Login/Signup View:* Forms for user authentication (`#login` route) and registration (`#signup` route). Managed by `loginHandler.js` and `loginView.js`.
-* *Main Application Structure (Single Page):*
- ** *Navigation/Header:* Contains navigation links (e.g., "Home", "Songs" - managed by `app.js`) and a "Logout" button. User-specific information might be displayed within the content of authenticated views rather than fixed in the global header.
- ** *Home View (`#home` route):* Managed by `homeHandler.js` and `homeView.js`. This is the main landing page after login. It displays:
-  *** The user's playlists, sorted by creation date (descending). Each playlist entry links to its specific Playlist View and provides access to the Reorder Modal.
-  *** A form for uploading new songs.
-  *** A form for creating new playlists, including a list of the user's available songs (sorted alphabetically by artist, then by album year) to select from.
- ** *Songs View (`#songs` route):* Managed by `songsHandler.js` and `songsView.js`. This view displays a comprehensive list of all songs uploaded by the user. Selecting a song from this list will trigger the Player Functionality.
- ** *Playlist View (`#playlist-:idplaylist` route):* Managed by `playlistHandler.js` and `playlistView.js`. Accessed by selecting a specific playlist from the Home View. It displays:
-  *** Songs belonging to the selected playlist, presented 5 at a time. The songs are initially displayed according to their default order (alphabetically by artist/group, then by album publication year ascending) or a previously saved custom order.
-  *** "Previous" and "Next" buttons for client-side pagination through the playlist's songs.
-  *** A form to add more songs (from the user's collection) to the current playlist. After new songs are added, the view refreshes, typically displaying the first page/block of songs.
- ** *Player Functionality:* This is not a static "section" but a dynamic update of the UI that occurs when a user selects a song title (e.g., from the Playlist View or Songs View). It will display:
-  *** Full details of the selected song.
-  *** An HTML5 audio player for playback.
- ** *Reorder Modal:* Activated from the Home View via a link/button associated with each playlist. Managed by the relevant handler (e.g., `homeHandler.js`) and uses `sharedComponents.js` for the modal structure. It displays:
-  *** A complete list of songs for the selected playlist, initially shown in their current order (default or custom).
-  *** Functionality for users to drag-and-drop songs to define a custom order. This reordering happens client-side.
-  *** A "Save Order" button to persist the custom sequence to the server via `apiService.updatePlaylistOrder()`. Once a custom order is saved, it becomes the default display order for that playlist in subsequent views. If new songs are added to a playlist that has a custom order, they are appended to the end of this custom order.
- ** *Color Palette:*
-  *** Background color: image:../palette/EEEEEE.svg[Background] #EEEEEE
-  *** Alternative background color: image:../palette/D4BEE4.svg[Alt Background] #D4BEE4
-  *** Text: image:../palette/9B7EBD.svg[Text] #9B7EBD
-  *** Highlight color: image:../palette/3B1E54.svg[High Text] #3B1E54.
+=== Data Access Objects (DAOs)
 
-<<<
+DAOs encapsulate the logic for accessing and manipulating data in the database and file system. Below are the main public methods for each DAO, focusing on their primary responsibilities.
 
-== Key Features (SPA Specifics)
+==== `AlbumDAO`
+Manages `Album` entities in the database.
 
-* *Single Page Experience:* All interactions happen within one HTML page, dynamically updating content via JavaScript without full reloads.
-* *Asynchronous Communication:* Uses `fetch` or similar for all backend communication.
-* *Client-Side Playlist Pagination:* The "Previous"/"Next" functionality in the Playlist View is handled entirely in JavaScript without server requests.
-* *Client-Side Reordering:* Drag-and-drop reordering of songs in the modal happens client-side. The final order is sent to the server only when the user clicks "Save Order".
-* *Dynamic Updates:* Forms (song upload, playlist creation, add song to playlist) update relevant sections of the page asynchronously upon success.
-* *State Management:* JavaScript will manage the application state (current view, user data, playlists, songs, etc.).
+* `createAlbum(String name, int year, String artist, String image, UUID idUser)`: Creates a new album.
+* `findAlbumById(int idAlbum)`: Retrieves an album by its unique ID.
+* `findAllAlbums()`: Retrieves all albums.
+* `findAlbumsByUser(UUID userId)`: Retrieves all albums for a specific user.
+* `updateAlbum(int idAlbum, UUID userId, String name, Integer year, String artist, String image)`: Updates an existing album's details.
+* `deleteAlbum(int idAlbum, UUID userId)`: Deletes an album.
+
+==== `AudioDAO`
+Manages audio file storage and retrieval within a dedicated 'song' subfolder.
+
+* `saveAudio(InputStream audioStream, String originalFileName)`: Saves an audio file, validates its content, and returns a unique sanitized filename.
+* `deleteAudio(String filename)`: Deletes a specific audio file from storage.
+* `getAudio(String filename)`: Retrieves audio file data (stream, name, MIME type, size).
+
+==== `ImageDAO`
+Manages image file storage and retrieval, typically for album covers, within a dedicated 'image' subfolder.
+
+* `saveImage(InputStream imageStream, String originalFileName)`: Saves an image file, validates its content, and returns a unique sanitized filename.
+* `deleteImage(String filename)`: Deletes a specific image file from storage.
+* `getImage(String filename)`: Retrieves image file data (stream, name, MIME type, size).
+
+==== `PlaylistDAO`
+Manages `Playlist` entities and their relationship with `Song` entities in the database.
+
+* `createPlaylist(String name, UUID idUser, List<Integer> songIds)`: Creates a new playlist with specified songs, ensuring atomicity via transactions.
+* `findPlaylistById(int playlistId, UUID userId)`: Retrieves a specific playlist for a user, including its song IDs.
+* `findPlaylistsByUser(UUID idUser)`: Retrieves all playlists for a specific user.
+* `deletePlaylist(int playlistId, UUID userId)`: Deletes a playlist and its song associations.
+* `addSongToPlaylist(int playlistId, UUID userId, int songId)`: Adds a single song to a playlist, with ownership and existence checks.
+* `removeSongFromPlaylist(int playlistId, UUID userId, int songId)`: Removes a song from a playlist.
+* `addSongsToPlaylist(int playlistId, UUID userId, List<Integer> songIdsToAdd)`: Adds multiple songs to a playlist transactionally, returning a result object indicating successfully added and duplicate songs.
+
+==== `PlaylistOrderDAO`
+Manages the custom ordering of songs within playlists, storing this order information as JSON files in a 'playlist_orders' subfolder.
+
+* `savePlaylistOrder(int idPlaylist, List<Integer> orderedSongIds)`: Saves or updates the custom song order for a playlist.
+* `getPlaylistOrder(int idPlaylist)`: Retrieves the custom song order for a playlist; returns an empty list if no custom order exists.
+* `deletePlaylistOrder(int idPlaylist)`: Deletes the custom song order file for a playlist.
+
+==== `SongCreationServiceDAO`
+Orchestrates the complex, transactional process of creating a new song. This service coordinates `AlbumDAO`, `SongDAO`, `ImageDAO`, and `AudioDAO` to handle album creation (if needed), file uploads (audio and optional album image), and database record insertions.
+
+* `createSongWorkflow(User user, SongCreationParameters params, Part imageFilePart)`: Manages the end-to-end song creation process, including saving files, creating/finding an album, creating the song record, and ensuring transactional integrity with rollbacks and cleanup on failure.
+
+==== `SongDAO`
+Manages `Song` entities in the database.
+
+* `createSong(String title, int idAlbum, Genre genre, String audioFile, UUID idUser)`: Creates a new song record.
+* `findSongsByUser(UUID userId)`: Retrieves all songs uploaded by a specific user.
+* `findAllSongs()`: Retrieves all songs from the database.
+* `deleteSong(int songId)`: Deletes a song record.
+* `findSongsByIdsAndUser(List<Integer> songIds, UUID userId)`: Retrieves specific songs by their IDs, ensuring they belong to the specified user.
+
+==== `UserDAO`
+Manages `User` entities in the database, including authentication and user information.
+
+* `createUser(String username, String pwd, String name, String surname)`: Creates a new user, checking for username uniqueness.
+* `findUserByUsername(String username)`: Retrieves a user by their username (excluding password).
+* `checkCredentials(String username, String pwd)`: Validates user credentials and returns user details upon success.
+* `modifyUser(User user, String name, String surname)`: Modifies a user's name and/or surname.
+* `deleteUser(UUID userId)`: Deletes a user from the database.
+
+=== Java Beans
+
+Java Beans (and Records) used throughout the application to model data entities, request payloads, and structured responses.
+
+==== `AddSongsToPlaylistResult`
+Represents the outcome of an operation to add multiple songs to a playlist.
+
+`addedSongIds`:: `List<Integer>` - List of IDs for songs that were successfully added to the playlist.
+`duplicateSongIds`:: `List<Integer>` - List of IDs for songs that were already present in the playlist and thus not re-added.
+
+==== `Album`
+Represents an album entity.
+
+`idAlbum`:: `int` - Unique identifier for the album.
+`name`:: `String` - Name of the album.
+`year`:: `int` - Release year of the album.
+`artist`:: `String` - Artist of the album.
+`imageFile`:: `String` - Path to the album's image file (internal use, marked with `@JsonIgnore` for API responses).
+`idUser`:: `UUID` - Identifier of the user who owns or created the album.
+
+==== `FileData` (Record)
+A record that encapsulates data for a file, including its content stream and essential metadata.
+
+`content`:: `InputStream` - The stream providing the file's content.
+`filename`:: `String` - The name of the file.
+`mimeType`:: `String` - The MIME type of the file (e.g., "audio/mpeg", "image/jpeg").
+`size`:: `long` - The size of the file in bytes.
+
+==== `LoginRequest`
+Represents the data structure for a user login request.
+
+`username`:: `String` - The username provided for login.
+`password`:: `String` - The password provided for login.
+
+==== `Playlist`
+Represents a playlist entity.
+
+`idPlaylist`:: `int` - Unique identifier for the playlist.
+`name`:: `String` - Name of the playlist.
+`birthday`:: `Timestamp` - Timestamp indicating the creation date and time of the playlist.
+`idUser`:: `UUID` - Identifier of the user who owns the playlist.
+`songs`:: `List<Integer>` - List of song IDs included in this playlist.
+
+==== `PlaylistAddSongsRequest`
+Represents the request payload for adding one or more songs to an existing playlist.
+
+`songIds`:: `List<Integer>` - A list of song IDs to be added to the playlist.
+
+==== `PlaylistCreationRequest`
+Represents the data structure for a request to create a new playlist.
+
+`name`:: `String` - The desired name for the new playlist.
+`songIds`:: `List<Integer>` - An initial list of song IDs to include in the newly created playlist (can be empty).
+
+==== `Song`
+Represents a song entity.
+
+`idSong`:: `int` - Unique identifier for the song.
+`title`:: `String` - Title of the song.
+`idAlbum`:: `int` - Identifier of the album to which this song belongs.
+`genre`:: `Genre` (Enum) - Musical genre of the song (e.g., ROCK, POP).
+`audioFile`:: `String` - Path or reference to the song's audio file (internal use, marked with `@JsonIgnore`).
+`idUser`:: `UUID` - Identifier of the user who uploaded or owns the song.
+
+==== `SongCreationParameters` (Record)
+A record that encapsulates all parameters required for the song creation workflow, typically gathered from a multipart form submission.
+
+`songTitle`:: `String` - Title of the new song.
+`albumTitle`:: `String` - Title of the album for the song. If the album doesn't exist for the user, it might be created.
+`albumArtist`:: `String` - Artist of the album.
+`albumYear`:: `int` - Release year of the album.
+`genre`:: `Genre` (Enum) - Genre of the song.
+`audioFilePart`:: `Part` - The uploaded audio file part from a multipart/form-data request.
+
+==== `SongWithAlbum`
+A composite bean designed to conveniently package a `Song` object along with its associated `Album` object, often used for API responses.
+
+`song`:: `Song` - The song object.
+`album`:: `Album` - The album object associated with the song.
+
+==== `User`
+Represents a user entity, typically for application-level use after authentication.
+
+`idUser`:: `UUID` - Unique identifier for the user (internal use, marked with `@JsonIgnore`).
+`username`:: `String` - The user's username.
+`name`:: `String` - The user's first name.
+`surname`:: `String` - The user's last name.
+
+==== `UserCreationRequest`
+Represents the data structure for a new user registration request.
+
+`username`:: `String` - Desired username for the new user.
+`password`:: `String` - Desired password for the new user.
+`name`:: `String` - First name of the new user.
+`surname`:: `String` - Last name of the new user.
 
 <<<
 
@@ -698,84 +833,109 @@ The frontend is a Vanilla JavaScript Single Page Application (SPA) built with a 
 === Core Modules & Responsibilities
 
 . *`app.js` (Main Entry Point):*
- ** Initializes the application upon `DOMContentLoaded`.
- ** Sets up the client-side router (`router.js`) by defining route-to-handler mappings.
- ** Manages the initial user session state by calling `apiService.checkAuthStatus()`. Authenticated user data is stored in `sessionStorage`.
- ** Redirects users to the login page if they attempt to access protected routes without an active session.
- ** Dynamically populates and manages the global navigation bar (`#navbar`), including navigation links (e.g., Home, Songs) and the logout button.
- ** Orchestrates the loading of different views into the main application container (`<main id="app">`) based on the current route and authentication status.
+
+ ** `addNavLinks(navbar)`: Populates the navigation bar with links like "Home" and "Songs".
+ ** `checkUserSessionAndInitialize()`: Verifies user authentication status, manages session data in `sessionStorage`, and handles initial page routing based on authentication.
+ ** `DOMContentLoaded` event listener: Orchestrates application startup by initializing the router, checking the user session, and setting up the main navigation bar including the logout button.
+
 . *`router.js` (Client-Side Routing):*
- ** Implements a hash-based routing system (e.g., `#home`, `#playlist-123`).
- ** Listens for `hashchange` events to trigger route transitions.
- ** Parses route parameters from the URL hash (e.g., `idplaylist` from `#playlist-:idplaylist`).
- ** Maps URL patterns to specific handler functions (defined in `app.js` and sourced from `handlers/`).
- ** Manages a visual loader element during page transitions to indicate activity.
- ** Controls the visibility of the global navigation bar based on whether the current route is public (e.g., login, signup) or protected.
- ** Handles unknown routes by displaying a "404 - Page Not Found" message within the application container.
+
+ ** `showLoader()`: Displays a visual loader during page transitions.
+ ** `hideLoader()`: Hides the visual loader.
+ ** `initRouter(containerElement, routeDefinitions, appPublicRoutes)`: Sets up the router with route mappings and attaches a listener for URL hash changes.
+ ** `navigate(routeKey)`: Allows programmatic navigation to a specified route.
+ ** `handleRouteChange()` (async): Processes URL hash changes, matches them to defined routes, extracts parameters, and invokes the appropriate handler via `executeHandler`. Manages the loader display.
+ ** `executeHandler(handler, matchedRoutePattern, params)` (async): Executes the route-specific handler function, manages navbar visibility based on route protection, and handles errors.
+
 . *`apiService.js` (API Communication Layer):*
- ** Centralizes all HTTP requests to the backend REST API (prefixed with `api/v1`).
- ** Uses the `fetch` API for asynchronous communication.
- ** Provides a generic `_fetchApi` helper function that handles:
-  *** Setting appropriate request headers (`Content-Type: application/json`, `Accept: application/json`).
-  *** Serializing request bodies to JSON (or handling `FormData` for file uploads, e.g., in `uploadSong`).
-  *** Parsing JSON responses from the server.
-  *** Comprehensive error handling: It catches network errors and non-OK HTTP responses, creating custom `ApiError` objects that include status codes, messages, and detailed error information from the server's JSON response.
- ** Exports dedicated, JSDoc-typed functions for each API endpoint (e.g., `login()`, `getPlaylists()`, `uploadSong()`, `updatePlaylistOrder()`), making API calls clean, type-hinted, and reusable throughout the application.
- ** Includes URL builder functions for constructing media URLs (e.g., `getSongImageURL()`, `getSongAudioURL()`).
+
+ ** `_fetchApi(endpoint, options, isFormData)` (async, private helper): Core function for making `fetch` requests to the backend. Handles request/response processing, JSON serialization/parsing, FormData, and error handling (creating `ApiError` objects).
+ ** `checkAuthStatus()`: Checks if a user is currently authenticated (`GET /auth/me`).
+ ** `login(credentials)`: Sends user credentials to log in (`POST /auth/login`).
+ ** `logout()`: Logs out the current user (`POST /auth/logout`).
+ ** `signup(userData)`: Registers a new user (`POST /users`).
+ ** `getPlaylists()`: Fetches all playlists for the authenticated user (`GET /playlists`).
+ ** `createPlaylist(playlistData)`: Creates a new playlist (`POST /playlists`).
+ ** `getPlaylistSongOrder(playlistId)`: Retrieves the order of songs in a playlist (`GET /playlists/{playlistId}/order`).
+ ** `addSongsToPlaylist(playlistId, songIdsData)`: Adds songs to a specific playlist (`POST /playlists/{playlistId}/songs`).
+ ** `updatePlaylistOrder(playlistId, orderedSongIdsData)`: Updates the song order for a playlist (`PUT /playlists/{playlistId}/order`).
+ ** `getSongs()`: Fetches all songs for the authenticated user (`GET /songs`).
+ ** `uploadSong(formElement)`: Uploads a new song with its details and files using `FormData` (`POST /songs`).
+ ** `getSongDetails(songId)`: Fetches details for a specific song (`GET /songs/{songId}`).
+ ** `getSongGenres()`: Retrieves the list of available song genres (`GET /songs/genres`).
+ ** `getSongImageURL(songId)`: Builds the URL to fetch a song's album image.
+ ** `getSongAudioURL(songId)`: Builds the URL to fetch a song's audio file.
 
 === Directory Structure and Component Roles (`src/main/webapp/js/`)
 
 * *`handlers/` (Controller/Presenter Logic):*
- ** Modules in this directory (e.g., `homeHandler.js`, `loginHandler.js`, `playlistHandler.js`, `songsHandler.js`) are responsible for the logic associated with specific views or application "pages".
- ** They are invoked by the router when a corresponding route is matched.
- ** Typical responsibilities include:
-  *** Fetching necessary data from the backend using functions from `apiService.js`.
-  *** Processing user input and handling events delegated from the UI elements.
-  *** Managing view-specific state or data transformations, including client-side state for features like playlist pagination or song reordering within a modal.
-  *** Coordinating with modules in the `views/` directory to render or update the UI within the main application container (`#app`).
- ** `sharedFormHandlers.js` provides reusable logic for common form submission patterns (e.g., handling song uploads, playlist creation).
+
+ ** `homeHandler.js`:
+  *** `initHomePage(appContainer)`: Initializes the Home Page, loading/rendering components (playlists, song upload, new playlist forms) and setting up event listeners.
+
+ ** `loginHandler.js`:
+  *** `initLoginPage(appContainer)`: Initializes and displays the login form, handling its submission.
+  *** `initSignupPage(appContainer)`: Initializes and displays the signup form, handling its submission.
+  *** `logoutUser()`: Manages user logout, including API call, session clearing, and navigation.
+
+ ** `playerHandler.js`:
+  *** `initPlayer()`: Initializes the global audio player UI and event listeners.
+  *** `startPlayback(songId, songIdList = [])`: Starts playback for a song, optionally setting up a queue.
+  *** `stopPlayback()`: Stops current playback, clears queue, and hides player.
+
+ ** `playlistHandler.js`:
+  *** `initPlaylistPage(appContainer, params)`: Initializes the playlist page for a specific playlist, rendering its songs, pagination, and add-song form, and setting up interactions.
+  *** `getOrderedSongs(playlist, playlistOrder)`: Fetches and returns full song details in a specified or default order for a playlist.
+
+ ** `sharedFormHandlers.js`:
+  *** `handleSongUploadSubmit(event, fieldIds, errorDivId, onSuccessCallback, appContainer, songsList)`: Provides a reusable handler for song upload form submissions, including validation, API call, and success/error handling.
+
+ ** `songsHandler.js`:
+  *** `initSongPage(appContainer)`: Initializes the "All Songs" page, fetching and displaying all user songs, the song upload form, and handling related events.
+
 * *`views/` (View Rendering Logic):*
- ** Modules here (e.g., `homeView.js`, `loginView.js`, `playlistView.js`, `songsView.js`) are primarily concerned with generating and manipulating the DOM for different sections of the application.
- ** They typically export functions that take data (provided by handlers) and return HTML structures (often as DOM elements created via `utils/viewUtils.js`) or directly update existing DOM elements.
- ** Event listeners for UI elements are often attached within these modules, delegating actions to handler functions.
- ** `playlistView.js`, in conjunction with `playlistHandler.js`, manages the display of paginated songs (e.g., 5 at a time) and the "Previous/Next" buttons for client-side navigation through a playlist's songs. It also integrates with the reorder modal functionality.
- ** `songsView.js` is responsible for rendering the page that lists all user songs (accessed via the `#songs` route). The "Player Section" functionality, for playing a selected song, is a conceptual component that would be updated with song details and an audio player when a song is selected from any list.
- ** `sharedComponents.js` provides functions to create reusable UI elements such as modals (e.g., for song reordering), buttons, and lists, ensuring consistency across different views.
+
+ ** `homeView.js`:
+  *** `renderHomeView(appContainer)`: Renders the main layout for the home page (playlist list, song upload, new playlist sections, reorder modal structure).
+  *** `renderSongs(appContainer, songWithAlbums)`: Renders songs with checkboxes for the "Create New Playlist" form.
+  *** `renderPlaylists(appContainer, playlists)`: Renders the user's playlist list.
+  *** `renderSongUploadSection(sectionContainer, genres, albumSummaries, error, formId, errorDivId)`: Renders the song upload form.
+  *** `createReorderPopup()`: Creates the HTML structure for the reorder playlist modal's content.
+  *** `populateModal(orderedSongs, modalContent)`: Fills the reorder modal with draggable song items.
+
+ ** `loginView.js`:
+  *** `renderLoginView(appContainer)`: Renders the login form and a link to the signup page.
+  *** `renderSignupView(appContainer)`: Renders the signup form and a link to the login page.
+
+ ** `playlistView.js`:
+  *** `renderPlaylistView(appContainer)`: Renders the main layout for the playlist page (song slider, add song form).
+  *** `writeSliderHeader(text)`: Sets the title for the playlist's song slider.
+  *** `renderButtons(page, totPages)`: Manages visibility of pagination buttons for the song slider.
+  *** `renderSongs(appContainer, songWithAlbums)`: Renders songs with checkboxes for the "Add Song to Playlist" form.
+  *** `renderSliderItem(songWithAlbum)`: Creates an HTML element for a single song in the playlist slider.
+
+ ** `sharedComponents.js`:
+  *** `createSongUploadFormElement(formId, genres, albumSummaries, error)`: Creates a reusable song upload form element.
+  *** `createSongArticleWithCheckboxElement(songWithAlbum)`: Creates a reusable song item display with a checkbox.
+
+ ** `songsView.js`:
+  *** `renderSongsView(appContainer)`: Renders the main layout for the "All Songs" page (song list, song upload form).
+  *** `renderSongUploadSectionOnSongsPage(sectionContainer, genres, albumSummaries, error, formId, errorDivId)`: Renders the song upload form on the "All Songs" page.
+  *** `renderAllUserSongsList(songListContainer, songs, error)`: Renders the list of all user songs, with each item clickable for playback.
+
 * *`utils/` (Utility Functions):*
+
  ** This directory contains helper modules that provide common, reusable functionalities to support other parts of the application.
- ** Examples include:
+
   *** `viewUtils.js`: DOM manipulation helpers (e.g., `createElement` for creating elements, functions to clear containers).
   *** `formUtils.js`: Utilities for form validation, data extraction from forms, or resetting forms.
   *** `delayUtils.js`: Functions for adding artificial delays, possibly for UI effects or simulating network latency during development/testing.
   *** `orderUtils.js`: Provides utilities to support drag-and-drop reordering logic for song lists, particularly within the reorder modal.
 
-=== Data Flow and State Management
-
-* *Authentication State:* Primarily managed in `app.js` and `router.js`. User information for an active session is stored in `sessionStorage`. Access to protected routes is conditional on this stored state.
-* *View-Specific Data:* Fetched asynchronously by handler modules (from `handlers/`) using `apiService.js` when a view is loaded or requires new data. For features like client-side playlist pagination or reordering, `playlistHandler.js` may fetch the full list of songs for a playlist once and cache it client-side to avoid repeated server requests for these operations.
-* *UI Updates:* Data is passed from handlers to view modules. View modules are responsible for rendering this data into the DOM. Updates typically involve clearing and re-rendering sections of the `#app` container or specific components within it.
-* *State Management:* There is no centralized state management library (like Redux or Vuex). Application state is primarily managed locally within handler modules (e.g., current page index for pagination, temporary song order during reordering), or passed between modules as function arguments. `sessionStorage` is used for persistent session state (user data).
-
-=== Key Architectural Characteristics
-
-* *Modularity:* The codebase is organized into distinct JavaScript modules with specific responsibilities (API interaction, routing, view rendering, business logic/handlers, utilities), imported/exported using ES6 module syntax.
-* *Single Page Application (SPA):* Achieved through client-side hash-based routing, which prevents full page reloads and provides a smoother user experience.
-* *Asynchronous Operations:* Extensive use of `async/await` and Promises for non-blocking API calls and other asynchronous tasks, ensuring the UI remains responsive.
-* *Vanilla JavaScript:* The application is built using plain JavaScript, HTML, and CSS, without relying on large frontend frameworks (like React, Angular, or Vue). DOM manipulation is done directly or via helper utilities.
-* *Separation of Concerns (SoC):*
- ** API interaction logic is strictly isolated in `apiService.js`.
- ** Routing and navigation logic is encapsulated in `router.js`.
- ** UI rendering and DOM manipulation are primarily handled by modules in the `views/` directory.
- ** Application flow, event handling coordination, and view-specific data management are primarily the responsibility of modules in the `handlers/` directory.
-
-=== Client-Side Feature Implementation
-
-* *Playlist Pagination:* When viewing a playlist, `playlistHandler.js` fetches the complete list of song IDs (or full song objects if needed for display without further lookups) for that playlist via `apiService.getPlaylistSongOrder()` (or `apiService.getSongs()` filtered by playlist). This list is stored client-side. `playlistView.js` then renders a "page" of songs (e.g., 5 items) based on a current page index managed by `playlistHandler.js`. "Previous" and "Next" button clicks in the view update this index in the handler, which then instructs the view to re-render the appropriate slice of songs, all without further server requests.
-* *Song Reordering Modal:* From the Home page (or Playlist page), a "Reorder" action for a playlist (handled by `homeHandler.js` or `playlistHandler.js`) triggers the display of a modal (likely created using `sharedComponents.js`). This modal, managed by the respective handler, lists all songs in the playlist. Users can drag and drop songs to change their order; this reordering is handled client-side (potentially using `utils/orderUtils.js` and native HTML5 drag-and-drop APIs). The temporary new order is maintained in the handler. Upon clicking a "Save Order" button in the modal, the handler calls `apiService.updatePlaylistOrder()` with the new sequence of song IDs to persist the changes on the server.
-
 <<<
 
 == Testing tools
 
+* *Unit testing DAOs:* Junit 5
 * *Generating mock data:* `mvn compile exec:java -Pgenerate`
 * *Deleting mock data:* `mvn compile exec:java -Pcleanup`
