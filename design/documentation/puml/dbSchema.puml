@@ -49,11 +49,11 @@ entity playlist_content {
   <<UNIQUE\n(idSong, idPlaylist)>>
 }
 
-User ||--o{ Album : owns
+User ||---o{ Album : owns
 User ||--o{ Song : owns
 User ||--o{ playlist_metadata : creates
-Album ||--|{ Song : contains
+Album ||---|{ Song : contains
 playlist_metadata ||--o{ playlist_content : has
-Song ||--o{ playlist_content : belongs to
+Song ||----o{ playlist_content : belongs to
 
 @enduml
