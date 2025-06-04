@@ -1,7 +1,11 @@
 extends: default-sans-with-font-fallbacks
 
-title-page-tile:
+title-page:
+  background-color: #EEEEEE
+
+title-page-title:
   font-color: #3B1E54
+  font-style: bold
 
 heading:
   font-color: #9B7EBD

@@ -1,5 +1,7 @@
-= Music Playlist Application - Design Specification
+= Music Playlist Application - Design Specification (Javascript version)
+:sectnums: |,all|
 :doctype: book
+:title-logo-image: image:resources/SpolifyIcon.png[top=25%,align=center,pdfwidth=40vw]
 :toc: auto
 :icons: font
 :source-highlighter: coderay
