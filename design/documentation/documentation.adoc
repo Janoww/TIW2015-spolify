@@ -61,6 +61,8 @@ Una playlist è un insieme di brani [.relationships]#scelti# tra quelli caricati
 Lo stesso brano può essere [.relationships]#inserito in più# playlist.
 Una playlist ha un [.attributes]#titolo# e una [.attributes]#data di creazione# ed è [.relationships]#associata# al suo creatore.
 
+<<<
+
 === Database design
 
 After analyzing the requirements, the following entity relationship diagram was designed to support the application's functionality:
@@ -294,6 +296,8 @@ con ordinamento personalizzato è inserito nell’ultima posizione.
 * [.events]#Back link click#: [.actions]#redirects# to the playlist page.
 
 image::resources/HTMLIFML.svg[Static]
+
+<<<
 
 == Components
 
@@ -773,6 +777,7 @@ In this project the only filter used is the `Checker` filter that check if the u
 ==== Song page (`SongInspector.html`)
 * This page displays the details of a specific song and provides an audio player to play the song.
 
+<<<
 
 == Sequence Diagrams
 
