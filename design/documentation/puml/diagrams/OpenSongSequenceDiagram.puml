@@ -1,0 +1,67 @@
+@startuml
+title OpenSong Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "OpenSong Servlet" as Servlet
+participant "SongDAO" as SongDAO
+participant "AlbumDAO" as AlbumDAO
+participant "HttpSession" as Session
+participant "WebContext" as Ctx
+participant "TemplateEngine" as Template
+participant "HttpServletResponse" as Response
+
+
+User -> Request : GET /OpenSong?playlistId=...&songId=...
+Request -> Servlet : doGet()
+
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User
+deactivate Session
+
+Servlet -> Request : getParameter("playlistId")
+break playlistId is null or invalid
+    Servlet -> Request : setAttribute("errorOpeningPlaylist", msg)
+    Servlet -> Request : forward to /Home
+end
+
+Servlet -> Request : getParameter("songId")
+break songId is null or invalid
+    Servlet -> Request : setAttribute("errorOpeningSong", msg)
+    Servlet -> Request : forward to /GetPlaylistDetails
+end
+
+Servlet -> SongDAO : findSongsByIdsAndUser(songId, userId)
+activate SongDAO
+
+break DAOException
+    SongDAO --> Servlet : throw DAOException
+    Servlet -> Response : sendError(500, "An internal error occurred")
+end
+SongDAO --> Servlet : List<Song>
+deactivate SongDAO
+
+Servlet -> AlbumDAO : findAlbumById(albumId)
+activate AlbumDAO
+break DAOException
+    AlbumDAO --> Servlet : throw DAOException
+    Servlet -> Response : sendError(500, "An internal error occurred")
+end
+AlbumDAO --> Servlet : Album
+deactivate AlbumDAO
+
+Servlet -> Ctx : setVariable("playlistId", playlistId)
+Servlet -> Ctx : setVariable("swa", SongWithAlbum)
+
+Servlet -> Template : process("/WEB-INF/SongInspector.html", ctx)
+activate Template
+
+Template --> Response : write error page
+deactivate Template
+
+Response --> User : Song HTML page
+
+
+@enduml

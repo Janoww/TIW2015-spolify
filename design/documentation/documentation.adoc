@@ -1,0 +1,793 @@
+= Music Playlist Application - Design Specification
+:doctype: article
+:toc: macro
+:icons: font
+:source-highlighter: coderay
+
+<<<
+
+toc::[]
+
+<<<
+
+== Introduction
+
+This document outlines the design for a web-based music playlist management application. Users can upload songs, organize them into playlists, and play them. This specification focuses on the Multi-Page Application (MPA) version, that does not rely on JavaScript. Each major action will load a separate Html page. This approach ensures an accessible user experience and simplifies both frontend and backend development by relying solely on server-rendered HTML and standard form submissions.
+
+*Technology Stack:*
+
+* *Frontend:* HTML, CSS, Thymeleaf (server-side templating)
+* *Backend:* Java Servlets (running on Apache Tomcat 10.1)
+* *Database:* MySQL
+
+
+== Architecture
+
+The application follows a standard client-server Multi-Page Application (MPA) architecture with a thin client design:
+
+* *Frontend:* HTML pages generated on the server using Thymeleaf templates. The frontend does not use JavaScript; all interactions result in full-page reloads. The client is responsible only for rendering server-generated content, with no client-side logic.
+
+* *Backend:* Java Servlets running on Apache Tomcat 10.1 handle all business logic. They process HTTP requests, manage user sessions, and coordinate the application's flow by rendering views through Thymeleaf.
+
+* *DAO Layer:* Java classes responsible for interacting with the MySQL database (CRUD operations).
+
+* *Database:* MySQL stores user data, song metadata, album information, and playlist structures.
+
+<<<
+
+
+== Specification Analysis
+
+=== Data Analysis
+
+====
+Entities:: [.entities]#Entities for the database#
+Attributes:: [.attributes]#Attributes for each entities#
+Relationships:: [.relationships]#Relationships between entities#
+====
+
+Un’applicazione web consente la gestione di una playlist di brani musicali.
+[.entities]#Playlist e brani# sono [.relationships]#personali# di ogni [.entities]#utente# e [.relationships]#non condivisi#.
+
+Ogni utente ha [.attributes]#username, password, nome e cognome#.
+
+Ogni brano musicale è memorizzato nella base di dati mediante un [.attributes]#titolo#, l‘[.attributes]#immagine e il titolo# dell’[.entities]#album# da cui il brano è [.relationships]#tratto#, il [.attributes]#nome dell’interprete# (singolo o gruppo) dell’album, l’[.attributes]#anno di pubblicazione# dell’album, il [.attributes]#genere musicale# (si supponga che i generi siano prefissati) e il [.attributes]#file musicale#.
+Non è richiesto di memorizzare l’ordine con cui i brani compaiono nell’album a cui appartengono.
+
+Si ipotizzi che un brano possa [.relationships]#appartenere# a un solo album (no compilation).
+L’utente, previo login, può [.relationships]#creare# brani mediante il caricamento dei dati relativi e raggrupparli in playlist.
+
+Una playlist è un insieme di brani [.relationships]#scelti# tra quelli caricati dallo stesso utente.
+Lo stesso brano può essere [.relationships]#inserito in più# playlist.
+Una playlist ha un [.attributes]#titolo# e una [.attributes]#data di creazione# ed è [.relationships]#associata# al suo creatore.
+
+=== Database design
+
+After analyzing the requirements, the following entity relationship diagram was designed to support the application's functionality:
+
+image::resources/Erd.svg[Static]
+
+The translation of the ERD into a relational database schema is as follows:
+
+plantuml::puml/dbSchema.puml[svg]
+
+* *User:* Stores user credentials and basic information.
+
+[source, SQL]
+----
+CREATE TABLE `User` (
+  `idUser` binary(16) NOT NULL,
+  `username` varchar(100) NOT NULL,
+  `password` varchar(100) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `surname` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`idUser`),
+  UNIQUE KEY `username_UNIQUE` (`username`)
+)
+----
+
+* *Album:* Stores album details.
+
+[source, SQL]
+----
+CREATE TABLE `Album` (
+  `idAlbum` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `year` int NOT NULL,
+  `artist` varchar(100) NOT NULL,
+  `image` varchar(255) DEFAULT NULL,
+  `idUser` binary(16) NOT NULL,
+  PRIMARY KEY (`idAlbum`),
+  UNIQUE KEY `unique_name_per_user` (`name`,`idUser`),
+  KEY `fk_Album_1_idx` (`idUser`),
+  CONSTRAINT `fk_Album_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+----
+
+* *Song:* Stores song metadata and file paths.
+
+[source, SQL]
+----
+CREATE TABLE `Song` (
+  `idSong` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(100) NOT NULL,
+  `idAlbum` int NOT NULL,
+  `genre` varchar(100) DEFAULT NULL,
+  `audioFile` varchar(255) NOT NULL,
+  `idUser` binary(16) NOT NULL,
+  PRIMARY KEY (`idSong`),
+  KEY `fk_Song_2_idx` (`idAlbum`),
+  KEY `fk_Song_1_idx` (`idUser`),
+  CONSTRAINT `fk_Song_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_Song_2` FOREIGN KEY (`idAlbum`) REFERENCES `Album` (`idAlbum`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+----
+
+* *playlist_metadata:* Stores playlist metadata.
+
+[source, SQL]
+----
+CREATE TABLE `playlist_metadata` (
+  `idPlaylist` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `birthday` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `idUser` binary(16) NOT NULL,
+  PRIMARY KEY (`idPlaylist`),
+  UNIQUE KEY `unique_playlist_per_user` (`idUser`,`name`),
+  KEY `fk_playlist-metadata_1_idx` (`idUser`),
+  CONSTRAINT `fk_playlist-metadata_1` FOREIGN KEY (`idUser`) REFERENCES `User` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+----
+
+* *playlist_content:* Joining table for the N-N relationship between `playlist_metadata` and `Song`.
+
+[source, SQL]
+----
+CREATE TABLE `playlist_content` (
+  `idPlaylist` int NOT NULL,
+  `idSong` int NOT NULL,
+  PRIMARY KEY (`idPlaylist`,`idSong`),
+  UNIQUE KEY `unique_playlist_and_song` (`idSong`,`idPlaylist`),
+  KEY `fk_playlist-content_1_idx` (`idSong`),
+  KEY `fk_playlist-content_2_idx` (`idPlaylist`),
+  CONSTRAINT `fk_playlist-content_1` FOREIGN KEY (`idSong`) REFERENCES `Song` (`idSong`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_playlist-content_2` FOREIGN KEY (`idPlaylist`) REFERENCES `playlist_metadata` (`idPlaylist`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+----
+
+NOTE: The 'year' for a song is derived from its associated Album's year.
+
+<<<
+
+== Application design
+
+=== Application requirements analysis
+
+====
+Pages (views):: [.pages]#The views for the front end#
+View components:: [.components]#The view components for each view#
+Events:: [.events]#The events needed to handle#
+Actions:: [.actions]#The user actions to capture#
+====
+
+A seguito del [.events]##lo##[.actions]##gin##, l’utente accede all’[.pages]#HOME PAGE# che presenta l’[.components]#elenco delle proprie playlist#, ordinate per data di creazione decrescente, un [.components]#form per caricare un brano# con tutti i dati relativi e un [.components]#form per creare una nuova playlist#.
+
+[.components]#Il form per la# [.events]#creazione# di una nuova playlist mostra l’[.components]#elenco dei brani# dell’utente ordinati per ordine alfabetico crescente dell’autore o gruppo e per data crescente di pubblicazione dell’abum a cui il brano appartiene.
+Tramite il form è possibile [.actions]#selezionare uno o più brani# da includere.
+
+Quando l’utente [.events]#clicca# [.actions]#su una playlist# nell’HOME PAGE, appare la pagina [.pages]#PLAYLIST PAGE# che contiene inizialmente [.components]#una tabella# di una riga e cinque colonne.
+Ogni [.components]#cella contiene il titolo di un brano e l’immagine# dell’album da cui proviene.
+I brani sono ordinati da sinistra a destra per ordine alfabetico crescente dell’autore o gruppo e per data crescente di pubblicazione dell’abum a cui il brano appartiene.
+
+Se la playlist contiene più di cinque brani, sono disponibili comandi per vedere il [.events]#precedente e successivo# gruppo di brani.
+Se la PLAYLIST PAGE mostra il primo gruppo e ne esistono altri successivi nell’ordinamento, compare a destra della riga il [.components]#bottone SUCCESSIVI#, che permette di vedere il gruppo successivo.
+Se la PLAYLIST PAGE mostra l’ultimo gruppo e ne esistono altri precedenti nell’ordinamento, compare a sinistra della riga il [.components]#bottone PRECEDENTI#, che permette di vedere i cinque brani precedenti.
+Se la PLAYLIST PAGE mostra un blocco e esistono sia precedenti sia successivi, compare a destra della riga il bottone SUCCESSIVI e a sinistra il bottone PRECEDENTI.
+
+La PLAYLIST PAGE contiene anche un [.components]#form che consente di selezionare e aggiungere uno o più brani# alla playlist corrente, se non già presente nella playlist.
+Tale form presenta i brani da scegliere nello stesso modo del form usato per creare una playlist.
+A seguito dell’[.events]#aggiunta di un brano# alla playlist corrente, l’applicazione visualizza nuovamente la pagina a partire dal primo blocco della playlist.
+
+Quando l’utente seleziona il titolo di un brano, la [.pages]#PLAYER PAGE# mostra tutti i [.components]#dati del brano# scelto e il [.components]#player audio# per la [.events]#riproduzione del brano#.
+
+==== Javascript specific requirements
+
+Si realizzi un’applicazione client server web che modifica le specifiche precedenti come segue:
+
+* Dopo il login dell’utente, l’intera applicazione è realizzata con un’unica pagina.
+* Ogni interazione dell’utente è gestita senza ricaricare completamente la pagina, ma produce l’[.events]#invocazione asincrona# del server e l’eventuale modifica del contenuto da aggiornare a seguito dell’evento.
+* L’evento di [.events]#visualizzazione del blocco# precedente/successivo è gestito a lato client senza generare una
+richiesta al server.
+* L’applicazione deve consentire all’utente di [.events]#riordinare le playlist# con un criterio personalizato diverso da
+quello di default.
+Dalla HOME con un link associato a ogni playlist si accede a una [.pages]#finestra modale RIORDINO#,
+che mostra la [.components]#lista completa dei brani# della playlist ordinati secondo il criterio corrente (personalizzato o di
+default).
+L’utente può [.actions]#trascinare# il titolo di un brano nell’elenco e di [.actions]#collocarlo# in una posizione diversa per
+realizzare l’ordinamento che desidera, senza invocare il server. Quando l’utente ha raggiunto l’ordinamento
+desiderato, usa un bottone [.events]#“salva ordinamento”#, per memorizzare la sequenza sul server. Ai successivi
+accessi, l’ordinamento personalizzato è usato al posto di quello di default. Un brano aggunto a una playlist
+con ordinamento personalizzato è inserito nell’ultima posizione.
+
+==== Additional Implemented JavaScript Features
+
+===== Functional Additions
+* A [.components]#global, persistent audio player UI# is visible after login, featuring a dedicated interface and a [.events]#close button#.
+* A [.pages]#dedicated "Songs" page# allows users to [.actions]#view a complete list# of all their tracks.
+* The [.components]#main navigation bar# is dynamically populated with navigation links.
+* [.actions]#Selecting a song# from any list (e.g., from the playlist view or Songs view) [.events]#dynamically activates# the global audio player functionality, updating its details and loading the audio track, rather than navigating to a separate static page for playback.
+* The dynamically populated [.components]#main navigation bar# also includes a [.components]#logout button#; [.events]#clicking# this button [.actions]#initiates the logout process# by calling the relevant API service.
+
+===== Non-Functional Aspects
+* User session management utilizes `sessionStorage` for persistence of authenticated user data.
+* For security, the DOMPurify library is used to [.actions]#sanitize inputs# before rendering them in the DOM.
+* During page transitions managed by the router, a [.components]#visual loader# enhances user experience.
+* The `apiService.js` module centralizes backend communication, implementing robust error handling via custom `ApiError` objects, and providing utility functions such as URL builders for media resources (song images and audio). This promotes maintainability and reusability.
+
+<<<
+
+=== Pages, Components, Events, and Actions Summary
+
+==== Login/Signup page ( index.html )
+
+*Components:*
+
+* [.components]#Login Form#: Inputs for username, password; submit button.
+* [.components]#Signup Form#: Inputs for username, password, name, surname; submit button.
+
+*Events/Actions:*
+
+* [.events]#Login Form submission#: [.actions]#Sends credentials to backend#.
+* [.events]#Signup Form submission#: [.actions]#Sends user data to backend#.
+
+==== Home page ( Home.html )
+
+*Components:*
+
+* [.components]#Playlist Creation Form#: Input for playlist name. [.components]#List of user's available songs# with checkboxes for selection. Submit button.
+* [.components]#Song Upload Form#: Inputs for song title, genre, album title, album artist, album year, audio file, album image. Submit button.
+* [.components]#User's Playlist List#: Displays each playlist with its name and an [.components]#Open link#
+* [.components]#Logout link#: Link to log out the user.
+
+*Events/Actions:*
+
+[.events]#Open link click# in playlist list: [.actions]#Redirects to the Playlist page# for the selected playlist.
+* [.events]#Song Upload Form submission#: [.actions]#Sends form data to backend#.
+* [.events]#Playlist Creation Form submission#: [.actions]#Sends new playlist name and selected song IDs to backend#.
+* [.events]#Logout link click#: [.actions]#Logs out the user# and redirects to the login page.
+
+==== Playlist page ( Playlist.html )
+
+*Components:*
+
+* [.components]#Playlist Song List#: Displays songs belonging to the selected playlist.
+* [.components]#"Previous" and "Next" Pagination Buttons#: For navigating through the playlist's songs.
+* [.components]#Add Songs to Playlist Form#: [.components]#List of user's available songs# with checkboxes for selection. Submit button.
+* [.components]#Logout link#: Link to log out the user.
+* [.components]#Home link#: Link to return to the home page.
+
+
+*Events/Actions:*
+
+* [.events]#Song item click/selection# in the playlist: [.actions]#Redirects to the Song page# for the selected song.
+* [.events]#"Previous"/"Next" button click#: [.actions]#Requests the next/previous page of songs# from the server (server-side pagination).
+* [.events]#Add Songs Form submission#: [.actions]#Sends selected song IDs to backend# to add to the current playlist.
+* [.events]#Logout link click#: [.actions]#Logs out the user# and redirects to the login page.
+* [.events]#Home link click#: [.actions]#redirects# to the login page.
+
+==== Song page ( SongInspector.html )
+
+*Components:*
+
+[.components]#Song Information Table#: Displays details about the selected song.
+* [.components]#Audio Player#: An HTML5 audio control to play the song's audio file.
+* [.components]#Logout link#: Link to log out the user.
+* [.components]#Home link#: Link to return to the home page.
+* [.components]#Back link#: Link to return to the playlist page.
+
+*Events/Actions:*
+
+[.events]#Use of audio controls#: [.actions]#Plays or pauses the song audio# using native browser functionality.
+
+* [.events]#Logout link click#: [.actions]#Logs out the user# and redirects to the login page.
+* [.events]#Home link click#: [.actions]#redirects# to the login page.
+* [.events]#Back link click#: [.actions]#redirects# to the playlist page.
+
+image::resources/HTMLIFML.svg[Static]
+
+== Components
+
+=== Controllers ( Servlets )
+
+==== CheckLogin.java
+
+* `POST /CheckLogin`: Authenticates an existing user.
+
+=====
+
+
+
+* *Request - Form fields:*
+** _username_: The username of the user (type: `text`).
+** _password_: The password of the user (type: `password`).
+
+
+* *Response* `(302 Found)`: On success redirect to the Home page
+
+* *Error Response:*
+
+** `(400 Bad Request)`: Missing credential value
+** `(401 Unauthorized)`: Invalid credentials
+** `(500 Internal Server Error)`: Unexpected error during authentication
+
+=====
+
+==== SignUp.java
+
+* `POST /SignUp`: Register a new user.
+
+=====
+
+* *Request - Form fields:*
+** _name_: The name of the user (type: `text`).
+** _surname_: The surname of the user (type: `text`).
+** _username_: The username of the user (type: `text`).
+** _password_: The password of the user (type: `password`).
+
+
+* *Response* `(302 Found)`: On success redirect to the Home page
+
+* *Error Response:*
+
+** `(400 Bad Request)`: Missing or bad format credential value
+** `(409 Conflict)`: Username already exists
+** `(500 Internal Server Error)`: Unexpected error during user creation
+
+=====
+
+==== GoToHome.java
+
+* `GET /Home`: Load Home page.
+
+=====
+
+* *Request:* No parameters required.
+
+* *Response* `(200 OK)`: Home page loaded successfully
+
+* *Error Response:*
+** `(500 Internal Server Error)`: Unexpected error during home page loading
+
+=====
+
+==== NewPlaylist.java
+
+* `POST /NewPlaylist`: Create a new playlist.
+
+=====
+
+* *Request - Form fields:*
+** _name_: The name of the new playlist (type: `text`).
+** _songs_: A list of song IDs to include in the playlist (type: `checkbox`).
+
+* *Response* `(302 Found)`: On success redirect to the Home page with the new playlist included in the list.
+
+* *Error Response:*
+** `(500 Internal Server Error)`: Unexpected error during playlist creation
+** `(400 Bad Request)`: Missing or bad format playlist name or song IDs
+** `(409 Conflict)`: Playlist with the same name already exists for the user
+
+=====
+
+==== NewSong.java
+
+* `POST /NewSong`: Create a new song.
+
+=====
+
+* *Request - Form fields:*
+** _title_: The title of the song (type: `text`).
+** _album_: The title of the album (type: `text`).
+** _year_: The year of the album (type: `number`).
+** _artist_: The name of the creator of the song (type: `text`).
+** _genre_: The genre of the song (type: `select`).
+** _icon_: The image of the album (type: `file`).
+** _audio_: The audio file of the song (type: `file`).
+
+* *Response* `(302 Found)`: On success redirect to the Home page with the new song included in the list.
+
+* *Error Response:*
+** `(500 Internal Server Error)`: Unexpected error during song creation
+** `(400 Bad Request)`: Missing or bad format parameters
+** `(409 Conflict)`: Song with the same name already exists for the album
+
+=====
+
+==== GetPlaylistDetails.java
+
+* `GET /GetPlaylistDetails`: Open the playlist page for the specified playlist.
+
+=====
+
+* *Request - Parameters:*
+** _playlistId_: The ID of the playlist to open.
+
+* *Response* `(200 OK)`: On success, load the playlist page.
+
+* *Error Response:*
+** `(500 Internal Server Error)`: Unexpected error during playlist loading
+** `(400 Bad Request)`: Missing or unrecognized playlistId
+
+=====
+
+==== AddSongToPL.java
+
+* `POST /AddSongToPL`: Add a song to the specified playlist.
+
+=====
+
+* *Request - Form fields:*
+** _songs_: A list of song IDs to add in the playlist (type: `checkbox`).
+** _playlistId_: The id of the playlist (type: `hidden`).
+
+* *Response* `(302 Found)`: On success redirect to the playlist page with the new songs included in the list.
+
+* *Error Response:*
+** `(500 Internal Server Error)`: Unexpected error during song adding
+** `(400 Bad Request)`: Missing or unrecognized playlistId or songIds
+
+=====
+
+
+==== OpenSong.java
+
+* `GET /OpenSong`: Open the song page for the specified song.
+
+=====
+
+* *Request - Parameters:*
+** _playlistId_: The ID of the playlist of the song to open.
+** _songId_: The ID of the song to open
+
+* *Response* `(200 OK)`: On success, load the song page.
+
+* *Error Response:*
+** `(500 Internal Server Error)`: Unexpected error during song loading
+** `(400 Bad Request)`: Missing or unrecognized parameters
+
+=====
+
+==== ImageGetter.java
+
+* `GET /GetImage`: Retrieve the icon of the album.
+
+=====
+
+* *Request - Parameters:*
+** _imageName_: The name of the image file.
+
+* *Response* `(200 OK)`: On success, return the image file.
+
+* *Error Response:*
+** `(404 Not Found)`: If the image file is not found.
+
+
+=====
+
+==== AudioGetter.java
+
+* `GET /GetSong`: Retrieve the audio of the song.
+
+=====
+
+* *Request - Parameters:*
+** _audioName_: The name of the audio file.
+
+* *Response* `(200 OK)`: On success, return the audio file.
+
+* *Error Response:*
+** `(404 Not Found)`: If the audio file is not found.
+
+=====
+
+==== Logout.java
+
+* `GET /Logout`: Logs out the user and redirects to the login page
+
+=====
+
+* *Request:* No parameters required.
+
+* *Response* `(302 Found)`: On success, redirect to the login page.
+
+* *Error Response:* no error response is expected under normal conditions.
+
+=====
+
+=== Data Access Objects ( DAO )
+
+==== UserDAO.java
+
+Data Access Object for managing User data in the database. Provides methods for creating, retrieving, and modifying user information.
+
+* Methods:
+
+[source, Java]
+----
+public void createUser(String username, String pwd, String name, String surname) throws DAOException{}
+----
+
+[source, Java]
+----
+public User checkCredentials(String username, String pwd) throws DAOException{}
+----
+
+[source, Java]
+----
+public void modifyUser(User user, String name, String surname) throws DAOException{}
+----
+
+
+==== AlbumDAO.java
+
+Data Access Object for managing Album data in the database. Provides methods for creating, retrieving, updating, and deleting albums.
+
+* Methods:
+
+
+[source, Java]
+----
+public Album createAlbum(String name, int year, String artist, String image, UUID idUser) throws DAOException{}
+----
+
+[source, Java]
+----
+public Album findAlbumById(int idAlbum) throws DAOException{}
+----
+
+[source, Java]
+----
+public List<Album> findAllAlbums() throws DAOException{}
+----
+
+[source, Java]
+----
+public List<Album> findAlbumsByUser(UUID userId) throws DAOException{}
+----
+
+[source, Java]
+----
+public void updateAlbum(int idAlbum, UUID userId, String name, Integer year, String artist, String image) throws DAOException{}
+----
+
+[source, Java]
+----
+public void deleteAlbum(int idAlbum, UUID userId) throws DAOException{}
+----
+
+==== AudioDAO.java
+
+Data Access Object for managing audio files in the database. Provides methods for saving, deleting, and retrieving audio files.
+
+* Methods:
+
+
+[source, Java]
+----
+public String saveAudio(InputStream audioStream, String originalFileName) throws DAOException, IllegalArgumentException{}
+----
+
+[source, Java]
+----
+public void deleteAudio(String filename) throws DAOException, IllegalArgumentException{}
+----
+
+[source, Java]
+----
+public FileData getAudio(String filename) throws DAOException, IllegalArgumentException{}
+----
+
+==== ImageDAO.java
+Data Access Object for managing image files in the database. Provides methods for saving, deleting, and retrieving image files.
+
+* Methods:
+
+[source, Java]
+----
+public String saveImage(InputStream imageStream, String originalFileName)
+            throws DAOException, IllegalArgumentException {}
+----
+
+[source, Java]
+----
+public void deleteImage(String filename) throws DAOException, IllegalArgumentException {}
+----
+
+[source, Java]
+----
+public FileData getImage(String filename) throws DAOException, IllegalArgumentException {}
+----
+
+==== PlaylistDAO.java
+Data Access Object for managing playlists in the database. Provides methods for creating, retrieving, updating, and deleting playlists, as well as managing songs within playlists.
+
+* Methods:
+
+[source, Java]
+----
+public Playlist createPlaylist(String name, UUID idUser, List<Integer> songIds) throws SQLException, DAOException{}
+----
+
+[source, Java]
+----
+public List<Integer> findPlaylistIdsByUser(UUID idUser) throws DAOException {}
+----
+
+[source, Java]
+----
+public Playlist findPlaylistById(int playlistId, UUID userId) throws DAOException {}
+----
+
+[source, Java]
+----
+public void deletePlaylist(int playlistId, UUID userId) throws DAOException {}
+----
+
+[source, Java]
+----
+public void addSongToPlaylist(int playlistId, UUID userId, int songId) throws DAOException {}
+----
+
+[source, Java]
+----
+public boolean removeSongFromPlaylist(int playlistId, UUID userId, int songId) throws DAOException {}
+----
+
+==== SongDAO.java
+Data Access Object for managing songs in the database. Provides methods for creating, retrieving, updating, and deleting songs.
+
+* Methods:
+
+[source, Java]
+----
+public Song createSong( String title, int idAlbum, Genre genre, String audioFile, UUID idUser) throws DAOException {}
+----
+
+[source, Java]
+----
+public List<Song> findSongsByUser( UUID userId) throws DAOException {}
+----
+
+[source, Java]
+----
+public List<Song> findAllSongs() throws DAOException {}
+----
+
+[source, Java]
+----
+public void deleteSong(int songId) throws DAOException {}
+----
+
+[source, Java]
+----
+public List<Song> findSongsByIdsAndUser(@NotNull List<Integer> songIds, @NotNull UUID userId) throws DAOException{}
+----
+
+=== Beans
+Beans are simple Java classes that represent the data model of the application.
+
+==== User.java
+
+* Attributes:
+
+[source, Java]
+----
+    UUID idUser;
+    String username;
+    String name;
+    String surname;
+----
+
+==== Album.java
+
+* Attributes:
+
+[source, Java]
+----
+    int idAlbum;
+    String name;
+    int year;
+    String artist;
+    String image;
+    UUID idUser;
+----
+
+==== FileData.java
+
+* Attributes:
+
+[source, Java]
+----
+//TODO
+----
+
+==== Playlist.java
+
+* Attributes:
+
+[source, Java]
+----
+    int idPlaylist;
+    String name;
+    Timestamp birthday;
+    UUID idUser;
+    List<Integer> songs;
+----
+
+==== Song.java
+
+* Attributes:
+
+[source, Java]
+----
+    int idSong;
+    String title;
+    int idAlbum;
+    Genre genre;
+    String audioFile;
+    UUID idUser;
+----
+
+==== SongWithAlbum.java
+
+This beam is necessary to provide the song information along with its associated album details.
+
+* Attributes:
+
+[source, Java]
+----
+    Song song;
+    Album album;
+----
+
+=== Filters
+
+In this project the only filter used is the `Checker` filter that check if the user is logged in before accessing any page.
+
+* If the user is logged in, the filter allows the request to proceed.
+
+* If the user is not logged in, the filter redirects to the login page.
+
+=== Pages (templates)
+
+==== Login page (`index.html`)
+
+* This page allows users to log in or sign up.
+
+==== Home page (`Home.html`)
+* This page displays the user's playlists and provides options to create new playlists and upload songs.
+
+==== Playlist page (`Playlist.html`)
+* This page displays the songs in a specific playlist and allows users to add more songs to the playlist.
+
+==== Song page (`SongInspector.html`)
+* This page displays the details of a specific song and provides an audio player to play the song.
+
+
+== Sequence Diagrams
+
+plantuml::puml/diagrams/CheckLoginSequenceDiagram.puml[svg]
+plantuml::puml/diagrams/SignUpSequenceDiagram.puml[svg]
+plantuml::puml/diagrams/GoToHomeSequenceDiagram.puml[svg]
+plantuml::puml/diagrams/NewPlaylistSequenceDiagram.puml[svg]
+plantuml::puml/diagrams/NewSongSequenceDiagram.puml[svg]
+plantuml::puml/diagrams/GetPlaylistDetailsSequenceDiagram.puml[svg]
+plantuml::puml/diagrams/AddSongToPLSequenceDiagram.puml[svg]
+plantuml::puml/diagrams/OpenSongSequenceDiagram.puml[svg]
+plantuml::puml/diagrams/ImageGetterSequenceDiagram.puml[svg]
+plantuml::puml/diagrams/AudioGetterSequenceDiagram.puml[svg]
+plantuml::puml/diagrams/LogoutSequenceDiagram.puml[svg]
+
+
+
+

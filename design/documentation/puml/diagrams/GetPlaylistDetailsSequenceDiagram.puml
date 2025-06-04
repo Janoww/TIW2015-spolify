@@ -1,0 +1,83 @@
+@startuml
+title GetPlaylistDetails Servlet - Sequence Diagram
+actor User
+participant "HttpServletRequest" as Request
+participant "GetPlaylistDetails Servlet" as Servlet
+participant "PlaylistDAO" as PlaylistDAO
+participant "SongDAO" as SongDAO
+participant "AlbumDAO" as AlbumDAO
+participant "HttpSession" as Session
+participant "WebContext" as ctx
+participant "TemplateEngine" as Template
+participant "HttpServletResponse" as Response
+
+User -> Request : GET /GetPlaylistDetails?playlistId=...
+
+Request -> Servlet : doGet()
+activate Servlet
+
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+
+break invalid or missing playlistId
+    Servlet -> Response : sendError(400)
+end
+
+    Servlet -> PlaylistDAO : findPlaylistById(playlistId, userId)
+activate PlaylistDAO
+break error during retrieval of playlist
+    alt playlist not found or access denied
+        PlaylistDAO --> Servlet : throw DAOException(NOT_FOUND/ACCESS_DENIED)
+        Servlet -> Request : setAttribute("errorOpeningPlaylist")
+        Servlet -> Request : forward to /Home
+    else other DAO error
+        PlaylistDAO --> Servlet : throw DAOException
+        Servlet -> Response : sendError(500)
+    end
+end
+    PlaylistDAO --> Servlet : Playlist
+deactivate PlaylistDAO
+
+    Servlet -> SongDAO : findSongsByIdsAndUser(songIds, userId)
+activate SongDAO
+    Servlet -> AlbumDAO : findAlbumById(id)
+activate AlbumDAO
+
+break DAOException during song or album retrieval
+    SongDAO --> Servlet : throw DAOException
+    AlbumDAO --> Servlet: throe DAOException
+    Servlet -> Response : sendError(500)
+end
+    SongDAO --> Servlet : List<Song>
+    deactivate SongDAO
+    AlbumDAO --> Servlet : Album
+    deactivate AlbumDAO
+
+    Servlet -> SongDAO : findSongsByUser(userId)
+activate SongDAO
+break DAOException during songs retrieval
+    SongDAO --> Servlet : throw DAOException
+    Servlet -> Response : sendError(500)
+end
+    SongDAO --> Servlet : List<Song>
+    deactivate SongDAO
+
+    Servlet -> ctx : setVariable("playlist", myPlaylist)
+    Servlet -> ctx : setVariable("songWithAlbum", songWithAlbumDisplayed)
+    Servlet -> ctx : setVariable("page", page)
+    Servlet -> ctx : setVariable("totPages", totPages)
+    Servlet -> ctx : setVariable("songs", unusedSongs)
+    Servlet -> ctx : setVariable("errorAddSongMsg", value)
+    Servlet -> Template : process("/WEB-INF/Playlist.html", ctx)
+deactivate Servlet
+activate Template
+Template --> Response : render HTML page
+deactivate Template
+
+
+
+
+Response --> User : Playlist HTML page
+@enduml

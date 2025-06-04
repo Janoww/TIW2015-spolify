@@ -1,0 +1,69 @@
+@startuml
+title AudioGetter Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "AudioGetter Servlet" as Servlet
+participant "SongDAO" as SongDAO
+participant "AudioDAO" as AudioDAO
+participant "HttpSession" as Session
+participant "HttpServletResponse" as Response
+
+
+
+User -> Request : GET /GetSong?audioName=...
+
+Request -> Servlet : doGet()
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+Servlet -> Request : getParameter("audioName")
+
+break audioName is null or empty
+    return
+end
+
+Servlet -> SongDAO : findSongsByUser(userId)
+activate SongDAO
+
+break DAOException
+    return
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+SongDAO --> Servlet : List<Song>
+
+
+break user does NOT own audio
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+Servlet -> AudioDAO : getAudio(audioName)
+activate AudioDAO
+
+break IllegalArgumentException || DAOException
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+AudioDAO --> Servlet : FileData
+deactivate AudioDAO
+
+
+break audioFileData is null or empty
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+Servlet -> Response : setContentType(audioFileData.mimeType)
+Servlet -> Response : setContentLengthLong(audioFileData.size)
+Servlet -> Response : setHeader("Content-Disposition", "inline; filename=...")
+
+loop stream audio to client
+    Servlet -> Response : ServletOutputStream.write(buffered(FileData))
+    note left of Response
+      Audio bytes sent in chunks to client
+    end note
+end
+
+@enduml

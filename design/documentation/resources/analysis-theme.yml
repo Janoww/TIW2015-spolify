@@ -1,0 +1,40 @@
+extends: default-sans-with-font-fallbacks
+
+
+page:
+  margin: [25mm, 25mm, 25mm, 25mm]
+
+title-page:
+  background-color: #EEEEEE
+
+title-page-title:
+  font-color: #3B1E54
+  font-style: bold
+
+
+
+
+
+
+role:
+  entities:
+    font-color: #EB001F
+    font-style: bold
+  attributes:
+    font-color: #3cb371
+    font-style: bold
+  relationships:
+    font-color: #0860ca
+    font-style: bold
+  pages:
+    font-color: #EB001F
+    font-style: bold
+  components:
+    font-color: #3cb371
+    font-style: bold
+  events:
+    font-color: #0860ca
+    font-style: bold
+  actions:
+    font-color: #964b00
+    font-style: bold

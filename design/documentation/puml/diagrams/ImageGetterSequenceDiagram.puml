@@ -1,0 +1,65 @@
+@startuml
+title ImageGetter Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "ImageGetter Servlet" as Servlet
+participant "AlbumDAO" as AlbumDAO
+participant "ImageDAO" as ImageDAO
+participant "HttpSession" as Session
+participant "HttpServletResponse" as Response
+
+User -> Request : GET /GetImage?imageName=...
+
+Request -> Servlet : doGet()
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+Servlet -> Request : getParameter("imageName")
+
+break imageName is null or empty
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+Servlet -> AlbumDAO : findAlbumsByUser(userId)
+activate AlbumDAO
+
+break DAOException
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+AlbumDAO --> Servlet : List<Album>
+deactivate AlbumDAO
+
+break user does NOT own image
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+Servlet -> ImageDAO : getImage(imageName)
+activate ImageDAO
+
+break IllegalArgumentException || DAOException
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+ImageDAO --> Servlet : FileData
+deactivate ImageDAO
+
+break imageFileData is null or empty
+    note right of Servlet: Nothing happens – request ends silently
+end
+
+Servlet -> Response : setContentType(imageFileData.mimeType)
+Servlet -> Response : setContentLengthLong(imageFileData.size)
+Servlet -> Response : setHeader("Content-Disposition", "inline; filename=...")
+
+loop stream image to client
+    Servlet -> Response : ServletOutputStream.write(buffered(FileData))
+        note left of Response
+          Image bytes sent in chunks to client
+        end note
+end
+
+@enduml

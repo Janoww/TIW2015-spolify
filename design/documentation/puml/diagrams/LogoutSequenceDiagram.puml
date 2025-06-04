@@ -1,0 +1,27 @@
+@startuml
+title Logout Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "Logout Servlet" as Servlet
+participant "HttpSession" as Session
+participant "HttpServletResponse" as Response
+
+User -> Request : GET /Logout
+
+Request -> Servlet : doGet()
+activate Servlet
+
+Servlet -> Request : getSession(false)
+Request -> Servlet: HttpSession
+
+opt session exists
+    Servlet -> Session : invalidate()
+end
+
+Servlet -> Response : sendRedirect("/index.html")
+
+Response --> User : 302 Redirect
+
+@enduml

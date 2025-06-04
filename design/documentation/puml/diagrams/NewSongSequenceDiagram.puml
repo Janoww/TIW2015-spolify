@@ -1,0 +1,95 @@
+@startuml
+
+title NewSong Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "NewSong Servlet" as Servlet
+participant "ImageDAO" as ImageDAO
+participant "SongDAO" as SongDAO
+participant "AlbumDAO" as AlbumDAO
+participant "AudioDAO" as AudioDAO
+participant "HttpSession" as Session
+participant "WebContext" as ctx
+participant "HttpServletResponse" as Response
+
+User -> Request : POST /NewSong
+
+Request -> Servlet : doPost()
+Servlet -> Request : getParameter(...)
+break parameters validation failed
+    Servlet -> Request : setAttribute("errorNewSongMsg", msg)
+    Servlet -> Request : forward to /Home
+end
+    Servlet -> Session : getAttribute("user")
+activate Session
+    Session --> Servlet : User object
+deactivate Session
+
+    Servlet -> AlbumDAO : findAlbumsByUser(userId)
+    activate AlbumDAO
+break DAOException during album retrieval
+    AlbumDAO --> Servlet : throw DAOException
+    Servlet -> Response : sendError(500, msg)
+end
+    AlbumDAO --> Servlet : List<Album>
+    deactivate AlbumDAO
+
+
+break An album with same name but different details exist
+    Servlet -> Request : setAttribute("errorNewSongMsg", msg)
+    Servlet -> Request : forward to /Home
+end
+
+break A song with the same name exists in the album
+    Servlet -> Request : setAttribute("errorNewSongMsg", msg)
+    Servlet -> Request : forward to /Home
+end
+
+opt if the album doesn't exist
+    Servlet -> ImageDAO : saveImage(imageStream, imageFileName)
+    break Exception during image saving
+        alt IllegalArgumentException, the image file is not valid
+            Servlet -> Response : sendError(500, msg)
+
+        else DAOException due to database issues
+            Servlet -> Response : sendError(500, msg)
+        end
+    end
+    Servlet -> AlbumDAO : createAlbum(albumName, year, artist, imageFileRename, userId)
+    break DAOException, failed to create album
+        Servlet -> ImageDAO : deleteImage(imageFileRename);
+        Servlet -> Response : sendError(500, msg)
+    end
+end
+
+Servlet -> AudioDAO : saveAudio(audioStream, audioFileName)
+
+break Exception during audio saving
+    alt IllegalArgumentException, the audio file is not valid
+        Servlet -> Response : sendError(500, msg)
+    else DAOException due to database issues
+        Servlet -> Response : sendError(500, msg)
+    end
+
+    opt If the album is newly created
+        Servlet -> ImageDAO : deleteImage(imageFileRename)
+        Servlet -> AlbumDAO : deleteAlbum(idAlbum, userId)
+    end
+end
+
+Servlet -> SongDAO : createSong(title, idAlbum, genre, audioFileRename, userId)
+
+break DAOException, failed to create song
+    Servlet -> Response : sendError(500, msg)
+    Servlet -> AudioDAO : deleteAudio(audioFileRename)
+    opt If the album is newly created
+        Servlet -> ImageDAO : deleteImage(imageFileRename)
+        Servlet -> AlbumDAO : deleteAlbum(idAlbum, userId)
+    end
+end
+
+Servlet -> Response : sendRedirect("/Home")
+Response --> User : 302 Redirect
+@enduml

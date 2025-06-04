@@ -1,0 +1,47 @@
+@startuml
+title AddSongToPL Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "AddSongToPL Servlet" as Servlet
+participant "PlaylistDAO" as PlaylistDAO
+participant "HttpSession" as Session
+participant "HttpServletResponse" as Response
+
+User -> Request : POST /AddSongToPL
+
+Request -> Servlet : doPost()
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+Servlet -> Request : getParameters(...);
+
+
+break parameters invalid
+    Servlet -> Request : setAttribute("errorAddSongMsg", msg)
+    Servlet -> Request : forward to /GetPlaylistDetails
+end
+
+loop for each songId
+    Servlet -> PlaylistDAO : addSongToPlaylist(playlistId, userId, songId)
+
+    break DAOException
+        alt NOT_FOUND or DUPLICATE_ENTRY
+            Servlet -> Request : setAttribute("errorAddSongMsg", msg)
+            Servlet -> Request : forward to /GetPlaylistDetails
+        else ACCESS_DENIED
+            Servlet -> Request : setAttribute("errorAddSongMsg", msg)
+            Servlet -> Request : forward to /GetPlaylistDetails
+        else default (other errors)
+            Servlet -> Response : sendError(500, "Error in the database")
+        end
+    end
+end
+
+Servlet -> Response : sendRedirect("/GetPlaylistDetails?playlistId=...")
+
+Response --> User : 302 Redirect
+
+@enduml

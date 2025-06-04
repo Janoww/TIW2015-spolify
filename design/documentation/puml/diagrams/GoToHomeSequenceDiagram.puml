@@ -1,0 +1,70 @@
+@startuml
+title GoToHome Servlet Servlet - Sequence Diagram
+actor User
+participant "HttpServletRequest" as Request
+participant "GoToHome Servlet" as Servlet
+participant "PlaylistDAO" as PlaylistDAO
+participant "SongDAO" as SongDAO
+participant "HttpSession" as Session
+participant "WebContext" as ctx
+participant "TemplateEngine" as Template
+participant "HttpServletResponse" as Response
+
+User -> Request : send GET /Home request
+
+Request -> Servlet : doGet()
+activate Servlet
+
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+
+Servlet -> PlaylistDAO : findPlaylistIdsByUser(userId)
+activate PlaylistDAO
+
+Servlet -> SongDAO : findSongsByUser(userId)
+activate SongDAO
+
+break error during DB access
+    PlaylistDAO --> Servlet : DAOException
+    Servlet -> Response : sendError(500, "Error in the database")
+end
+PlaylistDAO --> Servlet : List<Integer> playlistIDs
+deactivate PlaylistDAO
+SongDAO --> Servlet : List<Song> songList
+deactivate SongDAO
+
+
+opt playlists exist
+    loop for each playlist ID
+        Servlet -> PlaylistDAO : findPlaylistById(playlistID, userId)
+        activate PlaylistDAO
+        PlaylistDAO --> Servlet : Playlist object or null
+        deactivate PlaylistDAO
+    end
+end
+
+Servlet -> ctx : setVariable("playlists", playlists)
+Servlet -> ctx : setVariable("songs", songList)
+Servlet -> ctx : setVariable("genres", genresList)
+
+opt request contains error attributes
+    note right of Servlet: These values are only set if the request is dispatched with error attributes
+
+    Servlet -> ctx : setVariable("errorNewPlaylistMsg", msg)
+    Servlet -> ctx : setVariable("errorNewSongMsg", msg)
+    Servlet -> ctx : setVariable("errorOpeningPlaylist", msg)
+end
+
+Servlet -> Template : process("/WEB-INF/Home.html", ctx)
+activate Template
+deactivate Servlet
+Template --> Response : write rendered HTML
+deactivate Template
+
+
+
+Response --> User : HTTP response (Home page HTML)
+
+@enduml

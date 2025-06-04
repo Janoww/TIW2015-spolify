@@ -1,0 +1,47 @@
+@startuml
+title CheckLogin Servlet - Sequence Diagram
+
+actor User
+participant "HttpServletRequest" as Request
+participant "CheckLogin Servlet" as Servlet
+participant "UserDAO" as DAO
+participant "HttpSession" as Session
+participant "WebContext" as ctx
+participant "TemplateEngine" as Template
+participant "HttpServletResponse" as Response
+
+
+User -> Request : send POST (username, password)
+
+Request -> Servlet : doPost()
+activate Servlet
+
+
+break missing username or password
+    Servlet -> Response : sendError(400, "Missing credential value")
+end
+
+    Servlet -> DAO : checkCredentials(username, password)
+    activate DAO
+    alt valid credentials
+        DAO --> Servlet : User
+        Servlet -> Session : setAttribute("user", User)
+        Servlet -> Response : sendRedirect("/Home")
+    else invalid credentials (DAOException with INVALID_CREDENTIALS)
+        DAO --> Servlet : throw DAOException
+
+        Servlet -> ctx : setVariable( errorLogInMsg, msg)
+        Servlet -> Template : process("/index.html", ctx)
+        activate Template
+        Template --> Response : write error page
+        deactivate Template
+    else other DAOException
+        DAO --> Servlet : throw DAOException
+        deactivate DAO
+
+        Servlet -> Response : sendError(500, "Not possible to log in")
+        deactivate Servlet
+
+end
+Response --> User : sends HTTP response
+@enduml

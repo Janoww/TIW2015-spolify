@@ -1,0 +1,76 @@
+@startuml
+title NewPlaylist Servlet - Sequence Diagram
+
+actor User
+
+participant "HttpServletRequest" as Request
+participant "NewPlaylist Servlet" as Servlet
+participant "PlaylistDAO" as PlaylistDAO
+participant "HttpSession" as Session
+participant "HttpServletResponse" as Response
+
+
+User -> Request : POST /NewPlaylist
+
+Request -> Servlet : doPost()
+activate Servlet
+Servlet -> Session : getAttribute("user")
+activate Session
+Session --> Servlet : User object
+deactivate Session
+
+
+Servlet -> Request : getParameter("name")\ngetParameterValues("songList")
+break Invalid parameters
+    Servlet -> Request : setAttribute("errorNewPlaylistMsg", msg)
+    Servlet -> Request : forward to /Home
+end
+
+Servlet -> PlaylistDAO : findPlaylistIdsByUser(userId)
+activate PlaylistDAO
+
+break DAOException
+    PlaylistDAO --> Servlet : throw DAOException
+    Servlet -> Response : sendError(500, errorMsg)
+end
+
+PlaylistDAO --> Servlet : List<Integer> playlistIDs
+deactivate PlaylistDAO
+
+loop findPlaylistByName
+    Servlet -> PlaylistDAO : findPlaylistById(id, userId)
+    activate PlaylistDAO
+    break Playlist not found
+        PlaylistDAO --> Servlet : throw DAOException
+        Servlet -> Response : sendError(500, errorMsg)
+    end
+    PlaylistDAO --> Servlet : Playlist
+    deactivate PlaylistDAO
+end
+
+break playlist with same name exists
+    Servlet -> Request : setAttribute("errorNewPlaylistMsg", msg)
+    Servlet -> Request : forward to /Home
+end
+    Servlet -> PlaylistDAO : createPlaylist(name, userId, songIDs)
+
+break Exception
+
+    alt DAOException, NOT_FOUND or DUPLICATE_ENTRY
+        PlaylistDAO --> Servlet : throw DAOException
+        Servlet -> Request : setAttribute("errorNewPlaylistMsg", mgs)
+        Servlet -> Request : forward to /Home
+    else DAOException, default
+        PlaylistDAO --> Servlet : throw DAOException
+        Servlet -> Response : sendError(500, errorMsg)
+    else SQLException
+        PlaylistDAO --> Servlet : throw SQLException
+        Servlet -> Response : sendError(500, errorMsg)
+    end
+end
+
+Servlet -> Response : sendRedirect("/Home")
+
+Response --> User : 302 Redirect
+
+@enduml

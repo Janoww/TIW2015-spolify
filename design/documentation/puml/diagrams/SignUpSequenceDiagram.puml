@@ -1,0 +1,63 @@
+@startuml
+title SignUp Servlet - Sequence Diagram
+
+actor User
+participant "HttpServletRequest" as Request
+participant "SignUp Servlet" as Servlet
+participant "UserDAO" as DAO
+participant "HttpSession" as Session
+participant "WebContext" as ctx
+participant "TemplateEngine" as Template
+participant "HttpServletResponse" as Response
+
+User -> Request : send POST (name, surname, username, password)
+
+Request -> Servlet : doPost()
+activate Servlet
+
+break missing parameters
+    Servlet -> Response : sendError(400, "Missing credential value")
+end
+break invalid parameter format
+    Servlet -> ctx : setVariable("errorSignUpMsg", msg)
+    Servlet -> Template : process("/index.html", ctx)
+    activate Template
+    Template --> Response : write error page
+    deactivate Template
+end
+    Servlet -> DAO : createUser(username, password, name, surname)
+    activate DAO
+    alt username already taken (DAOException)
+        DAO --> Servlet : throw DAOException
+        Servlet -> ctx : setVariable("errorSignUpMsg", msg)
+        Servlet -> Template : process("/index.html", ctx)
+        activate Template
+        Template --> Response : write error page
+        deactivate Template
+    else other DAOException
+        DAO --> Servlet : throw DAOException
+
+        Servlet -> Response : sendError(500, "Not possible to sign up")
+    else user created successfully
+        DAO --> Servlet : return success
+
+        Servlet -> DAO : checkCredentials(username, password)
+    break DAOException (failure retrieving user)
+        DAO --> Servlet : throw DAOException
+
+        Servlet -> Response : sendError(500, "Not possible to check credentials")
+    end
+        DAO --> Servlet : return User object
+        deactivate DAO
+
+        Servlet -> Session : setAttribute("user", User)
+        Servlet -> Response : sendRedirect("/Home")
+        deactivate Servlet
+    end
+
+
+
+
+Response --> User : HTTP response (redirect or error page)
+
+@enduml
