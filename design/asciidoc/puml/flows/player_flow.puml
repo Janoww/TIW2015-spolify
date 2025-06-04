@@ -22,25 +22,19 @@ User -> SongListView : Clicks on a song title
 SongListView -> PlayerHandler : playSong(songId, songDetailsFromList?)
 activate PlayerHandler
 
-alt Song details not fully available from list view
-  PlayerHandler -> ApiService : getSong(songId)
-  activate ApiService
-  ApiService -> SongDetailServlet : GET /songs/{songId}
-  activate SongDetailServlet
-  SongDetailServlet --> ApiService : 200 OK {SongWithAlbum}
-  deactivate SongDetailServlet
-  ApiService --> PlayerHandler : Returns {SongWithAlbum} as fullSongDetails
-  deactivate ApiService
-else Song details already sufficient
-  PlayerHandler -> PlayerHandler : fullSongDetails = songDetailsFromList
-end
+PlayerHandler -> ApiService : getSong(songId)
+activate ApiService
+ApiService -> SongDetailServlet : GET /songs/{songId}
+activate SongDetailServlet
+SongDetailServlet --> ApiService : 200 OK {SongWithAlbum}
+deactivate SongDetailServlet
+ApiService --> PlayerHandler : Returns {SongWithAlbum} as fullSongDetails
+deactivate ApiService
 
 PlayerHandler -> PlayerUI : updateDetails(fullSongDetails)
 activate PlayerUI
 note right PlayerUI
-  Displays song title, artist, album name.
-  Sets album image: src = apiService.getSongImageURL(fullSongDetails.idSong)
-  (URL like /api/v1/songs/{idSong}/image)
+  Displays song title, artist, album name and set image src.
 end note
 PlayerUI -> SongImageServlet : GET /api/v1/songs/{idSong}/image (via img src)
 activate SongImageServlet
@@ -52,8 +46,7 @@ deactivate PlayerUI
 PlayerHandler -> PlayerUI : loadAudio(apiService.getSongAudioURL(fullSongDetails.idSong))
 activate PlayerUI
 note right PlayerUI
-  Sets <audio> src = apiService.getSongAudioURL(fullSongDetails.idSong)
-  (URL like /api/v1/songs/{idSong}/audio)
+  Sets audio src.
 end note
 PlayerUI -> SongAudioServlet : GET /api/v1/songs/{idSong}/audio (via audio src)
 activate SongAudioServlet
@@ -67,7 +60,7 @@ PlayerHandler -> PlayerUI : audio.play()
 deactivate PlayerHandler
 
 == Player Controls ==
-User -> PlayerUI : Interacts with player (play, pause, seek, volume)
+User -> PlayerUI : Interacts with player (play, pause)
 PlayerUI -> PlayerHandler : Handles HTML5 audio events
 activate PlayerHandler
 PlayerHandler -> PlayerHandler : Manages audio playback state

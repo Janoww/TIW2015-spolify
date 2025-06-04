@@ -30,8 +30,6 @@ deactivate ApiService
 
 note right ResponsibleHandler
   Fetches details for each song ID in order
-  (e.g., from client-side cache or apiService.getSong()).
-  Stores this as `currentSongDetailsInOrder`.
 end note
 ResponsibleHandler -> ResponsibleHandler : currentSongDetailsInOrder = resolveSongDetails([SongId])
 
@@ -75,7 +73,6 @@ deactivate ApiService
 alt Order Saved Successfully
   ResponsibleHandler -> ReorderModal : closeModal()
   ResponsibleHandler -> TriggerView : refreshPlaylistDisplayOrder(playlistId, newOrder)
-  note right: Underlying view (Home/Playlist) might update its display
 else Save Order Failed
   ResponsibleHandler -> ReorderModal : displayError(error.message)
 end

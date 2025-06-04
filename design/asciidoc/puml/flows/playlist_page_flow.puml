@@ -38,13 +38,6 @@ deactivate PlaylistServlet
 ApiService --> PlaylistHandler : Returns [SongId] (ordered song IDs)
 deactivate ApiService
 
-note right PlaylistHandler
-  Fetches details for each song ID in order,
-  possibly from a client-side cache of all songs
-  or by individual calls to apiService.getSong(songId)
-  if not cached.
-  For simplicity, assume songs details are retrieved.
-end note
 PlaylistHandler -> PlaylistHandler : songDetailsList = resolveSongDetails(orderedSongIds)
 
 ' Also fetch all user songs for the "add to playlist" form
@@ -101,11 +94,7 @@ deactivate FormHandler
 User -> PlaylistView : Clicks on a song title from the playlist
 PlaylistView -> PlayerHandler : playSong(songId, songDetails)
 activate PlayerHandler
-note right PlayerHandler
-  Similar to Songs Page, fetches details if not available.
-  Updates global player.
-end note
-PlayerHandler -> ApiService : getSong(songId) // Potentially
+
 PlayerHandler -> PlayerHandler : updateGlobalPlayerUI(songDetails)
 PlayerHandler -> PlayerHandler : Loads audio via <audio> src = apiService.getSongAudioURL(songId)
 deactivate PlayerHandler
