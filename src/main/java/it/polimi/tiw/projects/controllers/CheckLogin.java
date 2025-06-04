@@ -63,7 +63,7 @@ public class CheckLogin extends HttpServlet {
                 ctx.setVariable("errorLogInMsg", "No user found with that username/password combination");
                 String path = "/index.html";
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                templateEngine.process(path, ctx, resp.getWriter()); 
+                templateEngine.process(path, ctx, resp.getWriter());
                 return;
             }// If another exception occurs
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unexpected error during authentication");

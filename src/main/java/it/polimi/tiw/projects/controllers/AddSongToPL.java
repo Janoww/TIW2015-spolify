@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class AddSongToPL extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(AddSongToPL.class);
@@ -54,8 +53,7 @@ public class AddSongToPL extends HttpServlet {
 
         // Retrieve Parameters
 
-        List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect")).map(Integer::parseInt)
-                .toList();
+        List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect")).map(Integer::parseInt).toList();
         Integer playlistId = Integer.parseInt(req.getParameter("playlistId"));
 
         try {

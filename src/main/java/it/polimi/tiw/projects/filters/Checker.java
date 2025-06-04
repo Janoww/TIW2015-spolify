@@ -28,8 +28,8 @@ public class Checker implements Filter {
             resp.sendRedirect(loginPath);
             return;
         }
-       
-        
+
+
         filterChain.doFilter(servletRequest, servletResponse);
     }
 }

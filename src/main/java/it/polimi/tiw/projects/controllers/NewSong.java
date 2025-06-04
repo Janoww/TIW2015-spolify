@@ -271,7 +271,7 @@ public class NewSong extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
                     "The audio file you provided may be corrupted");
             logger.error("Audio file broken: {}", e.getMessage(), e);
-            
+
             // Deleting the album
             if (isAlbumNew) {
                 try {
