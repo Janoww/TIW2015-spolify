@@ -1,4 +1,13 @@
-extends: default
+extends: default-sans-with-font-fallbacks
+
+title-page-tile:
+  font-color: #3B1E54
+
+heading:
+  font-color: #9B7EBD
+
+page:
+  background-color: #EEEEEE
 
 role:
   entities:
