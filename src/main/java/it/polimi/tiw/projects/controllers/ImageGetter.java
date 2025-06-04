@@ -43,6 +43,7 @@ public class ImageGetter extends HttpServlet {
 
         // Check Parameter, if the image is not fount nothing happen
         if (imageName == null || imageName.isEmpty()) {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
@@ -50,6 +51,7 @@ public class ImageGetter extends HttpServlet {
             List<String> userAlbums = albumDAO.findAlbumsByUser(userId).stream().map(Album::getImage).toList();
 
             if (userAlbums.stream().noneMatch(img -> img.equals(imageName))) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }
 
@@ -64,13 +66,16 @@ public class ImageGetter extends HttpServlet {
             imageFileData = imageDAO.getImage(imageName);
         } catch (IllegalArgumentException e) {
             logger.error("Filename {} is invalid, {}", imageName, e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         } catch (DAOException e) {
             logger.error("The file is not found, cannot be accessed, or an I/O error occurs");
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
         if (imageFileData == null || imageFileData.content() == null) {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 

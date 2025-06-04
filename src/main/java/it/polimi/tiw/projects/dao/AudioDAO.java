@@ -16,6 +16,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Data Access Object for managing audio files in the database. Provides methods for saving, deleting, and retrieving audio files.
+ */
 public class AudioDAO {
     private static final Logger log = LoggerFactory.getLogger(AudioDAO.class);
 

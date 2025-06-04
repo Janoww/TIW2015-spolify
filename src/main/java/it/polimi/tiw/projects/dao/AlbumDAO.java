@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
+/**
+ * Data Access Object for managing Album data in the database. Provides methods for creating, retrieving, updating, and deleting albums.
+ */
 public class AlbumDAO {
     private static final Logger logger = LoggerFactory.getLogger(AlbumDAO.class);
     private final Connection connection;

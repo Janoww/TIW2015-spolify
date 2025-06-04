@@ -46,6 +46,7 @@ public class AudioGetter extends HttpServlet {
         // Check Parameter, if the image is not fount nothing happen
         if (audioName == null || audioName.isEmpty()) {
             logger.warn("audioName is Empty or null");
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
@@ -53,6 +54,7 @@ public class AudioGetter extends HttpServlet {
             List<String> userSongs = songDAO.findSongsByUser(userId).stream().map(Song::getAudioFile).toList();
 
             if (userSongs.stream().noneMatch(aud -> aud.equals(audioName))) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }
 
@@ -67,14 +69,17 @@ public class AudioGetter extends HttpServlet {
             audioFileData = audioDAO.getAudio(audioName);
         } catch (IllegalArgumentException e) {
             logger.error("Filename {} is invalid, {}", audioName, e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         } catch (DAOException e) {
             logger.error("The file is not found, cannot be accessed, or an I/O error occurs");
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
         if (audioFileData == null || audioFileData.content() == null) {
             logger.warn("The audio file is null or empty");
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
         logger.info("Retrieved the audioFileData for audio {}: ", audioFileData.filename());

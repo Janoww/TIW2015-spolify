@@ -80,6 +80,7 @@ public class SignUp extends HttpServlet {
             ctx.setVariable("errorSignUpMsg",
                     "Invalid name format. Use letters, spaces, hyphens, or apostrophes (3-100 characters).");
             String path = "/index.html";
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             templateEngine.process(path, ctx, resp.getWriter());
             return;
         }
@@ -88,6 +89,7 @@ public class SignUp extends HttpServlet {
             ctx.setVariable("errorSignUpMsg",
                     "Invalid surname format. Use letters, spaces, hyphens, or apostrophes (3-100 characters).");
             String path = "/index.html";
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             templateEngine.process(path, ctx, resp.getWriter());
             return;
         }
@@ -96,6 +98,7 @@ public class SignUp extends HttpServlet {
             ctx.setVariable("errorSignUpMsg",
                     "Invalid username format. Use alphanumeric characters or underscores (3-100 characters).");
             String path = "/index.html";
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             templateEngine.process(path, ctx, resp.getWriter());
             return;
         }
@@ -105,6 +108,7 @@ public class SignUp extends HttpServlet {
             ctx.setVariable("errorSignUpMsg", "Passowrd length must be between " + passwordMinLength + " and "
                     + passwordMaxLength + " characters");
             String path = "/index.html";
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             templateEngine.process(path, ctx, resp.getWriter());
             return;
         }
@@ -117,6 +121,7 @@ public class SignUp extends HttpServlet {
                 logger.warn("Username already taken");
                 ctx.setVariable("errorSignUpMsg", "Username already taken");
                 String path = "/index.html";
+                resp.setStatus(HttpServletResponse.SC_CONFLICT);
                 templateEngine.process(path, ctx, resp.getWriter());
             } else {// If another exception occurs
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to sign up");

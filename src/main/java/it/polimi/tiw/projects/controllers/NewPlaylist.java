@@ -87,6 +87,7 @@ public class NewPlaylist extends HttpServlet {
         if (checkResult != null) {
             logger.warn("ParametersNotOk: " + checkResult);
             req.setAttribute("errorNewPlaylistMsg", checkResult);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             req.getRequestDispatcher("/Home").forward(req, resp);
             return;
         }
@@ -121,11 +122,13 @@ public class NewPlaylist extends HttpServlet {
                 switch (e.getErrorType()) {
                     case NOT_FOUND: {
                         req.setAttribute("errorNewPlaylistMsg", "One of the song you selected was not found");
+                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                         req.getRequestDispatcher("/Home").forward(req, resp);
                         return;
                     }
                     case DUPLICATE_ENTRY: {
                         req.setAttribute("errorNewPlaylistMsg", "You selected two times the same song");
+                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                         req.getRequestDispatcher("/Home").forward(req, resp);
                         return;
                     }
@@ -139,6 +142,7 @@ public class NewPlaylist extends HttpServlet {
         } else {
             // A playlist with that name already exist
             req.setAttribute("errorNewPlaylistMsg", "A playlist named \"" + name + "\" already exists");
+            resp.setStatus(HttpServletResponse.SC_CONFLICT);
             req.getRequestDispatcher("/Home").forward(req, resp);
             return;
         }

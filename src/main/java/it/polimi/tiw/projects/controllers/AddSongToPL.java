@@ -47,6 +47,7 @@ public class AddSongToPL extends HttpServlet {
         if (checkResult != null) {
             logger.info("Parameters are not ok: {}", checkResult);
             req.setAttribute("errorAddSongMsg", checkResult);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
             return;
         }
@@ -65,11 +66,13 @@ public class AddSongToPL extends HttpServlet {
             switch (e.getErrorType()) {
                 case NOT_FOUND, DUPLICATE_ENTRY: {
                     req.setAttribute("errorAddSongMsg", e.getMessage());
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
                     return;
                 }
                 case ACCESS_DENIED: {
                     req.setAttribute("errorAddSongMsg", "The playlist was not fount");
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
                     return;
                 }

@@ -78,7 +78,7 @@ public class PlaylistDAOTest {
             connection.commit();
             createdAlbumId = album.getIdAlbum();
 
-            Song song = songDAO.createSong(TEST_SONG_TITLE, createdAlbumId, TEST_SONG_YEAR,
+            Song song = songDAO.createSong(TEST_SONG_TITLE, createdAlbumId,
                     TEST_SONG_GENRE, TEST_SONG_FILE, testUserId);
             connection.commit();
             createdSongId = song.getIdSong();
@@ -425,7 +425,7 @@ public class PlaylistDAOTest {
         assertTrue(playlistId > 0, "Playlist ID must be valid");
 
         // 2. Create a second song to add
-        Song secondSong = songDAO.createSong("Second JUnit Song", createdAlbumId, TEST_SONG_YEAR,
+        Song secondSong = songDAO.createSong("Second JUnit Song", createdAlbumId,
                 TEST_SONG_GENRE, "/audio/second_test.mp3", testUserId);
         connection.commit();
         assertNotNull(secondSong, "Second song should be created");
@@ -501,8 +501,7 @@ public class PlaylistDAOTest {
     @Order(8)
     public void testRemoveSongFromPlaylist() throws Exception {
         // 1. Create a second song
-        Song secondSong = songDAO.createSong("Second JUnit Song For Removal", createdAlbumId,
-                TEST_SONG_YEAR, TEST_SONG_GENRE, "/audio/second_removal_test.mp3", testUserId);
+        Song secondSong = songDAO.createSong("Second JUnit Song For Removal", createdAlbumId, TEST_SONG_GENRE, "/audio/second_removal_test.mp3", testUserId);
         connection.commit();
         assertNotNull(secondSong, "Second song for removal should be created");
         int secondSongId = secondSong.getIdSong();

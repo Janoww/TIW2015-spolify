@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Data Access Object for managing playlists in the database. Provides methods for creating, retrieving, updating, and deleting playlists, as well as managing songs within playlists.
+ */
 public class PlaylistDAO {
     private static final Logger logger = LoggerFactory.getLogger(PlaylistDAO.class);
     private final Connection connection;

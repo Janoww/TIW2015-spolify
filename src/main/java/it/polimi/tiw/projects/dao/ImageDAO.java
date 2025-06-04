@@ -16,6 +16,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Data Access Object for managing image files in the database. Provides methods for saving, deleting, and retrieving image files.
+ */
 public class ImageDAO {
     private static final Logger log = LoggerFactory.getLogger(ImageDAO.class);
 

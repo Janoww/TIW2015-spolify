@@ -104,6 +104,7 @@ public class GetPlaylistDetails extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Incorrect param values");
             return;
         }
+        
 
         // If a playlist with that id exists for that user, find it
         Playlist myPlaylist;
@@ -113,6 +114,7 @@ public class GetPlaylistDetails extends HttpServlet {
             switch (e.getErrorType()) {
                 case NOT_FOUND, ACCESS_DENIED: {
                     req.setAttribute("errorOpeningPlaylist", "The playlist you selected was not found");
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     req.getRequestDispatcher("/Home").forward(req, resp);
                     return;
                 }

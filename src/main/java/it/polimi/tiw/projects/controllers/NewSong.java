@@ -143,6 +143,7 @@ public class NewSong extends HttpServlet {
         if (checkResult != null) {
             req.setAttribute("errorNewSongMsg", checkResult);
             logger.warn("ParametersNotOk: " + checkResult);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             req.getRequestDispatcher("/Home").forward(req, resp);
             return;
         }
@@ -159,6 +160,7 @@ public class NewSong extends HttpServlet {
             genre = Genre.valueOf((req.getParameter("sGenre").strip()));
         } catch (IllegalArgumentException | NullPointerException e) {
             req.setAttribute("errorNewSongMsg", "You must choose a genre from the predefined ones");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             req.getRequestDispatcher("/Home").forward(req, resp);
             return;
         }
@@ -184,7 +186,7 @@ public class NewSong extends HttpServlet {
             // If an album with that name already exists but the information don't match
             req.setAttribute("errorNewSongMsg", "An album named \"" + album.getName()
                     + "\" already exists, it is from the year " + album.getYear() + " by \"" + album.getArtist() + "\"");
-
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             req.getRequestDispatcher("/Home").forward(req, resp);
             return;
         }
@@ -197,6 +199,7 @@ public class NewSong extends HttpServlet {
                 // song
                 req.setAttribute("errorNewSongMsg", "The song titled \"" + title + "\" of the album \""
                         + album.getName() + "\" have already been uploaded");
+                resp.setStatus(HttpServletResponse.SC_CONFLICT);
                 req.getRequestDispatcher("/Home").forward(req, resp);
                 return;
             }
@@ -221,7 +224,7 @@ public class NewSong extends HttpServlet {
                     // If the image saving fails, nothing will be saved
                 }
             } catch (IllegalArgumentException e) {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
                         "The image file you provided may be corrupted");
                 logger.error("Problem with the imageFile: {}", e.getMessage(), e);
                 return;
@@ -265,7 +268,7 @@ public class NewSong extends HttpServlet {
                 audioFileRename = audioDAO.saveAudio(audioStream, audioFileName);
             }
         } catch (IllegalArgumentException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
                     "The audio file you provided may be corrupted");
             logger.error("Audio file broken: {}", e.getMessage(), e);
             

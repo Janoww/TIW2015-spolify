@@ -57,15 +57,16 @@ public class CheckLogin extends HttpServlet {
             user = userDAO.checkCredentials(username, password);
         } catch (DAOException e) {
             if (Objects.requireNonNull(e.getErrorType()) == DAOException.DAOErrorType.INVALID_CREDENTIALS) {// No user found with that username/password combination
-                logger.warn("Invelid credentials");
+                logger.warn("Invalid credentials");
                 WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());
 
                 ctx.setVariable("errorLogInMsg", "No user found with that username/password combination");
                 String path = "/index.html";
-                templateEngine.process(path, ctx, resp.getWriter());
+                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                templateEngine.process(path, ctx, resp.getWriter()); 
                 return;
             }// If another exception occurs
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not possible to log in");
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unexpected error during authentication");
             return;
         }
 

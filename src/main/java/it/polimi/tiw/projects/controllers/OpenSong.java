@@ -54,6 +54,7 @@ public class OpenSong extends HttpServlet {
         } catch (NumberFormatException | NullPointerException e) {
             logger.error("Error while parsing parameter playlistId: {}", e.getMessage());
             req.setAttribute("errorOpeningPlaylist", "The server doesn't recognise your playlist, retry!");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             req.getRequestDispatcher("/Home").forward(req, resp);
             return;
         }
@@ -62,7 +63,8 @@ public class OpenSong extends HttpServlet {
             songId = Integer.parseInt(req.getParameter("songId"));
         } catch (NumberFormatException | NullPointerException e) {
             logger.error("Error while parsing parameter songId: {}", e.getMessage());
-            req.setAttribute("errorOpeningSong", "An error occurred while trying opening the song, retry!");
+            req.setAttribute("errorOpeningSong", "The server doesn't recognise your song, retry!");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             req.getRequestDispatcher("/GetPlaylistDetails").forward(req, resp);
             return;
         }
