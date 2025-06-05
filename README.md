@@ -1,4 +1,4 @@
-# Spolify - Music Playlist Application
+# Spolify - Music Playlist Application (Javascript version)
 
 Spolify is a web-based music playlist management application. Users can upload songs, organize them into playlists, and play them. This is a Single Page Application (SPA) built with Vanilla JavaScript for the frontend and Java Servlets for the backend, providing a seamless user experience without full page reloads.
 
