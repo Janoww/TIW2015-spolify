@@ -212,7 +212,7 @@ Si realizzi un’applicazione client server web che modifica le specifiche prece
 
 ===== Non-Functional Aspects
 * User session management utilizes `sessionStorage` for persistence of authenticated user data.
-* For security, the DOMPurify library is used to [.actions]#sanitize inputs# before rendering them in the DOM.
+* For security, the DOMPurify library is used to sanitize inputs before rendering them in the DOM.
 * During page transitions managed by the router, a [.components]#visual loader# enhances user experience.
 * The `apiService.js` module centralizes backend communication, implementing robust error handling via custom `ApiError` objects, and providing utility functions such as URL builders for media resources (song images and audio). This promotes maintainability and reusability.
 
