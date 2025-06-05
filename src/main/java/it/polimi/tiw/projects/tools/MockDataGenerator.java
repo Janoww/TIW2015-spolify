@@ -14,8 +14,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.util.Arrays;
-import it.polimi.tiw.projects.dao.ImageDAO;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;

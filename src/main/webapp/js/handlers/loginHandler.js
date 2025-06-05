@@ -18,7 +18,7 @@ function displayLogin(appContainer) {
                 const password = event.target.password.value;
 
                 try {
-                    const userData = await apiLogin({ username, password });
+                    const userData = await apiLogin({username, password});
                     console.log('Login successful:', userData);
                     sessionStorage.setItem('currentUser', JSON.stringify(userData));
                     navigate('home');
@@ -28,7 +28,7 @@ function displayLogin(appContainer) {
                     if (generalErrorElement) {
                         generalErrorElement.textContent = error.message || 'An unexpected error occurred. Please try again.';
                     } else {
-                        const sanitizedErrorMessage = DOMPurify.sanitize(error.message || 'An unexpected error occurred during login. Please try again.', { ALLOWED_TAGS: [] });
+                        const sanitizedErrorMessage = DOMPurify.sanitize(error.message || 'An unexpected error occurred during login. Please try again.', {ALLOWED_TAGS: []});
                         alert(sanitizedErrorMessage);
                     }
                 }
@@ -55,9 +55,9 @@ function displaySignup(appContainer) {
                 const password = event.target.signupPassword.value;
 
                 try {
-                    const newUserData = await apiSignup({ username, name, surname, password });
+                    const newUserData = await apiSignup({username, name, surname, password});
                     console.log('Signup successful:', newUserData);
-                    const sanitizedUsername = DOMPurify.sanitize(newUserData.username, { ALLOWED_TAGS: [] });
+                    const sanitizedUsername = DOMPurify.sanitize(newUserData.username, {ALLOWED_TAGS: []});
                     alert('Signup successful! User: ' + sanitizedUsername + '. Please log in.');
                     displayLogin(appContainer);
                 } catch (error) {
@@ -66,7 +66,7 @@ function displaySignup(appContainer) {
                     if (generalErrorElement) {
                         generalErrorElement.textContent = error.message || 'An unexpected error occurred. Please try again.';
                     } else {
-                        const sanitizedErrorMessage = DOMPurify.sanitize(error.message || 'An unexpected error occurred during signup. Please try again.', { ALLOWED_TAGS: [] });
+                        const sanitizedErrorMessage = DOMPurify.sanitize(error.message || 'An unexpected error occurred during signup. Please try again.', {ALLOWED_TAGS: []});
                         alert(sanitizedErrorMessage);
                     }
                 }

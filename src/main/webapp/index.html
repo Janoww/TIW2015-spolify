@@ -14,9 +14,10 @@
     <link href="css/components/songs.css" rel="stylesheet">
     <link href="css/components/playlistSlide.css" rel="stylesheet">
     <link href="css/components/modal.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"
-        integrity="sha512-YlctBG9PGZIhh9keoqI3eZkQM9T8QUbiBi7qNYAO/TUEo8jqWX5pLp5+x1cKRQDRzJ/lyGyJ9WUVNIRduxIIFw=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script crossorigin="anonymous"
+            integrity="sha512-YlctBG9PGZIhh9keoqI3eZkQM9T8QUbiBi7qNYAO/TUEo8jqWX5pLp5+x1cKRQDRzJ/lyGyJ9WUVNIRduxIIFw=="
+            referrerpolicy="no-referrer"
+            src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
 </head>
 
 
@@ -36,22 +37,21 @@
     </header>
 
 
-
     <div class="playerContainer" id="main-player-ui-container">
-        <span id="player-close-button" class="close-button">&times;</span>
-        <div id="player-song-detail-header" class="song-detail-header">
-            <img id="player-album-cover" class="album-cover" src="images/image_placeholder.png" alt="Song cover">
+        <span class="close-button" id="player-close-button">&times;</span>
+        <div class="song-detail-header" id="player-song-detail-header">
+            <img alt="Song cover" class="album-cover" id="player-album-cover" src="images/image_placeholder.png">
             <div class="song-info-container">
-                <h2 id="player-song-title" class="song-title">Song Title</h2>
-                <div id="player-song-info" class="song-info">
-                    <p id="player-song-artist" class="song-artist">Artist: </p>
-                    <p id="player-song-album" class="song-album">Album: </p>
-                    <p id="player-song-year" class="song-year">Year: </p>
-                    <p id="player-song-genre" class="song-genre">Genre: </p>
+                <h2 class="song-title" id="player-song-title">Song Title</h2>
+                <div class="song-info" id="player-song-info">
+                    <p class="song-artist" id="player-song-artist">Artist: </p>
+                    <p class="song-album" id="player-song-album">Album: </p>
+                    <p class="song-year" id="player-song-year">Year: </p>
+                    <p class="song-genre" id="player-song-genre">Genre: </p>
                 </div>
             </div>
         </div>
-        <audio id="global-audio-player" class="global-audio-player-styles" controls></audio>
+        <audio class="global-audio-player-styles" controls id="global-audio-player"></audio>
     </div>
 
 

@@ -1,11 +1,11 @@
-import { renderButtons, renderPlaylistView, renderSliderItem, renderSongs, writeSliderHeader } from '../views/playlistView.js';
 import {
-    addSongsToPlaylist,
-    getPlaylists,
-    getPlaylistSongOrder,
-    getSongDetails,
-    getSongs
-} from '../apiService.js';
+    renderButtons,
+    renderPlaylistView,
+    renderSliderItem,
+    renderSongs,
+    writeSliderHeader
+} from '../views/playlistView.js';
+import { addSongsToPlaylist, getPlaylists, getPlaylistSongOrder, getSongDetails, getSongs } from '../apiService.js';
 import { getSongsOrdered } from '../utils/orderUtils.js';
 import { startPlayback } from './playerHandler.js';
 
@@ -16,7 +16,7 @@ import { startPlayback } from './playerHandler.js';
  */
 export async function initPlaylistPage(appContainer, params) {
 
-    const { idplaylist } = params;
+    const {idplaylist} = params;
 
     if (!idplaylist) {
         console.error("Playlist ID is missing from params.");

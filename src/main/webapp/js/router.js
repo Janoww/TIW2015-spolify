@@ -1,5 +1,5 @@
-import {delay} from "./utils/delayUtils.js";
-import {createElement} from "./utils/viewUtils.js";
+import { delay } from "./utils/delayUtils.js";
+import { createElement } from "./utils/viewUtils.js";
 
 let routes = {};
 let appContainerRef = null;
@@ -149,4 +149,4 @@ async function executeHandler(handler, matchedRoutePattern, params) {
     }
 }
 
-export {initRouter, navigate};
+export { initRouter, navigate };

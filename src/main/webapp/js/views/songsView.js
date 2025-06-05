@@ -16,13 +16,13 @@ export function renderSongsView(appContainer) {
     appContainer.innerHTML = '';
     appContainer.style.maxWidth = '100%';
 
-    const songGrid = createElement('div', { className: 'grid song-grid' });
+    const songGrid = createElement('div', {className: 'grid song-grid'});
 
     // Section 1: All Songs
-    const allSongsSection = createElement('section', { id: 'songs' });
+    const allSongsSection = createElement('section', {id: 'songs'});
     allSongsSection.appendChild(createHeaderContainer('All Songs', 'h2'));
 
-    const songListDiv = createElement('div', { className: 'song-list' });
+    const songListDiv = createElement('div', {className: 'song-list'});
 
     const allSongsLoader = createLoaderContainer('Loading songs...', 'all-songs-loader-message')
     songListDiv.appendChild(allSongsLoader);
@@ -30,7 +30,7 @@ export function renderSongsView(appContainer) {
     songGrid.appendChild(allSongsSection);
 
     // Section 2: Upload New Song
-    const uploadSongSection = createElement('section', { id: 'add-song' });
+    const uploadSongSection = createElement('section', {id: 'add-song'});
     uploadSongSection.appendChild(createHeaderContainer('Upload New Song', 'h2'));
 
     const formLoader = createLoaderContainer('Loading song form...', 'song-form-loader-message-songs-page')
@@ -56,7 +56,7 @@ export function renderSongUploadSectionOnSongsPage(sectionContainer, genres, alb
 
     const formElement = createSongUploadFormElement(formId, genres, albumSummaries, error);
 
-    const errorDiv = createElement('div', { className: 'general-error-message', id: errorDivId });
+    const errorDiv = createElement('div', {className: 'general-error-message', id: errorDivId});
 
     sectionContainer.appendChild(errorDiv);
     sectionContainer.appendChild(formElement);
@@ -68,8 +68,8 @@ export function renderSongUploadSectionOnSongsPage(sectionContainer, genres, alb
  * @returns {HTMLElement} The created article element for the song.
  */
 function createSongArticleElement(songWithAlbum) {
-    const songArticle = createElement('article', { className: 'song-item' });
-    const playButton = createElement('button', { id: `song-action-${songWithAlbum.song.idSong}` });
+    const songArticle = createElement('article', {className: 'song-item'});
+    const playButton = createElement('button', {id: `song-action-${songWithAlbum.song.idSong}`});
     playButton.style.display = 'none'; // Or handle visibility via CSS classes
 
     const label = createElement('label', {
@@ -82,12 +82,12 @@ function createSongArticleElement(songWithAlbum) {
 
     const img = document.createElement('img');
     img.src = getSongImageURL(songWithAlbum.song.idSong);
-    img.alt = DOMPurify.sanitize(songWithAlbum.song.title || "Song cover", { ALLOWED_TAGS: [] });
+    img.alt = DOMPurify.sanitize(songWithAlbum.song.title || "Song cover", {ALLOWED_TAGS: []});
     img.onerror = () => {
         img.src = 'images/image_placeholder.png';
     };
 
-    const metadataDiv = createElement('div', { className: 'song-text' });
+    const metadataDiv = createElement('div', {className: 'song-text'});
     const titleH3 = createHeaderContainer(songWithAlbum.song.title, 'h3');
     const artistAlbumP = createParagraphElement(`${songWithAlbum.album.artist} • ${songWithAlbum.album.name}`);
     const genreYearP = createParagraphElement(`${songWithAlbum.song.genre.replace('_', ' ')} • ${songWithAlbum.album.year}`);

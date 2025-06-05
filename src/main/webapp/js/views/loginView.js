@@ -1,5 +1,5 @@
-import {createFormField} from '../utils/formUtils.js';
-import {createElement, createHeaderContainer} from '../utils/viewUtils.js';
+import { createFormField } from '../utils/formUtils.js';
+import { createElement, createHeaderContainer } from '../utils/viewUtils.js';
 
 // Helper function to create a link block (div > p > text + a)
 function createLinkBlock(baseText, linkId, linkTextContent, linkHref = '#') {

@@ -258,7 +258,7 @@ async function setupReorderModalEventListeners(modal, playlistId, initialOrdered
             // Optionally, provide user feedback on successful save
         } catch (error) {
             console.error(`Failed to update playlist order: Status ${error.status}, Message: ${error.message}`, error.details || '');
-            const sanitizedErrorMessage = DOMPurify.sanitize(error.message, { ALLOWED_TAGS: [] });
+            const sanitizedErrorMessage = DOMPurify.sanitize(error.message, {ALLOWED_TAGS: []});
             alert(`Failed to update playlist order: Status ${error.status}, Message: ${sanitizedErrorMessage}`);
         }
 

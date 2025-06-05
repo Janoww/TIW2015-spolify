@@ -1,4 +1,4 @@
-import {createElement} from "./viewUtils.js";
+import { createElement } from "./viewUtils.js";
 
 /**
  * Creates a div element containing a labeled form input field.

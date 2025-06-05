@@ -12,10 +12,10 @@ import { addAlbumSummaryIfNew, extractUniqueAlbumSummaries } from '../utils/orde
 async function _fetchGenresWithDelayInternal() {
     try {
         const [genres,] = await Promise.all([getSongGenres(), delay()]);
-        return { genres, error: null };
+        return {genres, error: null};
     } catch (error) {
         console.error(`Failed to load genres for Songs Page song form: Status ${error.status}, Message: ${error.message}`, error.details || '');
-        return { genres: null, error };
+        return {genres: null, error};
     }
 }
 
@@ -26,10 +26,10 @@ async function _fetchGenresWithDelayInternal() {
 async function _fetchSongsWithDelayInternal() {
     try {
         const [songs,] = await Promise.all([getSongs(), delay()]);
-        return { songs, error: null };
+        return {songs, error: null};
     } catch (error) {
         console.error(`Error loading all user songs for Songs page: Status ${error.status}, Message: ${error.message}`, error.details || '');
-        return { songs: [], error };
+        return {songs: [], error};
     }
 }
 

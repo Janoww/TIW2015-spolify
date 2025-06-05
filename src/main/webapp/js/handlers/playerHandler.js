@@ -95,7 +95,7 @@ export function initPlayer() {
 }
 
 function _decoratePlayer(songWithAlbum) {
-    const { song, album } = songWithAlbum;
+    const {song, album} = songWithAlbum;
 
     const img = document.getElementById('player-album-cover');
     const title = document.getElementById('player-song-title');
@@ -106,7 +106,7 @@ function _decoratePlayer(songWithAlbum) {
 
     if (img) {
         img.src = getSongImageURL(song.idSong);
-        img.alt = DOMPurify.sanitize(song.title || "Song cover", { ALLOWED_TAGS: [] });
+        img.alt = DOMPurify.sanitize(song.title || "Song cover", {ALLOWED_TAGS: []});
         img.onerror = () => {
             img.src = 'images/image_placeholder.png';
             img.alt = 'Song cover placeholder';

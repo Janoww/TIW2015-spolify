@@ -4,5 +4,8 @@
       <option name="HTML_UNIFORM_INDENT" value="true" />
       <option name="HTML_DO_NOT_INDENT_CHILDREN_OF" value="html,thead,tbody,tfoot" />
     </HTMLCodeStyleSettings>
+    <JSCodeStyleSettings version="0">
+      <option name="SPACES_WITHIN_IMPORTS" value="true" />
+    </JSCodeStyleSettings>
   </code_scheme>
 </component>

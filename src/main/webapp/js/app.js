@@ -1,10 +1,10 @@
-import {initRouter, navigate} from './router.js';
-import {initHomePage} from './handlers/homeHandler.js';
-import {initLoginPage, initSignupPage, logoutUser} from './handlers/loginHandler.js';
-import {initPlaylistPage} from './handlers/playlistHandler.js';
-import {checkAuthStatus} from './apiService.js';
-import {initSongPage} from './handlers/songsHandler.js';
-import {createElement} from './utils/viewUtils.js';
+import { initRouter, navigate } from './router.js';
+import { initHomePage } from './handlers/homeHandler.js';
+import { initLoginPage, initSignupPage, logoutUser } from './handlers/loginHandler.js';
+import { initPlaylistPage } from './handlers/playlistHandler.js';
+import { checkAuthStatus } from './apiService.js';
+import { initSongPage } from './handlers/songsHandler.js';
+import { createElement } from './utils/viewUtils.js';
 
 const appContainer = document.getElementById('app');
 

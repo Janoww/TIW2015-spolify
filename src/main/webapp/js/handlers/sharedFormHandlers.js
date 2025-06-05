@@ -1,5 +1,5 @@
-import {validateForm} from '../utils/formUtils.js';
-import {uploadSong} from '../apiService.js';
+import { validateForm } from '../utils/formUtils.js';
+import { uploadSong } from '../apiService.js';
 
 /**
  * Handles the submission of a song upload form.

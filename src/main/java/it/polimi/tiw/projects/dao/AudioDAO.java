@@ -78,7 +78,7 @@ public class AudioDAO {
      * @param originalFileName The original filename provided by the client (used
      *                         for prefix).
      * @return The unique filename (e.g., "filename_uuid.mp3") of the saved audio
-     *         file within the 'song' directory.
+     * file within the 'song' directory.
      * @throws DAOException             If an I/O error occurs during file
      *                                  operations.
      * @throws IllegalArgumentException If the file content is not a valid/supported
@@ -135,7 +135,7 @@ public class AudioDAO {
      *
      * @param audioFile Path to the temporary audio file to validate.
      * @return The canonical file extension (e.g., ".mp3", ".wav") corresponding to
-     *         the detected and allowed MIME type.
+     * the detected and allowed MIME type.
      * @throws IllegalArgumentException if the file is not detected as a supported
      *                                  audio format based on the
      *                                  ALLOWED_MIME_TYPES_MAP.
