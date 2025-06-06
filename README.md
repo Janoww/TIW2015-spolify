@@ -9,7 +9,7 @@ This is a web-based music playlist management application. Users can upload song
 - **Frontend:** HTML, CSS, Thymeleaf (server-side templating)
 - **Backend:** Java Servlets (Jakarta Servlet API 6.1.0)
 - **Web Server:** Apache Tomcat (e.g., 10.1.x or later, compatible with Servlet 6.0+)
-- **Database:** MySQL (e.g., 8.x)
+- **Database:** MySQL
 - **Build Tool:** Apache Maven
 - **Java Version:** JDK 21
 
@@ -19,8 +19,8 @@ Before you begin, ensure you have the following installed:
 
 - Java Development Kit (JDK) 21 or later
 - Apache Maven (e.g., 3.6.x or later)
-- MySQL Server (e.g., 8.x)
-- Apache Tomcat (e.g., 10.1.x or later, compatible with Jakarta EE 10 / Servlet 6.0)
+- MySQL Server
+- Apache Tomcat (e.g., 10.1.x or later)
 
 ## Setup and Installation
 
