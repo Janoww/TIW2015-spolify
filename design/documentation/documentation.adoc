@@ -1,4 +1,4 @@
-= Music Playlist Application - Pure HTML Design Specification
+= Music Playlist Application - Pure HTTP Design Specification
 :doctype: article
 :toc: macro
 :icons: font
@@ -60,8 +60,6 @@ L’utente, previo login, può [.relationships]#creare# brani mediante il carica
 Una playlist è un insieme di brani [.relationships]#scelti# tra quelli caricati dallo stesso utente.
 Lo stesso brano può essere [.relationships]#inserito in più# playlist.
 Una playlist ha un [.attributes]#titolo# e una [.attributes]#data di creazione# ed è [.relationships]#associata# al suo creatore.
-
-<<<
 
 === Database design
 
@@ -193,8 +191,6 @@ A seguito dell’[.events]#aggiunta di un brano# alla playlist corrente, l’app
 Quando l’utente seleziona il titolo di un brano, la [.pages]#PLAYER PAGE# mostra tutti i [.components]#dati del brano# scelto e il [.components]#player audio# per la [.events]#riproduzione del brano#.
 
 
-<<<
-
 === Pages, Components, Events, and Actions Summary
 
 ==== Login/Signup page ( index.html )
@@ -263,8 +259,6 @@ Quando l’utente seleziona il titolo di un brano, la [.pages]#PLAYER PAGE# most
 * [.events]#Back link click#: [.actions]#redirects# to the playlist page.
 
 image::resources/HTMLIFML.svg[Static]
-
-<<<
 
 == Components
 
@@ -679,7 +673,10 @@ Beans are simple Java classes that represent the data model of the application.
 
 [source, Java]
 ----
-//TODO
+InputStream content;
+String filename;
+String mimeType;
+long size;
 ----
 
 ==== Playlist.java
@@ -744,7 +741,6 @@ In this project the only filter used is the `Checker` filter that check if the u
 ==== Song page (`SongInspector.html`)
 * This page displays the details of a specific song and provides an audio player to play the song.
 
-<<<
 
 == Sequence Diagrams
 
@@ -759,7 +755,6 @@ plantuml::puml/diagrams/OpenSongSequenceDiagram.puml[svg]
 plantuml::puml/diagrams/ImageGetterSequenceDiagram.puml[svg]
 plantuml::puml/diagrams/AudioGetterSequenceDiagram.puml[svg]
 plantuml::puml/diagrams/LogoutSequenceDiagram.puml[svg]
-
 
 
 
