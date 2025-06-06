@@ -289,3 +289,5 @@ fabric.properties
 
 design/asciidoc/*.svg
 design/asciidoc/documentation.pdf
+design/documentation/*.svg
+design/documentation/*.pdf
