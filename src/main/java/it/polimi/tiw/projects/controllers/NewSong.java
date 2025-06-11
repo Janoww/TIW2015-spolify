@@ -195,8 +195,7 @@ public class NewSong extends HttpServlet {
         try {
             if (album != null && songDAO.findSongsByUser(userId).stream()
                     .anyMatch(s -> s.getTitle().equals(title))) {
-                // TODO Maybe it is more efficient to create an ad hoc query to find a specific
-                // song
+
                 req.setAttribute("errorNewSongMsg", "The song titled \"" + title + "\" of the album \""
                         + album.getName() + "\" have already been uploaded");
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);

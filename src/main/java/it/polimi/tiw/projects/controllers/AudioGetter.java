@@ -58,8 +58,6 @@ public class AudioGetter extends HttpServlet {
                 return;
             }
 
-            // TODO if we could add a method in SongDAO "boolean userOwnsAudio(UUID userId,
-            // String audoName);" it would be an optimized query
         } catch (DAOException e) {
             logger.error("Database error {}", e.getMessage(), e);
         }

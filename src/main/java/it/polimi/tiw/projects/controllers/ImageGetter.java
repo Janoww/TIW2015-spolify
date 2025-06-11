@@ -55,8 +55,6 @@ public class ImageGetter extends HttpServlet {
                 return;
             }
 
-            // TODO if we could add a method in AlbumDAO "boolean userOwnsImage(UUID userId,
-            // String imageName);" it would be an optimized query
         } catch (DAOException e) {
             logger.error(e.getMessage());
         }
