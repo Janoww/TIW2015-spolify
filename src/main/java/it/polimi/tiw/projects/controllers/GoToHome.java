@@ -53,28 +53,15 @@ public class GoToHome extends HttpServlet {
         List<Song> songList = null;
         List<Genre> genresList = Arrays.asList(Genre.values());
 
+        List<Playlist> playlists = null;
         try {
-            playlistIDs = playlistDAO.findPlaylistIdsByUser(userId);
+            playlists = playlistDAO.findPlaylistsByUser(userId);
             songList = songDAO.findSongsByUser(userId);
             logger.debug("Searched for songs and playlists");
         } catch (DAOException e) {
             logger.error(e.getMessage(), e);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
             return;
-        }
-
-        // Get the list of all playlists
-
-        List<Playlist> playlists = null;
-        if (playlistIDs != null && !playlistIDs.isEmpty()) {
-            playlists = playlistIDs.stream().map(id -> {
-                try {
-                    return playlistDAO.findPlaylistById(id, userId);
-                } catch (DAOException e) {
-                    logger.error(e.getMessage(), e);
-                    return null;
-                }
-            }).filter(Objects::nonNull).sorted(Comparator.comparing(Playlist::getBirthday).reversed()).toList();
         }
 
         WebContext ctx = TemplateHandler.getWebContext(req, resp, getServletContext());

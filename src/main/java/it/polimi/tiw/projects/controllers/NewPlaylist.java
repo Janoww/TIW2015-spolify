@@ -96,13 +96,12 @@ public class NewPlaylist extends HttpServlet {
 
         String name = req.getParameter("pName").strip();
 
-        List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect")).map(Integer::parseInt)
-                .collect(Collectors.toList());
+        List<Integer> songIDs = Arrays.stream(req.getParameterValues("songsSelect")).map(Integer::parseInt).toList();
 
         Playlist playlist;
         try {
             // Search for a playlist with the same name
-            List<Integer> listOfPlaylists = playlistDAO.findPlaylistIdsByUser(userId);
+            List<Playlist> listOfPlaylists = playlistDAO.findPlaylistsByUser(userId);
             playlist = findPlaylistByName(playlistDAO, listOfPlaylists, name, userId);
         } catch (DAOException e) {
             logger.error("Error in database: {}", e.getMessage(), e);
@@ -114,29 +113,25 @@ public class NewPlaylist extends HttpServlet {
             // Let's create a new playlist
             try {
                 playlistDAO.createPlaylist(name, userId, songIDs);
-            } catch (SQLException e) {
-                logger.error("Error in database: {}", e.getMessage(), e);
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
-                return;
             } catch (DAOException e) {
                 switch (e.getErrorType()) {
-                    case NOT_FOUND: {
-                        req.setAttribute("errorNewPlaylistMsg", "One of the song you selected was not found");
-                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        req.getRequestDispatcher("/Home").forward(req, resp);
-                        return;
-                    }
-                    case DUPLICATE_ENTRY: {
-                        req.setAttribute("errorNewPlaylistMsg", "You selected two times the same song");
-                        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        req.getRequestDispatcher("/Home").forward(req, resp);
-                        return;
-                    }
-                    default: {
-                        logger.error("Error in database: {}", e.getMessage(), e);
-                        resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
-                        return;
-                    }
+                case NOT_FOUND: {
+                    req.setAttribute("errorNewPlaylistMsg", "One of the song you selected was not found");
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    req.getRequestDispatcher("/Home").forward(req, resp);
+                    return;
+                }
+                case DUPLICATE_ENTRY: {
+                    req.setAttribute("errorNewPlaylistMsg", "You selected two times the same song");
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    req.getRequestDispatcher("/Home").forward(req, resp);
+                    return;
+                }
+                default: {
+                    logger.error("Error in database: {}", e.getMessage(), e);
+                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in the database");
+                    return;
+                }
                 }
             }
         } else {
@@ -161,15 +156,8 @@ public class NewPlaylist extends HttpServlet {
         }
     }
 
-    private Playlist findPlaylistByName(PlaylistDAO dao, List<Integer> list, String name, UUID userId)
-            throws DAOException {
-        for (int id : list) {
-            Playlist playlist = dao.findPlaylistById(id, userId);
-            if (playlist.getName().equalsIgnoreCase(name)) {
-                return playlist;
-            }
-        }
-        return null;
+    private Playlist findPlaylistByName(PlaylistDAO dao, List<Playlist> list, String name, UUID userId) {
+        return list.stream().filter(playlist -> playlist.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
 }
